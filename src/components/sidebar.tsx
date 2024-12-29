@@ -1,84 +1,132 @@
-import React from "react";
-import { Box, List, ListItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
-import { NavLink } from "react-router-dom";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PublicIcon from "@mui/icons-material/Public";
-import WaterIcon from "@mui/icons-material/Water";
-import WcIcon from "@mui/icons-material/Wc";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LogoutIcon from "@mui/icons-material/Logout";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import ReportIcon from "@mui/icons-material/Report";
-import MonitorIcon from "@mui/icons-material/Monitor";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  Divider
+} from '@mui/material';
+import { NavLink } from 'react-router-dom';
+import {
+  Dashboard,
+  LocationOn,
+  Public,
+  WaterDrop,
+  Wc,
+  Delete,
+  Waves,
+  MonitorHeart,
+  Visibility,
+  Assignment,
+  Logout
+} from '@mui/icons-material';
 
-export default function Sidebar() {
-  const links = [
-    { label: "Dashboard", icon: <DashboardIcon />, path: "/" },
-    { label: "Location Information", icon: <LocationOnIcon />, path: "/location-info" },
-    { label: "Public Space Types", icon: <PublicIcon />, path: "/public-space-types" },
-    { label: "Water Source Information", icon: <WaterIcon />, path: "/water-source-info" },
-    { label: "Toilet Facilities", icon: <WcIcon />, path: "/toilet-facilities" },
-    { label: "Dump Sites", icon: <DeleteIcon />, path: "/dump-sites" },
-    { label: "Distance Monitoring for Risks", icon: <MonitorIcon />, path: "/distance-monitoring" },
-    { label: "Open Defecation Observation", icon: <VisibilityIcon />, path: "/open-defecation" },
-    { label: "Immediate Needs & Recommendations", icon: <ReportIcon />, path: "/immediate-needs" },
+const SideBar = () => {
+  const menuItems = [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+    { text: 'Location Information', icon: <LocationOn />, path: '/location-info' },
+    { text: 'Public Space Types', icon: <Public />, path: '/public-space-types' },
+    { text: 'Water Source Information', icon: <WaterDrop />, path: '/water-source-info' },
+    { text: 'Toilet Facilities', icon: <Wc />, path: '/toilet-facilities' },
+    { text: 'Dump Sites', icon: <Delete />, path: '/dump-sites' },
+    { text: 'Gutters', icon: <Waves />, path: '/gutters' },
+    { text: 'Soakaways', icon: <Waves />, path: '/soak-aways' },
+    { text: 'Distance Monitoring for Risks', icon: <MonitorHeart />, path: '/distance-monitor' },
+    { text: 'Open Defecation Observation', icon: <Visibility />, path: '/open-defecation' },
+    { text: 'Immediate Needs & Recommendations', icon: <Assignment />, path: '/needs-and-recommendation' }
   ];
 
   return (
-    <Box
-      sx={{
-        flexShrink: 0,
-        width: 300,
-        bgcolor: "white",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        p: 2,
-      }}
-    >
-      <Box>
-        <Box sx={{ display: "flex", alignItems: "center", p: 2 }}>
-          <img
-            src="/logo.svg"
-            alt="Logo"
-            style={{ width: "100%", height: "100%" }}
-          />
-        </Box>
-        <List sx={{ height: "100%", overflow: "auto" }}>
-          {links.map((link, index) => (
-            <ListItem
-              button
-              key={index}
+    <Box sx={{ 
+      width: 280, 
+      bgcolor: 'white', 
+      height: '100%',
+      boxShadow: 1,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Logo */}
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <img 
+          src="/logo.svg" 
+          alt="WashPro Logo" 
+          style={{ 
+            width: 250,
+            objectFit: 'contain'
+          }}
+        />
+      </Box>
+
+      {/* Navigation Items */}
+      <List sx={{ flex: 1, pt: 0 }}>
+        {menuItems.map((item, index) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
               component={NavLink}
-              to={link.path}
+              to={item.path}
               style={({ isActive }) => ({
-                backgroundColor: isActive ? "#E3F2FD" : "transparent",
-                color: isActive ? "#25306B" : "#666",
+                backgroundColor: isActive ? '#1e40af' : 'transparent',
+                color: isActive ? 'white' : '#666',
               })}
               sx={{
-                "&.Mui-selected, &.Mui-selected:hover": {
-                  backgroundColor: "#E3F2FD",
-                  color: "#25306B",
+                py: 1.5,
+                '&.Mui-selected': {
+                  bgcolor: '#1e40af',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: '#1e40af'
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: 'white'
+                  }
                 },
-                "&:hover": { backgroundColor: "#F3F4F6" },
+                '&:hover': {
+                  bgcolor: 'rgba(30, 64, 175, 0.04)'
+                }
               }}
             >
-              <ListItemIcon>{link.icon}</ListItemIcon>
-              <ListItemText primary={link.label} />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-      <Box>
-        <Divider />
-        <ListItem button>
-          <ListItemIcon>
-            <LogoutIcon color="error" />
+              <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontSize: '0.875rem',
+                  fontWeight: index === 0 ? 500 : 400
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+
+      {/* Logout Button */}
+      <Divider />
+      <ListItem disablePadding>
+        <ListItemButton
+          sx={{
+            py: 1.5,
+            color: '#ef4444',
+            '&:hover': {
+              bgcolor: 'rgba(239, 68, 68, 0.04)'
+            }
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+            <Logout />
           </ListItemIcon>
-          <ListItemText primary="Logout" />
-        </ListItem>
-      </Box>
+          <ListItemText 
+            primary="Logout"
+            primaryTypographyProps={{
+              fontSize: '0.875rem',
+              color: 'inherit'
+            }}
+          />
+        </ListItemButton>
+      </ListItem>
     </Box>
   );
-}
+};
+
+export default SideBar;
