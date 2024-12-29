@@ -1,279 +1,180 @@
 import {
   Box,
   Button,
-  Typography,
-  TextField,
-  MenuItem,
   Card,
-  CardContent,
+  Container,
+  FormControl,
   Grid,
   LinearProgress,
-} from "@mui/material";
-import FilterAltIcon from "@mui/icons-material/FilterAlt";
-import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import ExploreIcon from "@mui/icons-material/Explore";
-import Map from "/map.svg";
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
+import {
+  FilterAlt,
+  Add,
+  Visibility,
+} from '@mui/icons-material';
 
-const PublicSpaceTypes = () => {
-  const spaceTypes = ["Schools", "Parks", "Markets", "Community Centers"];
-  const districts = ["District 1", "District 2", "District 3"];
-  const statuses = ["Active", "Inactive", "Under Development"];
-  const statistics: {
-    label: string;
-    value: number;
-    color: "primary" | "success" | "warning" | "secondary";
-  }[] = [
-    { label: "Schools", value: 245, color: "primary" },
-    { label: "Parks", value: 180, color: "success" },
-    { label: "Markets", value: 120, color: "warning" },
-    { label: "Community Centers", value: 95, color: "secondary" },
+const PublicSpaces = () => {
+  const distributionData = [
+    { type: 'Schools', count: 245, color: '#40BFFF' },
+    { type: 'Parks', count: 180, color: '#4CAF50' },
+    { type: 'Markets', count: 120, color: '#FF9800' },
+    { type: 'Community Centers', count: 95, color: '#9C27B0' },
   ];
 
-  return (
-    <Box
+  const CustomLinearProgress = ({ value, color }) => (
+    <LinearProgress
+      variant="determinate"
+      value={(value / 245) * 100} // Using max value (245) as reference
       sx={{
-        padding: 2,
-        bgcolor: "#f8f9fc",
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#f0f0f0',
+        '& .MuiLinearProgress-bar': {
+          backgroundColor: color,
+          borderRadius: 4,
+        },
       }}
-    >
+    />
+  );
+
+  return (
+    <Container maxWidth="xl" sx={{ py: 4, bgcolor: '#f8f9fa' }}>
       {/* Header */}
-      <Box
-        sx={{
-          marginBottom: 4,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: "bold", color: "#444" }}>
+          <Typography variant="h5" fontWeight="600" color="primary.dark" gutterBottom>
             Public Space Types
           </Typography>
-          <Typography variant="body2" sx={{ color: "#666" }}>
+          <Typography variant="body2" color="text.secondary">
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box>
           <Button
             variant="outlined"
-            color="primary"
-            size="medium"
-            startIcon={<FilterAltIcon />}
-            sx={{
-              textTransform: "none",
-              borderColor: "#ccc",
-              color: "#666",
-              "&:hover": { borderColor: "#aaa", backgroundColor: "#f0f0f0" },
-              height: "48px",
-            }}
+            startIcon={<FilterAlt />}
+            sx={{ mr: 2 }}
           >
             Filter
           </Button>
           <Button
             variant="contained"
-            color="primary"
-            size="medium"
-            sx={{
-              textTransform: "none",
-              bgcolor: "#00bcd4",
-              "&:hover": { bgcolor: "#0097a7" },
-              height: "48px",
-            }}
+            startIcon={<Add />}
+            color="info"
           >
-            + Add Space
+            Add Space
           </Button>
         </Box>
       </Box>
 
       {/* Filters */}
-      <Grid
-        container
-        spacing={0.2}
-        sx={{
-          padding: 3,
-          borderRadius: 2,
-          bgcolor: "#ffffff",
-          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-          marginBottom: 4,
-          ml: 0.2,
-        }}
-      >
-        <Grid item xs={12} md={4}>
-          <TextField
-            select
-            label="Space Type"
-            fullWidth
-            size="small"
-            sx={{
-              bgcolor: "#f6f7f9",
-              height: "48px", // Ensures consistent height
-            }}
-          >
-            {spaceTypes.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </TextField>
+      <Card sx={{ p: 2, mb: 4 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2" gutterBottom>Space Type</Typography>
+            <FormControl fullWidth>
+              <Select
+                displayEmpty
+                variant="outlined"
+                size="small"
+              >
+                <MenuItem value="">Select space type</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2" gutterBottom>District</Typography>
+            <FormControl fullWidth>
+              <Select
+                displayEmpty
+                variant="outlined"
+                size="small"
+              >
+                <MenuItem value="">Select district</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2" gutterBottom>Status</Typography>
+            <FormControl fullWidth>
+              <Select
+                displayEmpty
+                variant="outlined"
+                size="small"
+              >
+                <MenuItem value="">Select status</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <TextField
-            select
-            label="District"
-            fullWidth
-            size="small"
-            sx={{
-              bgcolor: "#f6f7f9",
-              height: "48px", // Ensures consistent height
-            }}
-          >
-            {districts.map((district) => (
-              <MenuItem key={district} value={district}>
-                {district}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <TextField
-            select
-            label="Status"
-            fullWidth
-            size="small"
-            sx={{
-              bgcolor: "#f6f7f9",
-              height: "48px", // Ensures consistent height
-            }}
-          >
-            {statuses.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-      </Grid>
+      </Card>
 
       {/* Main Content */}
       <Grid container spacing={3}>
-        {/* Statistics Section */}
+        {/* Distribution Statistics */}
         <Grid item xs={12} md={4}>
-          <Card
-            sx={{
-              borderRadius: 2,
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              padding: 2,
-              bgcolor: "#ffffff",
-            }}
-          >
-            <CardContent>
-              <Typography
-                variant="body1"
-                sx={{ fontWeight: "bold", color: "#333", marginBottom: 2 }}
-              >
-                Distribution Statistics
-              </Typography>
-              {statistics.map((stat, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    marginBottom: index < statistics.length - 1 ? 3 : 0,
-                    padding: 1.5,
-                    borderRadius: 2,
-                    bgcolor: "none",
-                    borderStyle: "solid",
-                    borderColor: "#E5E7EB",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: "bold", color: "#666" }}
-                    >
-                      {stat.label}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: "bold", color: stat.color }}
-                    >
-                      {stat.value}
+          <Card sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Distribution Statistics
+            </Typography>
+            <Box sx={{ mt: 3 }}>
+              {distributionData.map((item) => (
+                <Box key={item.type} sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">{item.type}</Typography>
+                    <Typography variant="body2" color="primary" fontWeight="500">
+                      {item.count}
                     </Typography>
                   </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(stat.value / 300) * 100}
-                    color={stat.color}
-                    sx={{
-                      height: 8,
-                      borderRadius: 5,
-                      backgroundColor: "#e0e0e0",
-                    }}
-                  />
+                  <CustomLinearProgress value={item.count} color={item.color} />
                 </Box>
               ))}
-            </CardContent>
+            </Box>
           </Card>
         </Grid>
 
-        {/* Location Distribution Section */}
+        {/* Map Section */}
         <Grid item xs={12} md={8}>
-          <Card
-            sx={{
-              height: "100%", // Ensure consistent height
-            }}
-          >
-            <CardContent>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                  Location Distribution
-                </Typography>
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#2CBEEF", textTransform: "none" }}
-                  >
-                    <InsertDriveFileIcon sx={{ mr: 1 }} />
-                    View Report
-                  </Button>
-                  <Button
-                    variant="contained"
-                    sx={{ textTransform: "none", bgcolor: "#16A34A" }}
-                  >
-                    <ExploreIcon sx={{ mr: 1 }} />
-                    Start Exploration
-                  </Button>
-                </Box>
+          <Card>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Location Distribution</Typography>
+              <Box>
+                <Button
+                  variant="contained"
+                  startIcon={<Visibility />}
+                  color="info"
+                  sx={{ mr: 1 }}
+                >
+                  View Report
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  color="success"
+                >
+                  Start Exploration
+                </Button>
               </Box>
-              <Box
-                sx={{
-                  height: { xs: 200, md: 300 },
-                  backgroundImage: `url(${Map})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  borderRadius: 2,
-                  position: "relative",
-                }}
-              />
-            </CardContent>
+            </Box>
+            <Box 
+              sx={{ 
+                height: 400, 
+                bgcolor: '#f5f5f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Typography color="text.secondary">Map View</Typography>
+            </Box>
           </Card>
         </Grid>
       </Grid>
-    </Box>
+    </Container>
   );
 };
 
-export default PublicSpaceTypes;
+export default PublicSpaces;

@@ -1,299 +1,227 @@
+import React from 'react';
 import {
-    Box,
-    Grid,
-    Card,
-    CardContent,
-    Typography,
-    Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-  } from "@mui/material";
-  import FilterAltIcon from "@mui/icons-material/FilterAlt";
-  import DownloadIcon from "@mui/icons-material/Download";
-  import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-  import ErrorIcon from "@mui/icons-material/Error";
-  
-  const metricCards = [
-    {
-      title: "Total Units",
-      value: "85",
-      image: "/svg/well.svg",
-      bgColor: "#e3f2fd",
-    },
-    {
-      title: "Functional",
-      value: "77",
-      image: "/svg/hand.svg",
-      bgColor: "#e8f5e9",
-    },
-    {
-      title: "Under Repair",
-      value: "7",
-      image: "/svg/fix.svg",
-      bgColor: "#fffde7",
-    },
-  ];
-  
-  const tableData = [
-    { type: "Western Style", count: 50, status: "Operational" },
-    { type: "Eastern Style", count: 30, status: "Maintenance" },
-    { type: "Accessible", count: 20, status: "Operational" },
-  ];
-  
-  const maintenanceStatus = [
-    {
-      label: "Well Maintained",
-      value: "75%",
-      color: "#e8f5e9",
-      icon: <CheckCircleIcon sx={{ color: "#16A34A" }} />,
-    },
-    {
-      label: "Needs Attention",
-      value: "25%",
-      color: "#ffebee",
-      icon: <ErrorIcon sx={{ color: "#D32F2F" }} />,
-    },
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  IconButton,
+  Chip,
+  Grid,
+  LinearProgress,
+  Pagination,
+  ToggleButton,
+  ToggleButtonGroup
+} from '@mui/material';
+import { MoreVert, FilterList, FullscreenOutlined, MoreHoriz } from '@mui/icons-material';
+
+const GutterDashboard = () => {
+  const [timeframe, setTimeframe] = React.useState('monthly');
+
+  const distributionData = [
+    { type: 'Constructed', value: 245, color: '#00bcd4' },
+    { type: 'Surface', value: 180, color: '#4caf50' },
+    { type: 'Dug', value: 120, color: '#ffc107' }
   ];
 
-  const quickActions = [
-    { label: "Report Issue", color: "#e3f2fd", image: "/svg/caution.svg" },
-    { label: "Schedule Cleaning", color: "#f3e8ff", image: "/svg/calan.svg" },
-    { label: "Maintenance Log", color: "#e8f5e9", image: "/svg/calac.svg" },
-    { label: "View Analytics", color: "#fff7e6", image: "/svg/fix.svg" },
+  const maintenanceData = [
+    { 
+      id: 'North Valley Site',
+      location: 'North District',
+      type: 'Constructed',
+      status: 'Maintained',
+      lastMaintenance: '2 hours ago'
+    },
+    {
+      id: 'East End Facility',
+      location: 'East Zone',
+      type: 'Surface',
+      status: 'Needs Attention',
+      lastMaintenance: '1 day ago'
+    }
   ];
-  
-  
-  const ToiletFacilities = () => {
-    return (
-      <Box sx={{ padding: 4, bgcolor: "#f8f9fc" }}>
-        {/* Header Section */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 4,
-          }}
-        >
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: "bold", color: "#25306B" }}>
-              Toilet Facilities
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#666" }}>
-              Detailed insights about your selected location
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<FilterAltIcon sx={{ color: "#1F2937" }} />}
-              sx={{
-                textTransform: "none",
-                height: 48,
-                borderColor: "#ccc",
-                color: "#666",
-                "&:hover": {
-                  borderColor: "#aaa",
-                  backgroundColor: "#f0f0f0",
-                },
-              }}
-            >
-              Filter
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              sx={{
-                bgcolor: "#2CBEEF",
-                "&:hover": { bgcolor: "#1993b6" },
-              }}
-            >
-              Export Report
-            </Button>
-          </Box>
+
+  return (
+    <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <div>
+          <Typography variant="h5" sx={{ mb: 1 }}>Gutters</Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Detailed insights about your selected location
+          </Typography>
+        </div>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button startIcon={<FilterList />} variant="outlined">
+            Filter
+          </Button>
+          <Button variant="contained" sx={{ bgcolor: '#00bcd4' }}>
+            + Add New Site
+          </Button>
         </Box>
-  
-        {/* Metric Cards */}
-        <Grid container spacing={3} sx={{ marginBottom: 4 }}>
-          {metricCards.map((card, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: 2,
-                  borderRadius: 2,
-                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                  bgcolor: "#fff",
-                }}
-              >
-                <Box>
-                  <Typography variant="body2" sx={{ color: "#666" }}>
-                    {card.title}
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
-                    {card.value}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "12px",
-                    bgcolor: card.bgColor,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "hidden",
-                  }}
+      </Box>
+
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Total Site</Typography>
+              <Typography variant="h4">24</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Maintained</Typography>
+              <Typography variant="h4" sx={{ color: '#4caf50' }}>14</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Overfilled</Typography>
+              <Typography variant="h4" sx={{ color: '#f44336' }}>3</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary">Unmaintained</Typography>
+              <Typography variant="h4" sx={{ color: '#ff9800' }}>7</Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={4}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Gutter Type Distribution</Typography>
+                <ToggleButtonGroup
+                  size="small"
+                  value={timeframe}
+                  exclusive
+                  onChange={(e, value) => setTimeframe(value)}
                 >
-                  <img
-                    src={card.image}
-                    alt={card.title}
-                    style={{
-                      width: "70%",
-                      height: "auto",
+                  <ToggleButton value="monthly">Monthly</ToggleButton>
+                  <ToggleButton value="yearly">Yearly</ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+              {distributionData.map((item) => (
+                <Box key={item.type} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography>{item.type}</Typography>
+                    <Typography color="text.secondary">{item.value}</Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(item.value / 245) * 100}
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      bgcolor: `${item.color}20`,
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: item.color
+                      }
                     }}
                   />
                 </Box>
-              </Card>
-            </Grid>
-          ))}
+              ))}
+            </CardContent>
+          </Card>
         </Grid>
-  
-        {/* Table and Maintenance Status */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: "bold" }}>
-                  Toilet Types Overview
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Count</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {tableData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{row.type}</TableCell>
-                          <TableCell>{row.count}</TableCell>
-                          <TableCell>
-                            <Typography
-                              sx={{
-                                padding: "4px 8px",
-                                borderRadius: "12px",
-                                backgroundColor:
-                                  row.status === "Operational" ? "#e8f5e9" : "#fffde7",
-                                color:
-                                  row.status === "Operational" ? "#16A34A" : "#EAB308",
-                                fontWeight: "bold",
-                                fontSize: "12px",
-                                display: "inline-block",
-                              }}
-                            >
-                              {row.status}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ height: "100%" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: "bold" }}>
-                  Maintenance Status
-                </Typography>
-                {maintenanceStatus.map((status, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      padding: 2,
-                      borderRadius: 2,
-                      bgcolor: status.color,
-                      marginBottom: index < maintenanceStatus.length - 1 ? 2 : 0,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      {status.label}
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
-                      {status.value}
-                    </Typography>
-                    {status.icon}
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
+        <Grid item xs={8}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Gutter Location Map</Typography>
+                <Box>
+                  <IconButton>
+                    <FullscreenOutlined />
+                  </IconButton>
+                  <IconButton>
+                    <MoreHoriz />
+                  </IconButton>
+                </Box>
+              </Box>
+              <Box sx={{ height: '300px', bgcolor: '#f5f5f5', borderRadius: 1, p: 2 }}>
+                <Typography color="text.secondary">Map Component Placeholder</Typography>
+                <Box sx={{ position: 'absolute', bottom: '40px', left: '40px' }}>
+                  <Paper sx={{ p: 1 }}>
+                    <Typography variant="body2">⬤ Sample Points</Typography>
+                    <Typography variant="body2">▢ Density Areas</Typography>
+                  </Paper>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
-  
-        {/* Quick Actions */}
-        <Card sx={{ marginTop: 4 }}>
-  <CardContent>
-    <Typography variant="h6" sx={{ marginBottom: 2, fontWeight: "bold" }}>
-      Quick Actions
-    </Typography>
-    <Grid container spacing={3}>
-      {quickActions.map((action, index) => (
-        <Grid item xs={12} sm={6} key={index}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              padding: 2,
-              borderRadius: 2,
-              bgcolor: action.color,
-              textAlign: "center",
-              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-              cursor: "pointer",
-              "&:hover": {
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
-              },
-            }}
-          >
-            <img
-              src={action.image}
-              alt={action.label}
-              style={{
-                width: "24px",
-                height: "24px",
-                marginRight: "8px",
-              }}
-            />
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: "bold", color: "#25306B" }}
-            >
-              {action.label}
-            </Typography>
+      </Grid>
+
+      <Paper>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">Maintenance Status</Typography>
+          <Box>
+            <Button startIcon={<FilterList />}>Filter</Button>
+            <Button>Export</Button>
           </Box>
-        </Grid>
-      ))}
-    </Grid>
-  </CardContent>
-</Card>      </Box>
-    );
-  };
-  
-  export default ToiletFacilities;
-  
+        </Box>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>IC</TableCell>
+                <TableCell>LOCATION</TableCell>
+                <TableCell>TYPE</TableCell>
+                <TableCell>STATUS</TableCell>
+                <TableCell>LAST MAINTENANCE</TableCell>
+                <TableCell>ACTIONS</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {maintenanceData.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.id}</TableCell>
+                  <TableCell>{row.location}</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={row.status}
+                      color={row.status === 'Maintained' ? 'success' : 'warning'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>{row.lastMaintenance}</TableCell>
+                  <TableCell>
+                    <IconButton>
+                      <MoreVert />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            Showing 1 to 2 of 1,234 entries
+          </Typography>
+          <Pagination count={3} color="primary" />
+        </Box>
+      </Paper>
+    </Box>
+  );
+};
+
+export default GutterDashboard;

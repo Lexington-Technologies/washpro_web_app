@@ -1,312 +1,235 @@
+import { 
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Typography,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
 import {
-    Box,
-    Typography,
-    Grid,
-    Card,
-    CardContent,
-    Button,
-    IconButton,
-    Avatar,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-  } from "@mui/material";
-  import LocationOnIcon from "@mui/icons-material/LocationOn";
-  import BusinessIcon from "@mui/icons-material/Business";
-  import PeopleIcon from "@mui/icons-material/People";
-  import AccessTimeIcon from "@mui/icons-material/AccessTime";
-  import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-  import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-  import Map from "/map.svg";
-  import GetAppIcon from "@mui/icons-material/GetApp";
-  import { MoreHoriz, InsertDriveFile as InsertDriveFileIcon, Explore as ExploreIcon, PersonAdd as PersonAddIcon } from "@mui/icons-material";
-  
-  const LocationInfo = () => {
-    return (
-      <Box sx={{ p: 3, bgcolor: "#f8f9fc" }}>
-        {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Box>
-              <Typography variant="h5" fontWeight="bold" color="#25306B">
-                Location Information
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Detailed insights about your selected location
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography variant="body2" color="textSecondary" sx={{ mr: 2 }}>
-                Compare with previous period
-              </Typography>
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: "#17c1e8",
-                  textTransform: "none",
-                  boxShadow: "none",
-                }}
-                startIcon={<GetAppIcon />}
-              >
-                Export
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-  
-        {/* Performance Metrics Section */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" fontSize={20} color="#1F2937" sx={{ mb: 2 }}>
-            Performance Metrics
+  LocationOn,
+  Business,
+  People,
+  AccessTime,
+  MoreHoriz,
+  Visibility,
+  Add,
+} from '@mui/icons-material';
+
+const LocationDashboard = () => {
+  const activities = [
+    {
+      title: 'New Employee Onboarding',
+      description: '5 new employees joined the office',
+      time: '2 hours ago',
+      icon: <People sx={{ bgcolor: '#e3f2fd', borderRadius: '50%', p: 1 }} />
+    },
+    {
+      title: 'Performance Review',
+      description: 'Monthly performance metrics updated',
+      time: '1 day ago',
+      icon: <Visibility sx={{ bgcolor: '#e8f5e9', borderRadius: '50%', p: 1 }} />
+    }
+  ];
+
+  return (
+    <Container maxWidth="xl" sx={{ py: 4, bgcolor: '#f8f9fa' }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h5" fontWeight="600" color="primary.dark" gutterBottom>
+            Location Information
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    Funding
-                  </Typography>
-                  <Typography fontWeight="bold" variant="h5" sx={{ mt: 2 }}>
-                    ₦1.2M
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="success.main"
-                    sx={{ display: "flex", alignItems: "center", mt: 1 }}
-                  >
-                    <TrendingUpIcon fontSize="small" sx={{ mr: 1 }} />
-                    12.5% increase
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    Expenses
-                  </Typography>
-                  <Typography fontWeight="bold" variant="h5" sx={{ mt: 2 }}>
-                    ₦436K
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="error.main"
-                    sx={{ display: "flex", alignItems: "center", mt: 1 }}
-                  >
-                    <TrendingDownIcon fontSize="small" sx={{ mr: 1 }} />
-                    3.2% decrease
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    Utilization
-                  </Typography>
-                  <Typography fontWeight="bold" variant="h5" sx={{ mt: 2 }}>
-                    46%
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="success.main"
-                    sx={{ display: "flex", alignItems: "center", mt: 1 }}
-                  >
-                    <TrendingUpIcon fontSize="small" sx={{ mr: 1 }} />
-                    5.3% increase
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          <Typography variant="body2" color="text.secondary">
+            Detailed insights about your selected location
+          </Typography>
         </Box>
-  
-        {/* Location Overview Section */}
-        <Box sx={{ mb: 4}}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4} > 
-              <Card>
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 7.5,
-                    }}
-                  >
-                    <Typography variant="body1">Location Overview</Typography>
-                    <IconButton>
-                      <MoreHoriz />
-                    </IconButton>
-                  </Box>
-  
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    <BusinessIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      Kudan Local Government Secretariat
-                    </Typography>
-                  </Box>
-  
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    <LocationOnIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      Town, Kudan LGA Area, Kaduna State.
-                    </Typography>
-                  </Box>
-  
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    <PeopleIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      150+ employees
-                    </Typography>
-                  </Box>
-  
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <AccessTimeIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      West Africa Time (WAT), UTC +1
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-  
-            <Grid item xs={12} md={8}>
-              <Card>
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 2,
-                    }}
-                  >
-                    <Typography variant="body1">Location Distribution</Typography>
-                    <Box>
-                    <Button variant="contained" sx={{ backgroundColor: '#2CBEEF' }}>
-                    <InsertDriveFileIcon sx={{ mr: 1 }} />
-                    View Report
-                    </Button>
-                    <Button variant="contained" color="success" sx={{ ml: 2 }}>
-                    <ExploreIcon sx={{ mr: 1 }} />
-                    Start Exploration
-                    </Button>
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      height: { xs: 150, md: 200 },
-                      backgroundImage: `url(${Map})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      borderRadius: 2,
-                      position: "relative",
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+        <Box>
+          <Button variant="text" sx={{ mr: 2 }}>
+            Compare with previous period
+          </Button>
+          <Button
+            variant="contained"
+            color="info"
+            startIcon={<Add />}
+          >
+            Export
+          </Button>
         </Box>
-  
-        {/* Recent Activity Section */}
-        <Box sx={{ mb: 4 }}>
-          <Card sx={{ borderRadius: 3, boxShadow: 2, overflow: "hidden" }}>
+      </Box>
+
+      {/* Performance Metrics */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={4}>
+          <Card>
             <CardContent>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography variant="h6">Recent Activity</Typography>
-                <Typography
-                  variant="body2"
-                  color="primary"
-                  sx={{ cursor: "pointer" }}
-                >
-                  View All
-                </Typography>
+              <Typography color="text.secondary" gutterBottom>
+                Funding
+              </Typography>
+              <Typography variant="h4" component="div" gutterBottom>
+                ₦1.2M
+              </Typography>
+              <Typography color="success.main" variant="body2">
+                +12.5%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Expenses
+              </Typography>
+              <Typography variant="h4" component="div" gutterBottom>
+                ₦436K
+              </Typography>
+              <Typography color="error.main" variant="body2">
+                -3.2%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Utilization
+              </Typography>
+              <Typography variant="h4" component="div" gutterBottom>
+                46%
+              </Typography>
+              <Typography color="success.main" variant="body2">
+                +5.3%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Location Details and Map */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Location Overview</Typography>
+                <MoreHoriz />
               </Box>
               <List>
-                <ListItem
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: "primary.light" }}>
-                      <PersonAddIcon sx={{ color: "#DBE1FF", fontSize: 30 }} />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary="New Employee Onboarding"
-                      secondary="5 new employees joined the office"
-                      primaryTypographyProps={{ variant: "body1" }}
-                      secondaryTypographyProps={{
-                        variant: "body2",
-                        color: "textSecondary",
-                      }}
-                    />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    sx={{ whiteSpace: "nowrap" }}
-                  >
-                    2 hours ago
-                  </Typography>
+                <ListItem>
+                  <ListItemIcon>
+                    <Business />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Office Name"
+                    secondary="Kudan Local Government Secretariat"
+                  />
                 </ListItem>
-  
-                <ListItem
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: "#16A34A" }}>
-                      <TrendingUpIcon sx={{ color: "success" }} />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary="Performance Review"
-                      secondary="Monthly performance metrics updated"
-                      primaryTypographyProps={{ variant: "body1" }}
-                      secondaryTypographyProps={{
-                        variant: "body2",
-                        color: "textSecondary",
-                      }}
-                    />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    sx={{ whiteSpace: "nowrap" }}
-                  >
-                    1 day ago
-                  </Typography>
+                <ListItem>
+                  <ListItemIcon>
+                    <LocationOn />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Address"
+                    secondary="Town, Kudan LGA Area, Kaduna State."
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <People />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Total Employees"
+                    secondary="150+"
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <AccessTime />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Time Zone"
+                    secondary="West Africa Time (WAT), UTC +1"
+                  />
                 </ListItem>
               </List>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
+
+        <Grid item xs={12} md={8}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Location Distribution</Typography>
+                <Box>
+                  <Button 
+                    variant="contained" 
+                    color="info"
+                    startIcon={<Visibility />}
+                    sx={{ mr: 1 }}
+                  >
+                    View Report
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="success"
+                    startIcon={<Add />}
+                  >
+                    Start Exploration
+                  </Button>
+                </Box>
+              </Box>
+              <Box 
+                sx={{ 
+                  height: 300, 
+                  bgcolor: '#f5f5f5', 
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography color="text.secondary">Map View</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Recent Activity */}
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6">Recent Activity</Typography>
+        <Button color="primary">View All</Button>
       </Box>
-    );
-  };
-  
-  export default LocationInfo;
-  
+      <Card>
+        <List>
+          {activities.map((activity, index) => (
+            <ListItem key={index} sx={{ borderBottom: index < activities.length - 1 ? 1 : 0, borderColor: 'divider' }}>
+              <ListItemIcon>
+                {activity.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={activity.title}
+                secondary={activity.description}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {activity.time}
+              </Typography>
+            </ListItem>
+          ))}
+        </List>
+      </Card>
+    </Container>
+  );
+};
+
+export default LocationDashboard;

@@ -1,254 +1,223 @@
-import {
+import { 
   Box,
-  Typography,
-  TextField,
-  InputAdornment,
-  Grid,
   Card,
   CardContent,
-  Button,
-  Chip,
+  Typography,
+  Container,
+  Grid,
+  TextField,
   IconButton,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import WarningIcon from "@mui/icons-material/Warning";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import ExploreIcon from '@mui/icons-material/Explore';
-import Map from '../../assets/map.svg';
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import GetAppIcon from "@mui/icons-material/GetApp";
+  Paper,
+  Button,
+} from '@mui/material';
+import {
+  Search,
+  Warning,
+  CheckCircle,
+  ArrowUpward,
+  Visibility,
+  Download,
+  Add
+} from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
+
+const SearchTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '& fieldset': {
+      borderColor: '#e0e0e0',
+    },
+  },
+});
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  borderRadius: '12px',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+}));
 
 const Dashboard = () => {
-  const reports = [
+  const recentReports = [
     {
-      title: "Q4 Performance Analysis",
-      description: "Comprehensive analysis of Q4 2024 performance metrics and KPIs.",
-      status: "Completed",
-      statusColor: "success" as const,
-      time: "2 hours ago",
-      author: "Usman Hussaini Galadima",
-      icon: <GetAppIcon />,
+      status: 'Completed',
+      timeAgo: '2 hours ago',
+      title: 'Q4 Performance Analysis',
+      description: 'Comprehensive analysis of Q4 2024 performance metrics and KPIs.',
+      author: 'Usman Hussaini Galadima'
     },
     {
-      title: "Regional Market Analysis",
-      description: "Detailed breakdown of market performance across different regions.",
-      status: "In Progress",
-      statusColor: "warning" as const,
-      time: "1 day ago",
-      author: "Muhammad Kabir",
-      icon: <VisibilityIcon />,
+      status: 'In Progress',
+      timeAgo: '1 day ago',
+      title: 'Regional Market Analysis',
+      description: 'Detailed breakdown of market performance across different regions.',
+      author: 'Muhammad Kabir'
     },
     {
-      title: "Customer Satisfaction Survey",
-      description: "Analysis of customer feedback and satisfaction metrics for Q1 2025.",
-      status: "Draft",
-      statusColor: "info" as const,
-      time: "2 hours ago",
-      author: "Basir Ibrahim",
-      icon: <GetAppIcon />,
-    },
+      status: 'Draft',
+      timeAgo: '2 hours ago',
+      title: 'Customer Satisfaction Survey',
+      description: 'Analysis of customer feedback and satisfaction metrics for Q1 2025.',
+      author: 'Basir Ibrahim'
+    }
   ];
-  
+
+  const StatusChip = styled('span')(({ status }) => ({
+    padding: '4px 12px',
+    borderRadius: '16px',
+    fontSize: '0.875rem',
+    backgroundColor: 
+      status === 'Completed' ? '#e8f5e9' :
+      status === 'In Progress' ? '#fff3e0' : '#f3e5f5',
+    color:
+      status === 'Completed' ? '#2e7d32' :
+      status === 'In Progress' ? '#e65100' : '#6a1b9a',
+  }));
+
   return (
-    <Box sx={{ p: 3, bgcolor: "#E5E7EB" }}>
-      {/* Header Section */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 , }}>
-        <Typography variant="h5" color="#25306B" sx={{font: "9px"}}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h5" fontWeight="600" color="primary">
           Key Metrics Overview
         </Typography>
-        <TextField
-          variant="outlined"
+        <SearchTextField
           placeholder="Search for reports, locations, or metrics..."
+          variant="outlined"
+          size="small"
           InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+            startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
           }}
-          sx={{ width: 400, bgcolor: "white" }}
+          sx={{ width: 300 }}
         />
       </Box>
 
       {/* Metrics Cards */}
-      <Grid container spacing={3}>
-        <Grid item xs={4}>
-          <Card>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={4}>
+          <StyledCard>
             <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="textSecondary">
-                  Performance Score
-                </Typography>
-                <TrendingUpIcon color="success" />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary">Performance Score</Typography>
+                <CheckCircle color="success" />
               </Box>
-              <Typography variant="h4" sx={{ mt: 1 }}>
+              <Typography variant="h4" component="div" sx={{ mb: 1 }}>
                 98.5%
               </Typography>
-              <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+              <Typography color="success.main" sx={{ display: 'flex', alignItems: 'center' }}>
+                <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} />
                 12% increase from last month
               </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
-        <Grid item xs={4}>
-          <Card>
+
+        <Grid item xs={12} md={4}>
+          <StyledCard>
             <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="textSecondary">
-                  Active Issues
-                </Typography>
-                <WarningIcon color="error" />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary">Active Issues</Typography>
+                <Warning color="warning" />
               </Box>
-              <Typography variant="h4" sx={{ mt: 1 }}>
+              <Typography variant="h4" component="div" sx={{ mb: 1 }}>
                 23
               </Typography>
-              <Typography variant="body2" color="error.main" sx={{ mt: 1 }}>
+              <Typography color="error.main" sx={{ display: 'flex', alignItems: 'center' }}>
+                <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} />
                 5 new issues this week
               </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
-        <Grid item xs={4}>
-          <Card>
+
+        <Grid item xs={12} md={4}>
+          <StyledCard>
             <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="textSecondary">
-                  Success Rate
-                </Typography>
-                <CheckCircleIcon color="primary" />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography color="text.secondary">Success Rate</Typography>
+                <CheckCircle color="primary" />
               </Box>
-              <Typography variant="h4" sx={{ mt: 1 }}>
+              <Typography variant="h4" component="div" sx={{ mb: 1 }}>
                 94.2%
               </Typography>
-              <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+              <Typography color="success.main" sx={{ display: 'flex', alignItems: 'center' }}>
+                <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} />
                 3.2% improvement
               </Typography>
             </CardContent>
-          </Card>
+          </StyledCard>
         </Grid>
       </Grid>
 
-      {/* Location Distribution Section */}
-      <Box sx={{ mt: 4, bgcolor: "#FFFFFF", p: 3,  borderRadius: 2 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingBottom: 2,
-          }}
-        >
-      <Typography variant="h6" color="#111827">
-        Location Distribution
-      </Typography>
-      <Box>
-        <Button variant="contained" sx={{ backgroundColor: '#2CBEEF' }}>
-          <InsertDriveFileIcon sx={{ mr: 1 }} />
-          View Report
-        </Button>
-        <Button variant="contained" color="success" sx={{ ml: 2 }}>
-          <ExploreIcon sx={{ mr: 1 }} />
-          Start Exploration
-        </Button>
-      </Box>
-    </Box>
-
-  <Box
-    sx={{
-      mt: 2,
-      height: 200,
-      backgroundImage: `url(${Map})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      borderRadius: 2,
-      position: "relative",
-    }}
-  >
-    <Box
-      sx={{
-        position: "absolute",
-        top: 16,
-        left: 16,
-        bgcolor: "white",
-        p: 1,
-        borderRadius: 1,
-        boxShadow: 1,
-      }}
-    >
-      <Typography variant="body2" color="textSecondary">
-        Sample Points
-      </Typography>
-      <Typography variant="body2" color="textSecondary">
-        Density Areas
-      </Typography>
-    </Box>
-  </Box>
-</Box>
-
-      {/* Recent Reports Section */}
-      <Box sx={{ mt: 3,  borderRadius: 2 }}>
-      <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Typography variant="h5" color="#25306B">
-            Recent Reports
-          </Typography>
-          <Button endIcon={<ArrowForwardIcon />}>View All</Button>
+      {/* Location Distribution */}
+      <Paper sx={{ p: 2, mb: 4, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">Location Distribution</Typography>
+          <Box>
+            <Button 
+              variant="contained" 
+              startIcon={<Visibility />}
+              sx={{ mr: 1 }}
+            >
+              View Report
+            </Button>
+            <Button 
+              variant="contained" 
+              color="success"
+              startIcon={<Add />}
+            >
+              Start Exploration
+            </Button>
+          </Box>
         </Box>
-      
+        {/* Map placeholder */}
+        <Box 
+          sx={{ 
+            height: 200, 
+            bgcolor: '#f5f5f5', 
+            borderRadius: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <Typography color="text.secondary">Map View</Typography>
+        </Box>
+      </Paper>
+
+      {/* Recent Reports */}
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6">Recent Reports</Typography>
+        <Button color="primary">View All</Button>
+      </Box>
       <Grid container spacing={3}>
-        {reports.map((report, index) => (
+        {recentReports.map((report, index) => (
           <Grid item xs={12} md={4} key={index}>
-            <Card sx={{ boxShadow: 1, borderRadius: 2 }}>
+            <StyledCard>
               <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Chip label={report.status} color={report.statusColor} size="small" />
-                  <Typography variant="body2" color="textSecondary">
-                    {report.time}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <StatusChip status={report.status}>{report.status}</StatusChip>
+                  <Typography variant="body2" color="text.secondary">
+                    {report.timeAgo}
                   </Typography>
                 </Box>
-                
-                <Typography variant="h6" sx={{ mt: 2 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>
                   {report.title}
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                <Typography color="text.secondary" sx={{ mb: 2 }}>
                   {report.description}
                 </Typography>
-                
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mt: 3,
-                  }}
-                >
-                  <Typography variant="body2" fontWeight="bold">
-                    {report.author}
-                  </Typography>
-                  <IconButton size="small">{report.icon}</IconButton>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="body2">{report.author}</Typography>
+                  <IconButton size="small">
+                    <Download />
+                  </IconButton>
                 </Box>
               </CardContent>
-            </Card>
+            </StyledCard>
           </Grid>
         ))}
       </Grid>
-    </Box>
-    </Box>
+    </Container>
   );
 };
 
