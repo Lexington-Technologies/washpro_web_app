@@ -26,7 +26,7 @@ import {
   AccessTime
 } from '@mui/icons-material';
 
-const NeedAndRecommendation = () => {
+const NeedAndMaintainers = () => {
   const priorities = [
     { 
       title: 'High Priority', 
@@ -251,4 +251,4 @@ const NeedAndRecommendation = () => {
   );
 };
 
-export default NeedAndRecommendation;
+export default NeedAndMaintainers;

@@ -1,227 +1,255 @@
 import React from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
+  Paper,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Button,
-  IconButton,
-  Chip,
   Grid,
-  LinearProgress,
-  Pagination,
-  ToggleButton,
-  ToggleButtonGroup
+  Chip,
+  styled,
 } from '@mui/material';
-import { MoreVert, FilterList, FullscreenOutlined, MoreHoriz } from '@mui/icons-material';
+import {
+  FilterList,
+  Download,
+  Warning,
+  CheckCircle,
+  Timeline,
+  Schedule,
+  Report,
+  LibraryBooks,
+} from '@mui/icons-material';
 
-const GutterDashboard = () => {
-  const [timeframe, setTimeframe] = React.useState('monthly');
+interface StatCardProps {
+  title: string;
+  value: number;
+  icon?: React.ReactNode;
+  bgColor?: string;
+}
 
-  const distributionData = [
-    { type: 'Constructed', value: 245, color: '#00bcd4' },
-    { type: 'Surface', value: 180, color: '#4caf50' },
-    { type: 'Dug', value: 120, color: '#ffc107' }
-  ];
+interface ToiletTypeRow {
+  type: string;
+  count: number;
+  status: 'Operational' | 'Maintenance';
+}
 
-  const maintenanceData = [
-    { 
-      id: 'North Valley Site',
-      location: 'North District',
-      type: 'Constructed',
-      status: 'Maintained',
-      lastMaintenance: '2 hours ago'
-    },
-    {
-      id: 'East End Facility',
-      location: 'East Zone',
-      type: 'Surface',
-      status: 'Needs Attention',
-      lastMaintenance: '1 day ago'
-    }
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.spacing(1),
+  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+}));
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
+  <StyledPaper>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box>
+        <Typography color="text.secondary" variant="body2">
+          {title}
+        </Typography>
+        <Typography variant="h4" sx={{ mt: 1, fontWeight: 500 }}>
+          {value}
+        </Typography>
+      </Box>
+      {icon && (
+        <Box sx={{ 
+          bgcolor: bgColor, 
+          p: 1, 
+          borderRadius: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center' 
+        }}>
+          {icon}
+        </Box>
+      )}
+    </Box>
+  </StyledPaper>
+);
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  width: '100%',
+  justifyContent: 'flex-start',
+  padding: theme.spacing(2),
+  borderRadius: theme.spacing(1),
+  textTransform: 'none',
+}));
+
+const ToiletFacilities: React.FC = () => {
+  const toiletTypes: ToiletTypeRow[] = [
+    { type: 'Western Style', count: 50, status: 'Operational' },
+    { type: 'Eastern Style', count: 30, status: 'Maintenance' },
+    { type: 'Accessible', count: 20, status: 'Operational' },
   ];
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <div>
-          <Typography variant="h5" sx={{ mb: 1 }}>Gutters</Typography>
-          <Typography variant="subtitle1" color="text.secondary">
+        <Box>
+          <Typography variant="h5" sx={{ color: '#1E293B', fontWeight: 600 }}>
+            Toilet Facilities
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
             Detailed insights about your selected location
           </Typography>
-        </div>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button startIcon={<FilterList />} variant="outlined">
+        </Box>
+        <Box>
+          <Button
+            startIcon={<FilterList />}
+            variant="outlined"
+            sx={{ mr: 1 }}
+          >
             Filter
           </Button>
-          <Button variant="contained" sx={{ bgcolor: '#00bcd4' }}>
-            + Add New Site
+          <Button
+            startIcon={<Download />}
+            variant="contained"
+            sx={{ bgcolor: '#0EA5E9' }}
+          >
+            Export Report
           </Button>
         </Box>
       </Box>
 
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary">Total Site</Typography>
-              <Typography variant="h4">24</Typography>
-            </CardContent>
-          </Card>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Handwashing Facilities
+      </Typography>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Total Units" value={85} />
         </Grid>
-        <Grid item xs={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary">Maintained</Typography>
-              <Typography variant="h4" sx={{ color: '#4caf50' }}>14</Typography>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Functional" value={77} />
         </Grid>
-        <Grid item xs={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary">Overfilled</Typography>
-              <Typography variant="h4" sx={{ color: '#f44336' }}>3</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={3}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary">Unmaintained</Typography>
-              <Typography variant="h4" sx={{ color: '#ff9800' }}>7</Typography>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Under Repair" value={7} />
         </Grid>
       </Grid>
 
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={4}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Gutter Type Distribution</Typography>
-                <ToggleButtonGroup
-                  size="small"
-                  value={timeframe}
-                  exclusive
-                  onChange={(e, value) => setTimeframe(value)}
-                >
-                  <ToggleButton value="monthly">Monthly</ToggleButton>
-                  <ToggleButton value="yearly">Yearly</ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-              {distributionData.map((item) => (
-                <Box key={item.type} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography>{item.type}</Typography>
-                    <Typography color="text.secondary">{item.value}</Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(item.value / 245) * 100}
-                    sx={{ 
-                      height: 8, 
-                      borderRadius: 4,
-                      bgcolor: `${item.color}20`,
-                      '& .MuiLinearProgress-bar': {
-                        bgcolor: item.color
-                      }
-                    }}
-                  />
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Latrines" value={34} />
         </Grid>
-        <Grid item xs={8}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Gutter Location Map</Typography>
-                <Box>
-                  <IconButton>
-                    <FullscreenOutlined />
-                  </IconButton>
-                  <IconButton>
-                    <MoreHoriz />
-                  </IconButton>
-                </Box>
-              </Box>
-              <Box sx={{ height: '300px', bgcolor: '#f5f5f5', borderRadius: 1, p: 2 }}>
-                <Typography color="text.secondary">Map Component Placeholder</Typography>
-                <Box sx={{ position: 'absolute', bottom: '40px', left: '40px' }}>
-                  <Paper sx={{ p: 1 }}>
-                    <Typography variant="body2">⬤ Sample Points</Typography>
-                    <Typography variant="body2">▢ Density Areas</Typography>
-                  </Paper>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={4}>
+          <StatCard title="Squatting" value={18} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <StatCard title="WC" value={20} />
         </Grid>
       </Grid>
 
-      <Paper>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Maintenance Status</Typography>
-          <Box>
-            <Button startIcon={<FilterList />}>Filter</Button>
-            <Button>Export</Button>
-          </Box>
-        </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>IC</TableCell>
-                <TableCell>LOCATION</TableCell>
-                <TableCell>TYPE</TableCell>
-                <TableCell>STATUS</TableCell>
-                <TableCell>LAST MAINTENANCE</TableCell>
-                <TableCell>ACTIONS</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {maintenanceData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.status}
-                      color={row.status === 'Maintained' ? 'success' : 'warning'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{row.lastMaintenance}</TableCell>
-                  <TableCell>
-                    <IconButton>
-                      <MoreVert />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Showing 1 to 2 of 1,234 entries
-          </Typography>
-          <Pagination count={3} color="primary" />
-        </Box>
-      </Paper>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <StyledPaper>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Toilet Types Overview
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>TYPE</TableCell>
+                    <TableCell>COUNT</TableCell>
+                    <TableCell>STATUS</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {toiletTypes.map((row) => (
+                    <TableRow key={row.type}>
+                      <TableCell>{row.type}</TableCell>
+                      <TableCell>{row.count}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.status}
+                          color={row.status === 'Operational' ? 'success' : 'warning'}
+                          size="small"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </StyledPaper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <StyledPaper>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Maintenance Status
+            </Typography>
+            <Box sx={{ mb: 4, p: 2, bgcolor: '#F0FDF4', borderRadius: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography>Well Maintained</Typography>
+                <CheckCircle color="success" />
+              </Box>
+              <Typography variant="h4" color="success.main" sx={{ mt: 1 }}>
+                75%
+              </Typography>
+            </Box>
+            <Box sx={{ p: 2, bgcolor: '#FEF2F2', borderRadius: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography>Needs Attention</Typography>
+                <Warning color="error" />
+              </Box>
+              <Typography variant="h4" color="error.main" sx={{ mt: 1 }}>
+                25%
+              </Typography>
+            </Box>
+          </StyledPaper>
+        </Grid>
+      </Grid>
+
+      <StyledPaper sx={{ mt: 3 }}>
+        <Typography variant="h6" sx={{ mb: 3 }}>
+          Quick Actions
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <ActionButton
+              variant="outlined"
+              color="primary"
+              startIcon={<Report />}
+            >
+              Report Issue
+            </ActionButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <ActionButton
+              variant="outlined"
+              color="secondary"
+              startIcon={<Schedule />}
+            >
+              Schedule Cleaning
+            </ActionButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <ActionButton
+              variant="outlined"
+              color="success"
+              startIcon={<LibraryBooks />}
+            >
+              Maintenance Log
+            </ActionButton>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <ActionButton
+              variant="outlined"
+              color="info"
+              startIcon={<Timeline />}
+            >
+              View Analytics
+            </ActionButton>
+          </Grid>
+        </Grid>
+      </StyledPaper>
     </Box>
   );
 };
 
-export default GutterDashboard;
+export default ToiletFacilities;

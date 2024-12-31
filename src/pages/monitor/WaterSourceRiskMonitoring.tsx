@@ -18,7 +18,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import MapIcon from '@mui/icons-material/Map';
 
-const DistanceMonitor = () => {
+const WaterSourceRiskMonitoring = () => {
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -249,4 +249,4 @@ const AlertItem: React.FC<AlertItemProps> = ({ status, title, description }) => 
   );
 };
 
-export default DistanceMonitor;
+export default WaterSourceRiskMonitoring;

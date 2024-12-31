@@ -2,15 +2,17 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Wrapper from "./components/wrapper";
 import Dashboard from "./pages/dashboard/dashboard";
 import DumpSites from "./pages/dump-site/DumpSite";
-import LocationInfo from "./pages/location-info/Location-info";
+import Interventions from "./pages/interventions/Interventions";
 import PublicSpaceTypes from "./pages/public-space-type/PublicSpaceTypes";
 import ToiletFacilities from "./pages/toilet-facilities/ToiletFacilities";
-import WaterSourceInfo from "./pages/water-source-info/WaterSourceInfo";
 import Gutters from "./pages/gutters/Gutters";
 import SoakAways from "./pages/soak-aways/SoakAways";
-import DistanceMonitor from "./pages/monitor/DistanceMointor";
+import WaterSourceRiskMonitoring from "./pages/monitor/WaterSourceRiskMonitoring";
 import OpenDefication from "./pages/open-defecation/OpenDefication";
-import NeedAndRecommendation from "./pages/needs-and-recommendation/NeedAndRecommendation";
+import WaterSources from "./pages/water-sources/WaterSources";
+import NeedAndMaintainers from "./pages/needs-and-maintainers/needs-and-maintainers";
+import Sanitation from "./pages/sanitation/Sanitation";
+import Monitoring from "./pages/field-monitoring/FieldMonitoring";
 
 export default function App() {
   return (
@@ -19,15 +21,17 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} index />
           <Route path="/dump-sites" element={<DumpSites />} />
-          <Route path="/location-info" element={<LocationInfo />} />
+          <Route path="/interventions" element={<Interventions />} />
           <Route path="/public-space-types" element={<PublicSpaceTypes />} />
           <Route path="/toilet-facilities" element={<ToiletFacilities />} />
-          <Route path="/water-source-info" element={<WaterSourceInfo />} />
+          <Route path="/water-sources" element={<WaterSources />} />
           <Route path="/gutters" element={<Gutters />} />
           <Route path="/soak-aways" element={<SoakAways />} />
-          <Route path="/distance-monitor" element={<DistanceMonitor />} />
+          <Route path="/monitor" element={<WaterSourceRiskMonitoring />} />
           <Route path="/open-defecation" element={<OpenDefication />} />
-          <Route path="/needs-and-recommendation" element={<NeedAndRecommendation />} />
+          <Route path="/needs-and-maintainers" element={<NeedAndMaintainers />} />
+          <Route path="/sanitation" element={<Sanitation />} />
+          <Route path="/field-monitoring" element={<Monitoring />} />          
         </Routes>
       </Wrapper>
     </Router>

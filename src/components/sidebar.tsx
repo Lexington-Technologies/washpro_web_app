@@ -6,23 +6,28 @@ import {
   ListItemText,
   ListItemButton,
   Divider,
+  Collapse,
 } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import {
   Dashboard,
   LocationOn,
   Public,
-  WaterDrop,
-  Wc,
   Delete,
   Waves,
   MonitorHeart,
-  Visibility,
-  Assignment,
   Logout,
   ChevronLeft,
   ChevronRight,
+  ExpandLess,
+  ExpandMore,
+  Assignment,
+  Visibility,
 } from "@mui/icons-material";
+import { useState } from "react";
+import { RiWaterFlashFill } from "react-icons/ri";
+import { FaToilet, FaPoop } from "react-icons/fa";
+import { MdSanitizer, MdPlumbing } from "react-icons/md";
 
 const SideBar = ({
   isCollapsed,
@@ -31,24 +36,34 @@ const SideBar = ({
   isCollapsed: boolean;
   onToggle: () => void;
 }) => {
-  const menuItems = [
+  const [openWaste, setOpenWaste] = useState(false);
+
+  const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/" },
-    { text: "Location Information", icon: <LocationOn />, path: "/location-info" },
+    { text: "Intervention", icon: <LocationOn />, path: "/interventions" },
     { text: "Public Space Types", icon: <Public />, path: "/public-space-types" },
-    { text: "Water Source Information", icon: <WaterDrop />, path: "/water-source-info" },
-    { text: "Toilet Facilities", icon: <Wc />, path: "/toilet-facilities" },
+    { text: "Water Sources", icon: <RiWaterFlashFill />, path: "/water-sources" },
+    { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
+  ];
+
+  const wasteSubItems = [
     { text: "Dump Sites", icon: <Delete />, path: "/dump-sites" },
     { text: "Gutters", icon: <Waves />, path: "/gutters" },
-    { text: "Soakaways", icon: <Waves />, path: "/soak-aways" },
-    { text: "Distance Monitoring for Risks", icon: <MonitorHeart />, path: "/distance-monitor" },
-    { text: "Open Defecation Observation", icon: <Visibility />, path: "/open-defecation" },
-    { text: "Immediate Needs & Recommendations", icon: <Assignment />, path: "/needs-and-recommendation" },
+    { text: "Soakaways", icon: <MdPlumbing />, path: "/soak-aways" },
+  ];
+
+  const bottomMenuItems = [
+    { text: "Water Source Risk Monitoring", icon: <MonitorHeart />, path: "/monitor" },
+    { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation" },
+    { text: "Needs & Maintainers", icon: <Assignment />, path: "/needs-and-maintainers" },
+    { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation" },
+    { text: "Field Monitoring", icon: <Visibility />, path: "/field-monitoring" },
   ];
 
   return (
     <Box
       sx={{
-        width: isCollapsed ? 100 : 320, // Increased width for both states
+        width: isCollapsed ? 100 : 320,
         bgcolor: "white",
         height: "100%",
         boxShadow: 1,
@@ -73,7 +88,7 @@ const SideBar = ({
             src="/logo.svg"
             alt="WashPro Logo"
             style={{
-              width: isCollapsed ? 50 : 200, // Resize logo for larger sidebar
+              width: isCollapsed ? 50 : 200,
               height: isCollapsed ? 50 : "auto",
               objectFit: "contain",
               transition: "width 0.3s, height 0.3s",
@@ -100,27 +115,31 @@ const SideBar = ({
           flex: 1,
           overflowY: "auto",
           paddingY: 1,
-          scrollbarWidth: "none", // Hide scrollbar for Firefox
+          scrollbarWidth: "none",
           "&::-webkit-scrollbar": {
-            display: "none", // Hide scrollbar for Webkit browsers
+            display: "none",
           },
         }}
       >
         <List>
-          {menuItems.map((item, index) => (
+          {/* Main Menu Items */}
+          {mainMenuItems.map((item, index) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
                 component={NavLink}
                 to={item.path}
-                style={({ isActive }) => ({
-                  backgroundColor: isActive ? "#1e40af" : "transparent",
-                  color: isActive ? "white" : "#666",
-                })}
                 sx={{
                   py: 1.5,
                   justifyContent: isCollapsed ? "center" : "flex-start",
-                  "&:hover": {
-                    bgcolor: "rgba(30, 64, 175, 0.04)",
+                  "&.active": {
+                    backgroundColor: "#25306B",
+                    color: "white",
+                    "&:hover": {
+                      bgcolor: "#25306B", // No hover effect for active
+                    },
+                  },
+                  "&:not(.active):hover": {
+                    bgcolor: "rgba(37, 48, 107, 0.04)",
                   },
                 }}
               >
@@ -139,6 +158,130 @@ const SideBar = ({
                     primaryTypographyProps={{
                       fontSize: "0.875rem",
                       fontWeight: index === 0 ? 500 : 400,
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          {/* Waste Dropdown */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setOpenWaste(!openWaste)}
+              sx={{
+                py: 1.5,
+                justifyContent: isCollapsed ? "center" : "flex-start",
+                color: "#666",
+                "&:hover": {
+                  bgcolor: "rgba(37, 48, 107, 0.04)",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: "inherit",
+                  justifyContent: "center",
+                }}
+              >
+                <Delete />
+              </ListItemIcon>
+              {!isCollapsed && (
+                <>
+                  <ListItemText
+                    primary="Waste"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                  {openWaste ? <ExpandLess /> : <ExpandMore />}
+                </>
+              )}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={openWaste} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {wasteSubItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to={item.path}
+                    sx={{
+                      py: 1.5,
+                      pl: isCollapsed ? 2 : 4,
+                      justifyContent: isCollapsed ? "center" : "flex-start",
+                      "&.active": {
+                        backgroundColor: "#25306B",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "#25306B", // No hover effect for active
+                        },
+                      },
+                      "&:not(.active):hover": {
+                        bgcolor: "rgba(37, 48, 107, 0.04)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: "inherit",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    {!isCollapsed && (
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+
+          {/* Bottom Menu Items */}
+          {bottomMenuItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={item.path}
+                sx={{
+                  py: 1.5,
+                  justifyContent: isCollapsed ? "center" : "flex-start",
+                  "&.active": {
+                    backgroundColor: "#25306B",
+                    color: "white",
+                    "&:hover": {
+                      bgcolor: "#25306B", // No hover effect for active
+                    },
+                  },
+                  "&:not(.active):hover": {
+                    bgcolor: "rgba(37, 48, 107, 0.04)",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
                     }}
                   />
                 )}
