@@ -1,16 +1,3 @@
-// Types
-interface SpaceDistribution {
-  type: string;
-  count: number;
-  color: string;
-}
-
-interface FilterOption {
-  value: string;
-  label: string;
-}
-
-// Components/PublicSpaces.tsx
 import React from 'react';
 import {
   Box,
@@ -27,12 +14,19 @@ import {
   SelectChangeEvent,
   Grid,
 } from '@mui/material';
-import {
-  FilterAlt,
-  Add,
-  Download,
-  PlayArrow
-} from '@mui/icons-material';
+import { FilterAlt, Add } from '@mui/icons-material';
+import { FaFileAlt, FaCompass } from 'react-icons/fa';
+
+interface SpaceDistribution {
+  type: string;
+  count: number;
+  color: string;
+}
+
+interface FilterOption {
+  value: string;
+  label: string;
+}
 
 const spaceDistribution: SpaceDistribution[] = [
   { type: 'Schools', count: 245, color: '#00B8D9' },
@@ -49,29 +43,35 @@ const filterOptions: FilterOption[] = [
   { value: 'community', label: 'Community Centers' },
 ];
 
-const DistributionBar: React.FC<SpaceDistribution> = ({ type, count, color }) => (
-  <Box sx={{ mb: 2 }}>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-      <Typography variant="body2">{type}</Typography>
-      <Typography variant="body2" color="text.secondary">
-        {count}
-      </Typography>
-    </Box>
-    <LinearProgress
-      variant="determinate"
-      value={(count / 245) * 100}
-      sx={{
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        '& .MuiLinearProgress-bar': {
-          backgroundColor: color,
+const getMaxCount = (data: SpaceDistribution[]) =>
+  Math.max(...data.map((space) => space.count));
+
+const DistributionBar: React.FC<SpaceDistribution> = ({ type, count, color }) => {
+  const maxCount = getMaxCount(spaceDistribution);
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="body2">{type}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {count}
+        </Typography>
+      </Box>
+      <LinearProgress
+        variant="determinate"
+        value={(count / maxCount) * 100}
+        sx={{
+          height: 8,
           borderRadius: 4,
-        },
-      }}
-    />
-  </Box>
-);
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          '& .MuiLinearProgress-bar': {
+            backgroundColor: color,
+            borderRadius: 4,
+          },
+        }}
+      />
+    </Box>
+  );
+};
 
 const FilterSelect: React.FC<{
   label: string;
@@ -95,24 +95,17 @@ const PublicSpaces: React.FC = () => {
   const [ward, setWard] = React.useState<string>('all');
   const [status, setStatus] = React.useState<string>('all');
 
-  const handleSpaceTypeChange = (event: SelectChangeEvent) => {
-    setSpaceType(event.target.value);
-  };
-
-  const handleWardChange = (event: SelectChangeEvent) => {
-    setWard(event.target.value);
-  };
-
-  const handleStatusChange = (event: SelectChangeEvent) => {
-    setStatus(event.target.value);
-  };
+  const handleSpaceTypeChange = (event: SelectChangeEvent) => setSpaceType(event.target.value);
+  const handleWardChange = (event: SelectChangeEvent) => setWard(event.target.value);
+  const handleStatusChange = (event: SelectChangeEvent) => setStatus(event.target.value);
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="xl">
+        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Box>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h5" sx={{ color: '#25306B' }}>
               Public Space Types
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -137,6 +130,7 @@ const PublicSpaces: React.FC = () => {
           </Box>
         </Box>
 
+        {/* Filters */}
         <Box sx={{ mb: 4 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
@@ -163,11 +157,13 @@ const PublicSpaces: React.FC = () => {
           </Grid>
         </Box>
 
+        {/* Distribution Statistics and Map */}
         <Grid container spacing={3}>
+          {/* Distribution Statistics Card */}
           <Grid item xs={12} md={4}>
-            <Card>
+            <Card sx={{ height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" sx={{ color: '#25306B', fontWeight: 600 }}>
                   Distribution Statistics
                 </Typography>
                 {spaceDistribution.map((space) => (
@@ -181,23 +177,27 @@ const PublicSpaces: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
+
+          {/* Location Distribution Map */}
           <Grid item xs={12} md={8}>
-            <Card>
-              <CardContent>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="h6">Location Distribution</Typography>
+                  <Typography variant="h6" sx={{ color: '#25306B', fontWeight: 600 }}>
+                    Location Distribution
+                  </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
                       variant="contained"
-                      startIcon={<Download />}
-                      sx={{ bgcolor: '#00B8D9' }}
+                      startIcon={<FaFileAlt />}
+                      sx={{ bgcolor: '#2CBEEF', borderRadius: 2.5 }}
                     >
                       View Report
                     </Button>
                     <Button
                       variant="contained"
-                      startIcon={<PlayArrow />}
-                      color="success"
+                      startIcon={<FaCompass />}
+                      sx={{ bgcolor: '#16A34A' }}
                     >
                       Start Exploration
                     </Button>
@@ -205,14 +205,27 @@ const PublicSpaces: React.FC = () => {
                 </Box>
                 <Box
                   sx={{
-                    height: 400,
-                    bgcolor: 'action.hover',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    position: 'relative',
+                    paddingTop: '56.25%', // 16:9 aspect ratio
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    flexGrow: 1,
                   }}
                 >
-                  Map visualization would go here
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d150598.46582809655!2d7.648291125907573!3d11.296615180519947!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x11b27fc3df7cf997%3A0x7f813ac2a29bec28!2sKudan%2C%20Kaduna!5e0!3m2!1sen!2sng!4v1735721268833!5m2!1sen!2sng"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 0,
+                    }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
                 </Box>
               </CardContent>
             </Card>

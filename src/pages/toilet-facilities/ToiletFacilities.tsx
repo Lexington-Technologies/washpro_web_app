@@ -15,15 +15,12 @@ import {
   styled,
 } from '@mui/material';
 import {
-  FilterList,
-  Download,
-  Warning,
   CheckCircle,
-  Timeline,
-  Schedule,
-  Report,
-  LibraryBooks,
+  Warning,
 } from '@mui/icons-material';
+import { FaDownload, FaFilter, FaHandSparkles, FaSink, FaWrench, FaCalendar, FaCalendarCheck } from 'react-icons/fa';
+import { BsExclamationCircleFill } from 'react-icons/bs';
+import { FaArrowTrendDown } from 'react-icons/fa6';
 
 interface StatCardProps {
   title: string;
@@ -90,7 +87,7 @@ const ToiletFacilities: React.FC = () => {
     <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ color: '#1E293B', fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Toilet Facilities
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -99,54 +96,84 @@ const ToiletFacilities: React.FC = () => {
         </Box>
         <Box>
           <Button
-            startIcon={<FilterList />}
+            startIcon={<FaFilter style={{color: "#1F2937"}} />}
             variant="outlined"
             sx={{ mr: 1 }}
           >
-            Filter
+            <Typography variant="body1" color="#1F2937">Filter</Typography>
           </Button>
           <Button
-            startIcon={<Download />}
+            startIcon={<FaDownload />}
             variant="contained"
-            sx={{ bgcolor: '#0EA5E9' }}
+            sx={{ bgcolor: '#2CBEEF' }}
           >
             Export Report
           </Button>
         </Box>
       </Box>
 
-      <Typography variant="h6" sx={{ mb: 2 }}>
+      <Typography variant="h6" color='#1F2937' sx={{ mb: 2  }}>
         Handwashing Facilities
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Total Units" value={85} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Functional" value={77} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Under Repair" value={7} />
-        </Grid>
-      </Grid>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="Total Units"
+      value={85}
+      icon={<FaSink style={{ color: '#0EA5E9' }} />}
+      bgColor="#E3F2FD"
+    />
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="Functional"
+      value={77}
+      icon={<FaHandSparkles style={{ color: '#4CAF50' }} />}
+      bgColor="#E8F5E9"
+    />
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="Under Repair"
+      value={7}
+      icon={<FaWrench style={{ color: '#FF9800' }} />}
+      bgColor="#FFF3E0"
+    />
+  </Grid>
+</Grid>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Latrines" value={34} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="Squatting" value={18} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard title="WC" value={20} />
-        </Grid>
-      </Grid>
+<Grid container spacing={2} sx={{ mb: 3 }}>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="Latrines"
+      value={34}
+      icon={<FaSink style={{ color: '#0EA5E9' }} />}
+      bgColor="#E3F2FD"
+    />
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="Squatting"
+      value={18}
+      icon={<FaSink style={{ color: '#0EA5E9' }} />}
+      bgColor="#E3F2FD"
+    />
+  </Grid>
+  <Grid item xs={12} md={4}>
+    <StatCard
+      title="WC"
+      value={20}
+      icon={<FaSink style={{ color: '#0EA5E9' }} />}
+      bgColor="#E3F2FD"
+    />
+  </Grid>
+</Grid>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <StyledPaper>
-            <Typography variant="h6" sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
               Toilet Types Overview
             </Typography>
             <TableContainer>
@@ -180,7 +207,7 @@ const ToiletFacilities: React.FC = () => {
 
         <Grid item xs={12} md={4}>
           <StyledPaper>
-            <Typography variant="h6" sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
               Maintenance Status
             </Typography>
             <Box sx={{ mb: 4, p: 2, bgcolor: '#F0FDF4', borderRadius: 1 }}>
@@ -195,7 +222,7 @@ const ToiletFacilities: React.FC = () => {
             <Box sx={{ p: 2, bgcolor: '#FEF2F2', borderRadius: 1 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography>Needs Attention</Typography>
-                <Warning color="error" />
+                <BsExclamationCircleFill color="#FF0000" />
               </Box>
               <Typography variant="h4" color="error.main" sx={{ mt: 1 }}>
                 25%
@@ -210,20 +237,20 @@ const ToiletFacilities: React.FC = () => {
           Quick Actions
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6}>
             <ActionButton
               variant="outlined"
-              color="primary"
-              startIcon={<Report />}
+              sx={{ backgroundColor: "#EFF6FF", color: "#1E3A8A" }}
+              startIcon={<Warning />}
             >
               Report Issue
             </ActionButton>
-          </Grid>
+            </Grid>
           <Grid item xs={12} md={6}>
             <ActionButton
               variant="outlined"
-              color="secondary"
-              startIcon={<Schedule />}
+              sx={{ backgroundColor: "#FAF5FF", color: "#7E22CE" }}
+              startIcon={<FaCalendar />}
             >
               Schedule Cleaning
             </ActionButton>
@@ -231,8 +258,8 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={6}>
             <ActionButton
               variant="outlined"
-              color="success"
-              startIcon={<LibraryBooks />}
+              sx={{ backgroundColor: "#F0FDF4", color: "#15803D" }}
+              startIcon={<FaCalendarCheck />}
             >
               Maintenance Log
             </ActionButton>
@@ -240,8 +267,8 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={6}>
             <ActionButton
               variant="outlined"
-              color="info"
-              startIcon={<Timeline />}
+              sx={{ backgroundColor: "#FFF7ED", color:"#C2410C" }}
+              startIcon={<FaArrowTrendDown />}
             >
               View Analytics
             </ActionButton>

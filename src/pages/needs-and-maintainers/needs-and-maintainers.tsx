@@ -17,14 +17,13 @@ import {
   AccordionDetails
 } from '@mui/material';
 import { 
-  FilterAlt, 
-  FileDownload, 
   ExpandMore,
   ErrorOutline,
   Warning,
   Info,
   AccessTime
 } from '@mui/icons-material';
+import { FaDownload, FaFilter } from 'react-icons/fa';
 
 const NeedAndMaintainers = () => {
   const priorities = [
@@ -111,10 +110,10 @@ const NeedAndMaintainers = () => {
           </Box>
           <Button
             variant="outlined"
-            startIcon={<FilterAlt />}
-            sx={{ bgcolor: 'white' }}
+            startIcon={<FaFilter color='#1F2937' />}
+            sx={{ bgcolor: '#E5E7EB' }}
           >
-            Filter
+            <Typography variant="body1" color="#1F2937">Filter</Typography>
           </Button>
         </Box>
 
@@ -158,11 +157,11 @@ const NeedAndMaintainers = () => {
               }}>
                 <Typography variant="h6">Soakaway Condition</Typography>
                 <Box>
-                  <Button startIcon={<FileDownload />} sx={{ mr: 1 }}>
-                    Export
+                  <Button startIcon={<FaDownload style={{color: "#1F2937"}} />} sx={{ mr: 1, bgcolor: '#E5E7EB' }}>
+                    <Typography variant="body1" color="#1F2937">Export</Typography>
                   </Button>
-                  <Button startIcon={<FilterAlt />}>
-                    Filter
+                  <Button startIcon={<FaFilter style={{color: "#1F2937"}} />} sx={{ mr: 1, bgcolor: '#E5E7EB' }}>
+                    <Typography variant="body1" color="#1F2937">Filter</Typography>
                   </Button>
                 </Box>
               </Box>

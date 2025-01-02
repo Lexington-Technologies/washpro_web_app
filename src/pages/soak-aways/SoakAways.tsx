@@ -13,12 +13,14 @@ import {
   TableRow,
   IconButton,
 } from '@mui/material';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import LayersIcon from '@mui/icons-material/Layers';
+import {
+  FilterAlt as FilterAltIcon,
+  FiberManualRecord as FiberManualRecordIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Waves,
+} from '@mui/icons-material';
+import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
 
 const SoakAways = () => {
   return (
@@ -41,7 +43,7 @@ const SoakAways = () => {
             color: 'text.primary',
             boxShadow: 1,
             '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none'
+            textTransform: 'none',
           }}
         >
           Filter
@@ -53,26 +55,27 @@ const SoakAways = () => {
         <StatsCard
           title="Total Soakaways"
           value="1,247"
+          icon={<Waves />}
           iconColor="#2196f3"
-          icon={<img src="/svg/water.svg" alt="water icon" />}        />
+        />
         <StatsCard
           title="Inspected This Month"
           value="342"
-          icon={<img src="/svg/calac.svg" alt="calac icon" />}        
+          icon={<FaClipboardCheck style={{color: "#16A34A"}}/>}
           iconColor="#4caf50"
-          valueColor="#4caf50"
+          valueColor="#16A34A"
         />
         <StatsCard
           title="Critical Condition"
           value="89"
-         icon={<img src="/svg/caution2.svg" alt="caution2 icon" />}        
-         iconColor="#f44336"
-         valueColor="#f44336"
-         />
+          icon={<FaExclamationTriangle style={{color: "#DC2626"}}/>}
+          iconColor="#f44336"
+          valueColor="#f44336"
+        />
         <StatsCard
           title="Maintenance Due"
           value="156"
-          icon={<img src="/svg/fix.svg" alt="caution2 icon" />}        
+          icon={<FaWrench color="#CA8A04" />}
           iconColor="#ff9800"
           valueColor="#ff9800"
         />
@@ -83,37 +86,37 @@ const SoakAways = () => {
         {/* Soakaway Condition Table */}
         <Paper sx={{ flex: 2, p: 2, borderRadius: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Soakaway Condition</Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
-      <Button
-        variant="contained"
-        startIcon={<FileDownloadOutlinedIcon />}
-        sx={{
-          bgcolor: "rgba(241, 243, 245, 1)",
-          color: "rgba(37, 48, 107, 1)",
-          borderRadius: 2,
-          textTransform: "none",
-          boxShadow: "none",
-          "&:hover": { bgcolor: "rgba(220, 225, 230, 1)" },
-        }}
-      >
-        Export
-      </Button>
-      <Button
-        variant="contained"
-        startIcon={<FilterAltIcon />}
-        sx={{
-          bgcolor: "rgba(241, 243, 245, 1)",
-          color: "rgba(37, 48, 107, 1)",
-          borderRadius: 2,
-          textTransform: "none",
-          boxShadow: "none",
-          "&:hover": { bgcolor: "rgba(220, 225, 230, 1)" },
-        }}
-      >
-        Filter
-      </Button>
-    </Box>
+            <Typography variant="h6" fontWeight={600}>Soakaway Condition</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                startIcon={<FaDownload />}
+                sx={{
+                  bgcolor: 'rgba(241, 243, 245, 1)',
+                  color: 'rgba(37, 48, 107, 1)',
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: 'rgba(220, 225, 230, 1)' },
+                }}
+              >
+                Export
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<FaFilter />}
+                sx={{
+                  bgcolor: 'rgba(241, 243, 245, 1)',
+                  color: 'rgba(37, 48, 107, 1)',
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: 'rgba(220, 225, 230, 1)' },
+                }}
+              >
+                Filter
+              </Button>
+            </Box>
           </Box>
           <TableContainer>
             <Table>
@@ -185,7 +188,6 @@ const SoakAways = () => {
           </Box>
         </Paper>
       </Box>
-
       {/* Geographic Risk Distribution */}
       <Paper sx={{ mt: 2, p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -215,25 +217,28 @@ const SoakAways = () => {
             overflow: 'hidden'
           }}
         >
-          {/* Map Legend */}
-          <Paper sx={{ position: 'absolute', top: 16, left: 16, p: 1, borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <LayersIcon sx={{ fontSize: 20, mr: 1 }} />
-              <Typography variant="body2">Sample Points</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <LayersIcon sx={{ fontSize: 20, mr: 1 }} />
-              <Typography variant="body2">Density Areas</Typography>
-            </Box>
-          </Paper>
 
           {/* Map Controls */}
           <Paper sx={{ position: 'absolute', top: 16, right: 16, borderRadius: 1 }}>
             <IconButton size="small"><AddIcon /></IconButton>
             <IconButton size="small"><RemoveIcon /></IconButton>
           </Paper>
+          <Box sx={{ height: 400, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
+                  <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d54444.747381551366!2d7.6930992235022035!3d11.29520357300069!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x11b27fc3df7cf997%3A0x7f813ac2a29bec28!2sKudan%2C%20Kaduna!5e1!3m2!1sen!2sng!4v1735816821797!5m2!1sen!2sng"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+
+    </Box>
+
         </Box>
       </Paper>
+
     </Box>
   );
 };
@@ -245,7 +250,6 @@ interface StatsCardProps {
   icon: React.ReactElement;
   iconColor?: string;
   valueColor?: string;
-  imageSrc?: string;
 }
 
 const StatsCard = ({ title, value, icon, iconColor, valueColor }: StatsCardProps) => (
@@ -257,15 +261,18 @@ const StatsCard = ({ title, value, icon, iconColor, valueColor }: StatsCardProps
       <Typography variant="h5" sx={{ fontWeight: 600, color: valueColor || 'text.primary' }}>
         {value}
       </Typography>
-      <Box sx={{ 
-        bgcolor: `${iconColor}15`, 
-        p: 1, 
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        {React.cloneElement(icon, { sx: { color: iconColor } })}
+      <Box
+        sx={{
+          bgcolor: `${iconColor}15`,
+          width: 48,
+          height: 48,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {React.cloneElement(icon, { sx: { color: iconColor, fontSize: 24 } })}
       </Box>
     </Box>
   </Card>

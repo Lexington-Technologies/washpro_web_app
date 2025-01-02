@@ -26,19 +26,18 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  FilterList,
   Add,
   CheckCircle,
-  Cancel,
   Warning,
-  WaterDrop,
   ErrorOutline,
   Info,
-  FilterAlt,
   MoreVert,
   Search,
   Visibility,
 } from '@mui/icons-material';
+import { FaCheck, FaFaucet, FaFilter, FaTimes, FaWater } from 'react-icons/fa';
+import { FaWrench } from 'react-icons/fa6';
+import { GiWell } from 'react-icons/gi';
 
 // Interfaces
 interface StatCardProps {
@@ -156,6 +155,8 @@ const tableData = [
 const maintenanceItems: MaintenanceItem[] = [
   { type: 'Filter Replacement', time: '2 hours ago' },
   { type: 'Pump Maintenance', time: '1 day ago' },
+  { type: 'Pump Maintenance', time: '1 day ago' },
+  { type: 'Pump Maintenance', time: '1 day ago' },
 ];
 
 const alertItems: AlertItem[] = [
@@ -177,11 +178,11 @@ const alertItems: AlertItem[] = [
 ];
 
 const metrics = [
-  { value: 8.5, label: 'Clarity', color: '#E3F2FD' },
-  { value: 9.0, label: 'Taste', color: '#E8F5E9' },
-  { value: 7.5, label: 'Odor', color: '#FFF8E1' },
-  { value: 8.0, label: 'Turbidity', color: '#F3E5F5' },
-  { value: 8.8, label: 'Conductivity', color: '#E8EAF6' },
+  { value: 8.5, label: 'Clarity', color: '#DBEAFE' },
+  { value: 9.0, label: 'Taste', color: '#DCFCE7' },
+  { value: 7.5, label: 'Odor', color: '#FEF9C3' },
+  { value: 8.0, label: 'Turbidity', color: '#F3E8FF' },
+  { value: 8.8, label: 'Conductivity', color: '#E0E7FF' },
 ];
 
 const getSeverityColor = (severity: AlertItem['severity']) => {
@@ -223,7 +224,7 @@ const WaterSourcesDashboard: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
-          <Typography variant="h5" sx={{ color: '#1E293B', fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Water Sources
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -231,10 +232,10 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <Button startIcon={<FilterList />} variant="outlined" sx={{ mr: 1 }}>
-            Filter
+          <Button startIcon={<FaFilter style={{color: "#000000"}} />} variant="outlined" sx={{ mr: 1, borderColor: '#000000' }}>
+            <Typography variant="body1" color="#000000">Filter</Typography>
           </Button>
-          <Button startIcon={<Add />} variant="contained" sx={{ bgcolor: '#0EA5E9' }}>
+          <Button startIcon={<Add />} variant="contained" sx={{ bgcolor: '#2CBEEF' }}>
             Add Source
           </Button>
         </Box>
@@ -243,15 +244,15 @@ const WaterSourcesDashboard: React.FC = () => {
       {/* Main Stats */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
-          { title: 'Total Sources', value: '1,234', icon: <WaterDrop sx={{ color: '#2196f3' }} />, bgColor: '#E3F2FD' },
-          { title: 'Functional', value: '987', icon: <CheckCircle sx={{ color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
-          { title: 'Non-Functional', value: '247', icon: <Cancel sx={{ color: '#EF5350' }} />, bgColor: '#FFEBEE' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Maintenance Due', value: '89', icon: <Warning sx={{ color: '#FFA726' }} />, bgColor: '#FFF3E0' },
+          { title: 'Total Sources', value: '1,234', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
+          { title: 'Functional', value: '987', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
+          { title: 'Non-Functional', value: '247', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
+          { title: 'Maintenance Due', value: '89', icon: <FaWrench style={{  color: '#FFA726' }} />, bgColor: '#FFF3E0' },
+          { title: 'Well', value: '1,234', icon: <GiWell style={{  color: '#16A34A' }} />, bgColor: '#DCFCE7' },
+          { title: 'Streams', value: '89', icon: <FaWater style={{  color: '#25306B' }} />, bgColor: '#DBEAFE' },
+          { title: 'Handpump Boreholes', value: '987', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
+          { title: 'Motorized Boreholes', value: '247', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
+          { title: 'Non-Motorized Boreholes', value: '89', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <StatCard {...stat} />
@@ -263,7 +264,7 @@ const WaterSourcesDashboard: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 3 }}>
   <Grid item xs={12} md={4}>
     <StyledPaper>
-      <Typography variant="h6" sx={{ mb: 3 }}>
+      <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
         Water Quality Index
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -310,8 +311,8 @@ const WaterSourcesDashboard: React.FC = () => {
 
   <Grid item xs={12} md={4}>
     <StyledPaper>
-      <Typography variant="h6" sx={{ mb: 3 }}>
-        Recent Maintenance
+    <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
+    Recent Maintenance
       </Typography>
       <List>
         {maintenanceItems.map((item, index) => (
@@ -328,8 +329,8 @@ const WaterSourcesDashboard: React.FC = () => {
 
   <Grid item xs={12} md={4}>
     <StyledPaper>
-      <Typography variant="h6" sx={{ mb: 3 }}>
-        Alert Notifications
+    <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
+    Alert Notifications
       </Typography>
       <List>
         {alertItems.map((alert, index) => (
@@ -437,14 +438,18 @@ const WaterSourcesDashboard: React.FC = () => {
       <Card sx={{ mt: 3 }}>
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6">Water Sources Overview</Typography>
+            <Typography variant="h6" sx={{fontWeight:600,}}>Water Sources Overview</Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 size="small"
                 placeholder="Search sources..."
                 InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
               />
-              <Button startIcon={<FilterAlt />}>Filter</Button>
+              <Button startIcon={<FaFilter style={{ color: "#1F2937" }} />}>
+              <Typography variant="body1" color="#1F2937">
+                Filter
+              </Typography>
+              </Button>
             </Box>
           </Box>
           <TableContainer>
@@ -475,7 +480,7 @@ const WaterSourcesDashboard: React.FC = () => {
                     <TableCell>{row.lastUpdated}</TableCell>
                     <TableCell>
                       <IconButton size="small">
-                        <Visibility />
+                        <Visibility style={{ color: "#2CBEEF" }}/>
                       </IconButton>
                       <IconButton size="small">
                         <MoreVert />

@@ -298,18 +298,34 @@ const DumpSites = () => {
             </Table>
           </TableContainer>
           <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 2,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "#25306B" }}>
+            Showing 1 to 2 of 1,234 entries
+          </Typography>
+          <Pagination
+            count={3}
+            variant="outlined"
+            shape="rounded"
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 2,
+              "& .MuiPaginationItem-root": {
+                color: "#25306B", // Default color
+              },
+              "& .Mui-selected": {
+                backgroundColor: "#2563EB", // Active page background color
+                color: "#ffffff", // Active page text color
+                "&:hover": {
+                  backgroundColor: "#1D4ED8", // Darker shade on hover
+                },
+              },
             }}
-          >
-            <Typography variant="body2" sx={{ color: "#666" }}>
-              Showing 1 to 2 of 1,234 entries
-            </Typography>
-            <Pagination count={3} variant="outlined" shape="rounded" />
-          </Box>
+          />
+        </Box>
         </CardContent>
       </Card>
 

@@ -13,17 +13,16 @@ import {
   TableRow,
   IconButton,
   Pagination,
+  Tooltip,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import GroupIcon from '@mui/icons-material/Group';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
+import { FaChartLine, FaDownload, FaFilter } from 'react-icons/fa';
 
 const timeDistributionData = [
   {
@@ -61,7 +60,7 @@ const OpenDefication = () => {
             color: 'text.primary',
             boxShadow: 1,
             '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none'
+            textTransform: 'none',
           }}
         >
           Filter
@@ -85,14 +84,8 @@ const OpenDefication = () => {
         <StatsCard
           title="Average Daily Cases"
           value="42"
-          icon={<AccessTimeIcon />}
+          icon={<FaChartLine style={{ color: "#CA8A04" }} />}
           iconColor="#ff9800"
-        />
-        <StatsCard
-          title="Active Monitors"
-          value="15"
-          icon={<GroupIcon />}
-          iconColor="#4caf50"
         />
       </Box>
 
@@ -101,34 +94,49 @@ const OpenDefication = () => {
         {/* Geographic Distribution */}
         <Paper sx={{ flex: 1, p: 2, borderRadius: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">Geographic Distribution</Typography>
+            <Typography variant="h6" fontWeight={600}>Geographic Distribution</Typography>
             <Box>
-              <IconButton size="small"><FullscreenIcon /></IconButton>
-              <IconButton size="small"><InfoIcon /></IconButton>
+              <IconButton size="small">
+                <FullscreenIcon />
+              </IconButton>
+              <IconButton size="small">
+                <InfoIcon />
+              </IconButton>
             </Box>
           </Box>
-          <Box
-            component="img"
-            src="/api/placeholder/600/300"
-            alt="Geographic distribution map"
-            sx={{ 
-              width: '100%',
-              height: 300,
-              objectFit: 'cover',
-              borderRadius: 1
-            }}
-          />
+          <Box sx={{ height: 400, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d150598.46582809655!2d7.648291125907573!3d11.296615180519947!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x11b27fc3df7cf997%3A0x7f813ac2a29bec28!2sKudan%2C%20Kaduna!5e0!3m2!1sen!2sng!4v1735721268833!5m2!1sen!2sng"
+              style={{
+                border: 0,
+                width: '100%',
+                height: '100%',
+              }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </Box>
         </Paper>
 
         {/* Time Distribution */}
         <Paper sx={{ flex: 1, p: 2, borderRadius: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Time Distribution</Typography>
-          <Box sx={{ height: 300 }}>
+          <Typography variant="h6" fontWeight={600} sx={{ mb: 5 }}>Time Distribution</Typography>
+          <Box sx={{ height: 400 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={timeDistributionData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="10 10" />
                 <XAxis dataKey="name" />
                 <YAxis />
+                <Tooltip title="Tooltip">
+                  <span></span>
+                </Tooltip>
+                <Legend
+                  wrapperStyle={{
+                    paddingTop: '20px',
+                    textAlign: 'center',
+                  }}
+                />
                 <Bar dataKey="Motorized Boreholes" fill="#8884d8" />
                 <Bar dataKey="Wells (Covered & Open)" fill="#82ca9d" />
                 <Bar dataKey="Surface Water Points" fill="#ffc658" />
@@ -143,8 +151,12 @@ const OpenDefication = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Recent Observations</Typography>
           <Box>
-            <Button startIcon={<FilterAltIcon />} sx={{ mr: 1 }}>Filter</Button>
-            <Button startIcon={<FileDownloadIcon />}>Export</Button>
+            <Button startIcon={<FaFilter style={{color:"#1F2937"}}/>} sx={{ mr: 1 }}>
+              <Typography variant="body1" color="#1F2937">Filter</Typography>
+            </Button>
+            <Button startIcon={<FaDownload style={{color: "#1F2937"}} />}>
+              <Typography variant="body1" color="#1F2937">Export</Typography>
+            </Button>
           </Box>
         </Box>
         <TableContainer>
@@ -208,14 +220,16 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) 
       <Typography variant="h4" sx={{ fontWeight: 600 }}>
         {value}
       </Typography>
-      <Box sx={{ 
-        bgcolor: `${iconColor}15`, 
-        p: 1, 
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <Box
+        sx={{
+          bgcolor: `${iconColor}15`,
+          p: 1,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         {React.cloneElement(icon, { sx: { color: iconColor } })}
       </Box>
     </Box>

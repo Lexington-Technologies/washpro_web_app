@@ -20,11 +20,11 @@ export default function App() {
       <Wrapper>
         <Routes>
           <Route path="/" element={<Dashboard />} index />
-          <Route path="/dump-sites" element={<DumpSites />} />
           <Route path="/interventions" element={<Interventions />} />
           <Route path="/public-space-types" element={<PublicSpaceTypes />} />
-          <Route path="/toilet-facilities" element={<ToiletFacilities />} />
           <Route path="/water-sources" element={<WaterSources />} />
+          <Route path="/toilet-facilities" element={<ToiletFacilities />} />
+          <Route path="/dump-sites" element={<DumpSites />} />
           <Route path="/gutters" element={<Gutters />} />
           <Route path="/soak-aways" element={<SoakAways />} />
           <Route path="/monitor" element={<WaterSourceRiskMonitoring />} />

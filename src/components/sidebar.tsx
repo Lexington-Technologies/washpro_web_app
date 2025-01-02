@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
-import { FaToilet, FaPoop } from "react-icons/fa";
+import { FaToilet, FaPoop, FaBiohazard } from "react-icons/fa";
 import { MdSanitizer, MdPlumbing } from "react-icons/md";
 
 const SideBar = ({
@@ -185,7 +185,7 @@ const SideBar = ({
                   justifyContent: "center",
                 }}
               >
-                <Delete />
+                <FaBiohazard />
               </ListItemIcon>
               {!isCollapsed && (
                 <>

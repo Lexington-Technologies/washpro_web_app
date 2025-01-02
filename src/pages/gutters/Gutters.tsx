@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Card,
@@ -15,18 +15,19 @@ import {
   Chip,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination
-} from '@mui/material';
+  Pagination} from '@mui/material';
 import {
   MoreVert,
-  FilterList,
-  Fullscreen,
-  MoreHoriz,
-  PieChart,
   CheckCircle,
   Error,
-  Warning
+  Warning,
+  FilterAlt,
+  Add,
+  Fullscreen,
+  MoreHoriz
 } from '@mui/icons-material';
+import { FaChartPie, FaFilter } from 'react-icons/fa6';
+import { FaDownload } from 'react-icons/fa';
 
 const GutterDashboard = () => {
   const [timeframe, setTimeframe] = useState('monthly');
@@ -54,10 +55,11 @@ const GutterDashboard = () => {
     }
   ];
 
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#2C3E50', fontWeight: 600, mb: 0.5 }}>
             Gutters
@@ -66,92 +68,164 @@ const GutterDashboard = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            startIcon={<FilterList />}
-            variant="outlined"
-            sx={{ 
-              color: '#64748B',
-              borderColor: '#E2E8F0',
-              bgcolor: '#F8FAFC',
-              '&:hover': { bgcolor: '#F1F5F9', borderColor: '#CBD5E1' }
-            }}
-          >
-            Filter
-          </Button>
-          <Button
-            variant="contained"
-            sx={{ 
-              bgcolor: '#0EA5E9',
-              '&:hover': { bgcolor: '#0284C7' }
-            }}
-          >
-            + Add New Site
-          </Button>
-        </Box>
-      </Box>
-
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<FilterAlt />}
+              sx={{ color: 'text.primary' }}
+            >
+              Filter
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              sx={{ bgcolor: '#00B8D9' }}
+            >
+              Add Space
+            </Button>
+          </Box></Box>
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Total Site</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>24</Typography>
-          </Box>
-          <PieChart sx={{ color: '#3B82F6', opacity: 0.2, ml: 'auto' }} />
-        </Card>
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Maintained</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>14</Typography>
-          </Box>
-          <CheckCircle sx={{ color: '#4CAF50', opacity: 0.2, ml: 'auto' }} />
-        </Card>
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Overfilled</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>3</Typography>
-          </Box>
-          <Error sx={{ color: '#EF4444', opacity: 0.2, ml: 'auto' }} />
-        </Card>
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Unmaintained</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>7</Typography>
-          </Box>
-          <Warning sx={{ color: '#F59E0B', opacity: 0.2, ml: 'auto' }} />
-        </Card>
-      </Box>
+  {/* Total Site Card */}
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <Box>
+      <Typography color="text.secondary">Total Site</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>24</Typography>
+    </Box>
+    <Box
+      sx={{
+        bgcolor: '#E0F2FE',
+        p: 1.5,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <FaChartPie style={{ color: '#3B82F6' }} />
+    </Box>
+  </Card>
+
+  {/* Maintained Card */}
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <Box>
+      <Typography color="text.secondary">Maintained</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>14</Typography>
+    </Box>
+    <Box
+      sx={{
+        bgcolor: '#E8F5E9',
+        p: 1.5,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <CheckCircle sx={{ color: '#4CAF50' }} />
+    </Box>
+  </Card>
+
+  {/* Overfilled Card */}
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <Box>
+      <Typography color="text.secondary">Overfilled</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>3</Typography>
+    </Box>
+    <Box
+      sx={{
+        bgcolor: '#FEE2E2',
+        p: 1.5,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Error sx={{ color: '#EF4444' }} />
+    </Box>
+  </Card>
+
+  {/* Unmaintained Card */}
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <Box>
+      <Typography color="text.secondary">Unmaintained</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>7</Typography>
+    </Box>
+    <Box
+      sx={{
+        bgcolor: '#FEF3C7',
+        p: 1.5,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Warning sx={{ color: '#F59E0B' }} />
+    </Box>
+  </Card>
+</Box>
 
       {/* Main Content */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        {/* Distribution */}
-        <Card sx={{ flex: '0 0 320px', p: 3 }}>
+      <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+        {/* Timeframe Distribution */}
+        <Card sx={{ flex: 1, p: 3, borderRadius: 2, boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.1)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5">Gutter <br /> Type Distribution</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1E293B' }}>
+              Gutter <br /> Type Distribution
+            </Typography>
             <ToggleButtonGroup
               size="small"
               value={timeframe}
               exclusive
               onChange={(e, value) => value && setTimeframe(value)}
-              sx={{ height: 32 }}
+              sx={{
+                backgroundColor: '#F8FAFC',
+                borderRadius: 1,
+                boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+              }}
             >
-              <ToggleButton value="monthly" sx={{ px: 2 }}>Monthly</ToggleButton>
-              <ToggleButton value="yearly" sx={{ px: 2 }}>Yearly</ToggleButton>
+              <ToggleButton
+                value="monthly"
+                sx={{
+                  textTransform: 'none',
+                  px: 2,
+                  '&.Mui-selected': { bgcolor: '#F3F4F6', color: '#0EA5E9' },
+                }}
+              >
+                <Typography variant="body1" color="initial">Monthly</Typography>
+              </ToggleButton>
+              <ToggleButton
+                value="yearly"
+                sx={{
+                  textTransform: 'none',
+                  px: 2,
+                  '&.Mui-selected': { bgcolor: '#F3F4F6', color: '#0EA5E9' },
+                }}
+              >
+                <Typography variant="body1" color="initial">Yearly</Typography>
+              </ToggleButton>
             </ToggleButtonGroup>
           </Box>
+
+          {/* Gutter Types */}
           {gutterTypes.map((item) => (
             <Box key={item.type} sx={{ mb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography>{item.type}</Typography>
-                <Typography sx={{ color: item.color }}>{item.value}</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body1" sx={{ fontWeight: 500, color: '#1E293B' }}>
+                  {item.type}
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 500, color: item.color }}>
+                  {item.value}
+                </Typography>
               </Box>
               <Box
                 sx={{
                   height: 8,
                   bgcolor: '#F1F5F9',
                   borderRadius: 4,
-                  overflow: 'hidden'
+                  overflow: 'hidden',
                 }}
               >
                 <Box
@@ -159,7 +233,7 @@ const GutterDashboard = () => {
                     width: `${(item.value / 245) * 100}%`,
                     height: '100%',
                     bgcolor: item.color,
-                    borderRadius: 4
+                    borderRadius: 4,
                   }}
                 />
               </Box>
@@ -167,8 +241,8 @@ const GutterDashboard = () => {
           ))}
         </Card>
 
-        {/* Map */}
-        <Card sx={{ flex: 1, p: 3 }}>
+        {/* Gutter Location Map */}
+        <Card sx={{ flex: 2, p: 3, borderRadius: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6">Gutter Location Map</Typography>
             <Box>
@@ -180,26 +254,55 @@ const GutterDashboard = () => {
               </IconButton>
             </Box>
           </Box>
-          <Box sx={{ height: 400, bgcolor: '#F8FAFC', borderRadius: 1 }}>
-            {/* Map placeholder */}
-            <Typography sx={{ p: 2, color: '#94A3B8' }}>Map Component Placeholder</Typography>
-          </Box>
+          <Box sx={{ height: 400, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
+                  <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d54444.747381551366!2d7.6930992235022035!3d11.29520357300069!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x11b27fc3df7cf997%3A0x7f813ac2a29bec28!2sKudan%2C%20Kaduna!5e1!3m2!1sen!2sng!4v1735816821797!5m2!1sen!2sng"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+
+    </Box>
+
         </Card>
       </Box>
 
+
+      {/* Maintenance Table */}
       {/* Maintenance Table */}
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6">Maintenance Status</Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button startIcon={<FilterList />}>Filter</Button>
-            <Button>Export</Button>
+            <Button
+              startIcon={<FaFilter />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Filter
+            </Button>
+            <Button
+              startIcon={<FaDownload />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Export
+            </Button>
           </Box>
         </Box>
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ bgcolor: '#F8FAFC' }}>
                 <TableCell>IC</TableCell>
                 <TableCell>LOCATION</TableCell>
                 <TableCell>TYPE</TableCell>
@@ -209,8 +312,8 @@ const GutterDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {maintenanceData.map((row) => (
-                <TableRow key={row.ic}>
+              {maintenanceData.map((row, index) => (
+                <TableRow key={index}>
                   <TableCell>{row.ic}</TableCell>
                   <TableCell>{row.location}</TableCell>
                   <TableCell>{row.type}</TableCell>
@@ -219,16 +322,15 @@ const GutterDashboard = () => {
                       label={row.status}
                       size="small"
                       sx={{
-                        bgcolor: row.status === 'Maintained' ? '#4CAF5020' : '#F59E0B20',
-                        color: row.status === 'Maintained' ? '#4CAF50' : '#F59E0B',
+                        bgcolor: row.status === 'Maintained' ? '#D1FAE5' : '#FEF3C7',
+                        color: row.status === 'Maintained' ? '#10B981' : '#F59E0B',
                         fontWeight: 500,
-                        borderRadius: 1
                       }}
                     />
                   </TableCell>
                   <TableCell>{row.lastMaintenance}</TableCell>
                   <TableCell align="right">
-                    <IconButton size="small">
+                    <IconButton>
                       <MoreVert />
                     </IconButton>
                   </TableCell>
@@ -237,13 +339,29 @@ const GutterDashboard = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 3,
+          }}
+        >
           <Typography variant="body2" color="text.secondary">
             Showing 1 to 2 of 1,234 entries
           </Typography>
-          <Pagination count={3} shape="rounded" />
+          <Pagination
+            count={3}
+            sx={{
+              '& .Mui-selected': {
+                bgcolor: '#0EA5E9',
+                color: '#FFFFFF',
+              },
+            }}
+          />
         </Box>
       </Paper>
+
     </Box>
   );
 };
