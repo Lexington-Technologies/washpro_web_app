@@ -23,6 +23,7 @@ import {
   ExpandMore,
   Assignment,
   Visibility,
+  People,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -37,10 +38,12 @@ const SideBar = ({
   onToggle: () => void;
 }) => {
   const [openWaste, setOpenWaste] = useState(false);
+  const [openUsers, setOpenUsers] = useState(false);
 
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/" },
     { text: "Intervention", icon: <LocationOn />, path: "/interventions" },
+    { text: "Wash", icon: <MdSanitizer />, path: "/wash" },
     { text: "Public Space Types", icon: <Public />, path: "/public-space-types" },
     { text: "Water Sources", icon: <RiWaterFlashFill />, path: "/water-sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
@@ -50,6 +53,11 @@ const SideBar = ({
     { text: "Dump Sites", icon: <Delete />, path: "/dump-sites" },
     { text: "Gutters", icon: <Waves />, path: "/gutters" },
     { text: "Soakaways", icon: <MdPlumbing />, path: "/soak-aways" },
+  ];
+
+  const usersSubItems = [
+    { text: "Admins", icon: <People />, path: "/admin" },
+    { text: "Enumerators", icon: <People />, path: "/enumerator" },
   ];
 
   const bottomMenuItems = [
@@ -204,6 +212,88 @@ const SideBar = ({
           <Collapse in={openWaste} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               {wasteSubItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to={item.path}
+                    sx={{
+                      py: 1.5,
+                      pl: isCollapsed ? 2 : 4,
+                      justifyContent: isCollapsed ? "center" : "flex-start",
+                      "&.active": {
+                        backgroundColor: "#25306B",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "#25306B", // No hover effect for active
+                        },
+                      },
+                      "&:not(.active):hover": {
+                        bgcolor: "rgba(37, 48, 107, 0.04)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: "inherit",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    {!isCollapsed && (
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+
+          {/* Users Dropdown */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setOpenUsers(!openUsers)}
+              sx={{
+                py: 1.5,
+                justifyContent: isCollapsed ? "center" : "flex-start",
+                color: "#666",
+                "&:hover": {
+                  bgcolor: "rgba(37, 48, 107, 0.04)",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: "inherit",
+                  justifyContent: "center",
+                }}
+              >
+                <People />
+              </ListItemIcon>
+              {!isCollapsed && (
+                <>
+                  <ListItemText
+                    primary="Users"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                  {openUsers ? <ExpandLess /> : <ExpandMore />}
+                </>
+              )}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={openUsers} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {usersSubItems.map((item) => (
                 <ListItem key={item.text} disablePadding>
                   <ListItemButton
                     component={NavLink}

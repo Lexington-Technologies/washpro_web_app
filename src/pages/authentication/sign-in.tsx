@@ -42,11 +42,11 @@ const SignInPage: FC = function () {
           {/* Text Content */}
           <div
             style={{
-              position: "absolute",
-              top: "10%",
-              left: "50%",
-              transform: "translateX(-50%)",
               textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
             <Typography variant="h3" style={{ color: "#fff", fontWeight: "bold" }}>
@@ -72,11 +72,11 @@ const SignInPage: FC = function () {
             src="/public/svg/Ellipse 5.svg"
             alt="Polygon"
             style={{
-             width: 105,
-             height: 105,
-             position: "fixed",
-             top: 90,
-             left: 380,
+              width: 105,
+              height: 105,
+              position: "fixed",
+              top: 90,
+              left: 380,
             }}
           />
           <img
@@ -112,7 +112,6 @@ const SignInPage: FC = function () {
               left: 0,
             }}
           />
-
         </div>
 
         {/* Right Side */}
