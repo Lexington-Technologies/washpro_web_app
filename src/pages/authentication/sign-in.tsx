@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Button,
@@ -9,8 +9,49 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { apiController } from "../../axios";
+import { useAuthStore, useSnackStore } from "../../store";
+
+interface LoginResponse {
+  user: {
+    id: string;
+    name: string;
+    // add other user properties as needed
+  };
+  token: string;
+  refreshToken: string;
+}
 
 const SignInPage: FC = function () {
+  const navigate = useNavigate();
+  const { logIn } = useAuthStore();
+  const { setAlert, setLoading } = useSnackStore();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await apiController.post<LoginResponse>("/user/login", formData);
+      
+      logIn(response.user, response.token, response.refreshToken);
+      setAlert({ variant: "success", message: "Login successful" });
+      navigate("/");
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        message: error instanceof Error ? error.message : "Login failed",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -124,8 +165,9 @@ const SignInPage: FC = function () {
             justifyContent: "center",
           }}
         >
-          <div
-            style={{
+          <form 
+            onSubmit={handleSubmit}
+            style={{ 
               width: "400px",
               backgroundColor: "#fff",
               padding: "32px",
@@ -145,19 +187,23 @@ const SignInPage: FC = function () {
               </Typography>
             </div>
             {/* Login Form */}
-            <form style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <TextField
                 label="Email"
                 variant="outlined"
                 fullWidth
-                defaultValue="email@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                required
               />
               <TextField
                 label="Password"
                 variant="outlined"
                 fullWidth
                 type="password"
-                defaultValue="password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                required
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -174,15 +220,15 @@ const SignInPage: FC = function () {
                 }}
               >
                 <FormControlLabel control={<Checkbox />} label="Remember me" />
-                <Link href="#" underline="hover">
+                <Link href="/forgot-password" underline="hover">
                   Forgot Password?
                 </Link>
               </div>
-              <Button variant="contained" color="primary" fullWidth>
+              <Button type="submit" variant="contained" color="primary" fullWidth>
                 Submit
               </Button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>

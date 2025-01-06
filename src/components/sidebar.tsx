@@ -29,6 +29,8 @@ import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
 import { FaToilet, FaPoop, FaBiohazard } from "react-icons/fa";
 import { MdSanitizer, MdPlumbing } from "react-icons/md";
+import { useAuthStore } from "../store";
+import { useNavigate } from "react-router-dom";
 
 const SideBar = ({
   isCollapsed,
@@ -37,8 +39,19 @@ const SideBar = ({
   isCollapsed: boolean;
   onToggle: () => void;
 }) => {
+  const navigate = useNavigate();
   const [openWaste, setOpenWaste] = useState(false);
   const [openUsers, setOpenUsers] = useState(false);
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    try {
+      logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/" },
@@ -383,7 +396,7 @@ const SideBar = ({
 
       {/* Logout Button */}
       <Divider />
-      <ListItem disablePadding>
+      <ListItem onClick={handleLogout} disablePadding>
         <ListItemButton
           sx={{
             py: 1.5,
@@ -394,7 +407,7 @@ const SideBar = ({
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+          <ListItemIcon  sx={{ minWidth: 40, color: "inherit" }}>
             <Logout />
           </ListItemIcon>
           {!isCollapsed && (
