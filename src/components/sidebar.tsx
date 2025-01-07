@@ -69,7 +69,7 @@ const SideBar = ({
   ];
 
   const usersSubItems = [
-    { text: "Admins", icon: <People />, path: "/admin" },
+    { text: "Users", icon: <People />, path: "/users" },
     { text: "Enumerators", icon: <People />, path: "/enumerator" },
   ];
 
@@ -293,7 +293,7 @@ const SideBar = ({
               {!isCollapsed && (
                 <>
                   <ListItemText
-                    primary="Users"
+                    primary="Accounts"
                     primaryTypographyProps={{
                       fontSize: "0.875rem",
                     }}

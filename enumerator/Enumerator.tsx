@@ -30,7 +30,7 @@ import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
 import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
 
-interface User {
+interface Enumerator {
   id: string;
   fullName: string;
   email: string;
@@ -39,20 +39,18 @@ interface User {
   lastLogin: string;
 }
 
-interface UserFormData {
+interface EnumeratorFormData {
   fullName: string;
   email: string;
   phone: string;
   password: string;
-  role: string;
 }
 
-const initialFormData: UserFormData = {
+const initialFormData: EnumeratorFormData = {
   fullName: '',
   email: '',
   phone: '',
   password: '',
-  role: '', 
 };
 
 const formatLastLogin = (lastLogin: string) => {
@@ -66,19 +64,19 @@ const formatLastLogin = (lastLogin: string) => {
   }
 };
 
-const UserPage: React.FC = () => {
+const EnumeratorPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedEnumerator, setSelectedEnumerator] = useState<Enumerator | null>(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
-  const [formData, setFormData] = useState<UserFormData>(initialFormData);
-  const [users, setUsers] = useState<User[]>([]);
+  const [formData, setFormData] = useState<EnumeratorFormData>(initialFormData);
+  const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { setAlert } = useSnackStore();
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: User) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, enumerator: Enumerator) => {
     setAnchorEl(event.currentTarget);
-    setSelectedUser(user);
+    setSelectedEnumerator(enumerator);
   };
 
   const handleMenuClose = () => {
@@ -91,21 +89,21 @@ const UserPage: React.FC = () => {
   };
 
   const handleSuspendConfirm = async () => {
-    if (!selectedUser) return;
+    if (!selectedEnumerator) return;
     
     setIsLoading(true);
     try {
-      await apiController.put(`/user/${selectedUser.id}/status`, {
-        status: selectedUser.status === 'active' ? 'inactive' : 'active'
+      await apiController.put(`/enumerator/${selectedEnumerator.id}/status`, {
+        status: selectedEnumerator.status === 'active' ? 'inactive' : 'active'
       });
       
       setAlert({
         variant: 'success',
-        message: `User ${selectedUser.status === 'active' ? 'suspended' : 'activated'} successfully`
+        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'suspended' : 'activated'} successfully`
       });
       setConfirmDialog(false);
-      setSelectedUser(null);
-      fetchUsers(); // Refresh the list
+      setSelectedEnumerator(null);
+      fetchEnumerators(); // Refresh the list
     } catch (error) {
       setAlert({
         variant: 'error',
@@ -128,33 +126,33 @@ const UserPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await apiController.post('/user/register', formData);
+      await apiController.post('/enumerator/register', formData);
       setAlert({
         variant: 'success',
-        message: 'User added successfully'
+        message: 'Enumerator added successfully'
       });
       setOpenAddModal(false);
       setFormData(initialFormData);
-      fetchUsers(); // Refresh the list
+      fetchEnumerators(); // Refresh the list
     } catch (error) {
       setAlert({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to add user'
+        message: error instanceof Error ? error.message : 'Failed to add enumerator'
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchEnumerators = async () => {
     setIsLoading(true);
     try {
-      const response = await apiController.get<User[]>('/user');
-      setUsers(response);
+      const response = await apiController.get<Enumerator[]>('/enumerator');
+      setEnumerators(response);
     } catch (error) {
       setAlert({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch users'
+        message: error instanceof Error ? error.message : 'Failed to fetch enumerators'
       });
     } finally {
       setIsLoading(false);
@@ -162,7 +160,7 @@ const UserPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchEnumerators();
   }, []);
 
   return (
@@ -170,7 +168,7 @@ const UserPage: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
-          Users
+          Enumerators
         </Typography>
         <Button
           variant="contained"
@@ -178,7 +176,7 @@ const UserPage: React.FC = () => {
           sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
           onClick={() => setOpenAddModal(true)}
         >
-          Add User
+          Add Enumerator
         </Button>
       </Box>
 
@@ -190,7 +188,6 @@ const UserPage: React.FC = () => {
               <TableCell sx={{ color: 'white' }}>Full Name</TableCell>
               <TableCell sx={{ color: 'white' }}>Email</TableCell>
               <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-              <TableCell sx={{ color: 'white' }}>Role</TableCell>
               <TableCell sx={{ color: 'white' }}>Status</TableCell>
               <TableCell sx={{ color: 'white' }}>Last Login</TableCell>
               <TableCell sx={{ color: 'white' }}>Action</TableCell>
@@ -203,37 +200,36 @@ const UserPage: React.FC = () => {
                   <CircularProgress size={40} />
                 </TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : enumerators.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  No users found
+                  No enumerators found
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.fullName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
+              enumerators.map((enumerator) => (
+                <TableRow key={enumerator.id}>
+                  <TableCell>{enumerator.fullName}</TableCell>
+                  <TableCell>{enumerator.email}</TableCell>
+                  <TableCell>{enumerator.phone}</TableCell>
                   <TableCell>
                     <Chip
-                      label={user.status}
+                      label={enumerator.status}
                       size="small"
                       sx={{
-                        bgcolor: user.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: user.status === 'active' ? '#16a34a' : '#dc2626',
+                        bgcolor: enumerator.status === 'active' ? '#dcfce7' : '#fee2e2',
+                        color: enumerator.status === 'active' ? '#16a34a' : '#dc2626',
                         textTransform: 'capitalize',
                       }}
                     />
                   </TableCell>
                   <TableCell>
-                    {formatLastLogin(user.lastLogin)}
+                    {formatLastLogin(enumerator.lastLogin)}
                   </TableCell>
                   <TableCell>
                     <IconButton 
                       size="small"
-                      onClick={(e) => handleMenuOpen(e, user)}
+                      onClick={(e) => handleMenuOpen(e, enumerator)}
                     >
                       <MoreVert />
                     </IconButton>
@@ -252,7 +248,7 @@ const UserPage: React.FC = () => {
         onClose={handleMenuClose}
       >
         <MenuItem onClick={handleSuspendClick}>
-          {selectedUser?.status === 'active' ? 'Suspend' : 'Activate'}
+          {selectedEnumerator?.status === 'active' ? 'Suspend' : 'Activate'}
         </MenuItem>
         <MenuItem onClick={handleMenuClose}>Edit</MenuItem>
         <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
@@ -266,7 +262,7 @@ const UserPage: React.FC = () => {
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {selectedUser?.status === 'active' ? 'suspend' : 'activate'} this user?
+            Are you sure you want to {selectedEnumerator?.status === 'active' ? 'suspend' : 'activate'} this enumerator?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -284,7 +280,7 @@ const UserPage: React.FC = () => {
       {/* Pagination */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
         <Typography variant="body2" color="text.secondary">
-          Showing {users.length} entries
+          Showing {enumerators.length} entries
         </Typography>
         <Box display="flex" gap={1} alignItems="center">
           <Button size="small" disabled>
@@ -295,11 +291,11 @@ const UserPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Add User Modal */}
+      {/* Add Enumerator Modal */}
       <Modal
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
-        aria-labelledby="add-user-modal"
+        aria-labelledby="add-enumerator-modal"
       >
         <Box sx={{
           position: 'absolute',
@@ -313,7 +309,7 @@ const UserPage: React.FC = () => {
           p: 4,
         }}>
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            Add New User
+            Add New Enumerator
           </Typography>
           <form onSubmit={handleAddSubmit}>
             <Stack spacing={2}>
@@ -336,22 +332,12 @@ const UserPage: React.FC = () => {
               />
               <TextField
                 fullWidth
-                label="Role"
-                name="Role"
-                value={formData.role}
+                label="Phone"
+                name="phone"
+                value={formData.phone}
                 onChange={handleInputChange}
                 required
-                select // Add this property to make it a dropdown
-              >
-                {[
-                  { value: 'admin', label: 'Admin' },
-                  { value: 'profiler', label: 'Profiler' },
-                ].map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
+              />
               {/* <TextField
                 fullWidth
                 label="Password"
@@ -377,7 +363,7 @@ const UserPage: React.FC = () => {
                   {isLoading ? (
                     <CircularProgress size={24} color="inherit" />
                   ) : (
-                    'Add User'
+                    'Add Enumerator'
                   )}
                 </Button>
               </Box>
@@ -389,4 +375,4 @@ const UserPage: React.FC = () => {
   );
 };
 
-export default UserPage;
+export default EnumeratorPage;

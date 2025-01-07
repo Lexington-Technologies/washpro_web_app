@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Wrapper from "../components/wrapper";
 import Dashboard from "../pages/dashboard/dashboard";
 import DumpSites from "../pages/dump-site/DumpSite";
@@ -14,12 +14,12 @@ import NeedAndMaintainers from "../pages/needs-and-maintainers/needs-and-maintai
 import Sanitation from "../pages/sanitation/Sanitation";
 import Monitoring from "../pages/field-monitoring/FieldMonitoring";
 import Wash from "../pages/wash/Wash";
-import Admin from "../pages/admin/Admin";
 import Enumerator from "../pages/enumerator/Enumerator";
 import SignIn from "../pages/authentication/sign-in";
 import AccountSetUp from "../pages/authentication/account-setup";
 import NotFound from "../pages/error/NotFound";
 import ErrorBoundary from "../pages/error/ErrorBoundary";
+import UserPage from "../pages/admin/Admin";
 
 const router = createBrowserRouter([
   {
@@ -94,8 +94,8 @@ const router = createBrowserRouter([
         element: <Monitoring />,
       },
       {
-        path: "admin",
-        element: <Admin />,
+        path: "users",
+        element: <UserPage />,
       },
       {
         path: "enumerator",
