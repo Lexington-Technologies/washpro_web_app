@@ -336,12 +336,21 @@ const UserPage: React.FC = () => {
               />
               <TextField
                 fullWidth
+                label="Phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+              />
+              <TextField
+                fullWidth
                 label="Role"
-                name="Role"
+                name="role"
                 value={formData.role}
                 onChange={handleInputChange}
                 required
-                select // Add this property to make it a dropdown
+                select
               >
                 {[
                   { value: 'admin', label: 'Admin' },
