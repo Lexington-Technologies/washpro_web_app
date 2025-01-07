@@ -10,9 +10,55 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiController } from "../../axios"; // Adjust import as needed
+import { useSnackStore } from "../../store"; // Assuming you have a snack store for alerts
 
 const ResetPassword = () => {
+  const navigate = useNavigate();
+  const { setAlert } = useSnackStore() as {
+    setAlert: (alert: { variant: string; message: string }) => void;
+  };
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      setAlert({ variant: "error", message: "Passwords do not match!" });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await apiController.post("/user/reset-password", {
+        password: formData.password,
+      });
+
+      setAlert({ variant: "success", message: "Password reset successfully!" });
+      navigate("/login"); // Redirect to login page
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        message: error instanceof Error ? error.message : "Failed to reset password. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -28,69 +74,85 @@ const ResetPassword = () => {
         maxWidth="sm"
         sx={{ bgcolor: "#ffffff", borderRadius: 2, p: 4, boxShadow: 3 }}
       >
-        <Grid container direction="column" spacing={3} alignItems="center">
-          <Grid item>
-            <Typography
-              variant="h4"
-              component="h1"
-              sx={{ fontWeight: "bold", color: "greysg-6" }}
-            >
-              Reset Password?
-            </Typography>
+        <form onSubmit={handleSubmit}>
+          <Grid container direction="column" spacing={3} alignItems="center">
+            <Grid item>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{ fontWeight: "bold", color: "greysg-6" }}
+              >
+                Reset Password?
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Typography
+                variant="body1"
+                sx={{ color: "greysg-3", textAlign: "center" }}
+              >
+                Please enter your new password.
+              </Typography>
+            </Grid>
+            <Grid item>
+              <TextField
+                fullWidth
+                label="Password"
+                placeholder="Enter password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item>
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                placeholder="Enter password again"
+                type={showPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ borderRadius: 2 }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Typography
-              variant="body1"
-              sx={{ color: "greysg-3", textAlign: "center" }}
-            >
-              Please enter your new password.
-            </Typography>
-          </Grid>
-          <Grid item>
-            <TextField
-              fullWidth
-              label="Password"
-              placeholder="enter password"
-              type="password"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton>
-                      <VisibilityIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item>
-            <TextField
-              fullWidth
-              label="Confirm Password"
-              placeholder="enter password again"
-              type="password"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton>
-                      <VisibilityIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ borderRadius: 2 }}
-            >
-              Submit
-            </Button>
-          </Grid>
-        </Grid>
+        </form>
       </Container>
       <Box
         sx={{
@@ -101,7 +163,7 @@ const ResetPassword = () => {
           alignItems: "center",
         }}
       >
-        <IconButton>
+        <IconButton onClick={() => navigate(-1)}>
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h6" sx={{ ml: 1, color: "greysg-5" }}>

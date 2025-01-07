@@ -25,131 +25,58 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { MoreVert } from '@mui/icons-material';
-import { FaPlus } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
 import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
 
 interface Enumerator {
-  id: string;
+  _id: string;
   fullName: string;
   email: string;
   phone: string;
   status: 'active' | 'inactive';
-  lastLogin: string;
+  lastLogin?: string;
 }
 
-interface EnumeratorFormData {
+interface EditEnumeratorFormData {
   fullName: string;
   email: string;
   phone: string;
-  password: string;
 }
 
-const initialFormData: EnumeratorFormData = {
+const initialEditFormData: EditEnumeratorFormData = {
   fullName: '',
   email: '',
   phone: '',
-  password: '',
 };
 
 const formatLastLogin = (lastLogin: string) => {
   try {
     const date = parseISO(lastLogin);
-    if (!isValid(date)) return 'Invalid date';
-    
+    if (!isValid(date)) return 'Never';
     return formatDistanceToNow(date, { addSuffix: true });
   } catch {
-    return 'Invalid date';
+    return 'Never';
   }
 };
 
 const EnumeratorPage: React.FC = () => {
+  const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedEnumerator, setSelectedEnumerator] = useState<Enumerator | null>(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [formData, setFormData] = useState<EnumeratorFormData>(initialFormData);
-  const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<EditEnumeratorFormData>(initialEditFormData);
   const { setAlert } = useSnackStore();
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, enumerator: Enumerator) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedEnumerator(enumerator);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSuspendClick = () => {
-    handleMenuClose();
-    setConfirmDialog(true);
-  };
-
-  const handleSuspendConfirm = async () => {
-    if (!selectedEnumerator) return;
-    
-    setIsLoading(true);
-    try {
-      await apiController.put(`/enumerator/${selectedEnumerator.id}/status`, {
-        status: selectedEnumerator.status === 'active' ? 'inactive' : 'active'
-      });
-      
-      setAlert({
-        variant: 'success',
-        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'suspended' : 'activated'} successfully`
-      });
-      setConfirmDialog(false);
-      setSelectedEnumerator(null);
-      fetchEnumerators(); // Refresh the list
-    } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Operation failed'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAddSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await apiController.post('/enumerator/register', formData);
-      setAlert({
-        variant: 'success',
-        message: 'Enumerator added successfully'
-      });
-      setOpenAddModal(false);
-      setFormData(initialFormData);
-      fetchEnumerators(); // Refresh the list
-    } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to add enumerator'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchEnumerators = async () => {
     setIsLoading(true);
     try {
-      const response = await apiController.get<Enumerator[]>('/enumerator');
-      setEnumerators(response);
+      const response = await apiController.get('/enumerator');
+      setEnumerators(response || []);
     } catch (error) {
+      console.error('Error fetching enumerators:', error);
       setAlert({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to fetch enumerators'
@@ -163,24 +90,111 @@ const EnumeratorPage: React.FC = () => {
     fetchEnumerators();
   }, []);
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, enumerator: Enumerator) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedEnumerator(enumerator);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEditClick = () => {
+    if (!selectedEnumerator) return;
+
+    setEditFormData({
+      fullName: selectedEnumerator.fullName,
+      email: selectedEnumerator.email,
+      phone: selectedEnumerator.phone
+    });
+    
+    handleMenuClose();
+    setOpenEditModal(true);
+  };
+
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedEnumerator?._id) {
+      setAlert({
+        variant: 'error',
+        message: 'No enumerator selected'
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await apiController.put(`/enumerator/${selectedEnumerator._id}`, editFormData);
+      
+      setAlert({
+        variant: 'success',
+        message: 'Enumerator updated successfully'
+      });
+      
+      setOpenEditModal(false);
+      setSelectedEnumerator(null);
+      setEditFormData(initialEditFormData);
+      fetchEnumerators();
+    } catch (error) {
+      console.error('Error updating enumerator:', error);
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to update enumerator'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSuspendClick = () => {
+    handleMenuClose();
+    setConfirmDialog(true);
+  };
+
+  const handleStatusChange = async () => {
+    if (!selectedEnumerator?._id) return;
+    
+    setIsLoading(true);
+    try {
+      await apiController.put(`/enumerator/activate/${selectedEnumerator._id}`, {
+        status: selectedEnumerator.status === 'active' ? 'inactive' : 'active'
+      });
+      
+      setAlert({
+        variant: 'success',
+        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'suspended' : 'activated'} successfully`
+      });
+      
+      setConfirmDialog(false);
+      setSelectedEnumerator(null);
+      fetchEnumerators();
+    } catch (error) {
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to update status'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
           Enumerators
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<FaPlus />}
-          sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
-          onClick={() => setOpenAddModal(true)}
-        >
-          Add Enumerator
-        </Button>
       </Box>
 
-      {/* Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead sx={{ bgcolor: '#1a237e' }}>
@@ -190,7 +204,7 @@ const EnumeratorPage: React.FC = () => {
               <TableCell sx={{ color: 'white' }}>Phone</TableCell>
               <TableCell sx={{ color: 'white' }}>Status</TableCell>
               <TableCell sx={{ color: 'white' }}>Last Login</TableCell>
-              <TableCell sx={{ color: 'white' }}>Action</TableCell>
+              <TableCell sx={{ color: 'white' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -208,7 +222,7 @@ const EnumeratorPage: React.FC = () => {
               </TableRow>
             ) : (
               enumerators.map((enumerator) => (
-                <TableRow key={enumerator.id}>
+                <TableRow key={enumerator._id}>
                   <TableCell>{enumerator.fullName}</TableCell>
                   <TableCell>{enumerator.email}</TableCell>
                   <TableCell>{enumerator.phone}</TableCell>
@@ -223,9 +237,7 @@ const EnumeratorPage: React.FC = () => {
                       }}
                     />
                   </TableCell>
-                  <TableCell>
-                    {formatLastLogin(enumerator.lastLogin)}
-                  </TableCell>
+                  <TableCell>{formatLastLogin(enumerator.lastLogin || '')}</TableCell>
                   <TableCell>
                     <IconButton 
                       size="small"
@@ -250,9 +262,87 @@ const EnumeratorPage: React.FC = () => {
         <MenuItem onClick={handleSuspendClick}>
           {selectedEnumerator?.status === 'active' ? 'Suspend' : 'Activate'}
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>Edit</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Delete</MenuItem>
+        <MenuItem onClick={handleEditClick}>Edit</MenuItem>
       </Menu>
+
+      {/* Edit Modal */}
+      <Modal
+        open={openEditModal}
+        onClose={() => {
+          setOpenEditModal(false);
+          setEditFormData(initialEditFormData);
+          setSelectedEnumerator(null);
+        }}
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          borderRadius: 1,
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Edit Enumerator
+          </Typography>
+          <form onSubmit={handleEditSubmit}>
+            <Stack spacing={2}>
+              <TextField
+                fullWidth
+                label="Full Name"
+                name="fullName"
+                variant="standard"
+                value={editFormData.fullName}
+                onChange={handleEditInputChange}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                variant="standard"
+                value={editFormData.email}
+                onChange={handleEditInputChange}
+                required
+              />
+              <TextField
+                fullWidth
+                label="Phone"
+                name="phone"
+                variant="standard"
+                value={editFormData.phone}
+                onChange={handleEditInputChange}
+                required
+              />
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setOpenEditModal(false)}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="contained"
+                  disabled={isLoading}
+                  sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
+                >
+                  {isLoading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </Box>
+            </Stack>
+          </form>
+        </Box>
+      </Modal>
 
       {/* Confirm Dialog */}
       <Dialog
@@ -268,109 +358,19 @@ const EnumeratorPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setConfirmDialog(false)}>Cancel</Button>
           <Button 
-            onClick={handleSuspendConfirm} 
+            onClick={handleStatusChange} 
             color="primary" 
             variant="contained"
+            disabled={isLoading}
           >
-            Confirm
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Confirm'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Pagination */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {enumerators.length} entries
-        </Typography>
-        <Box display="flex" gap={1} alignItems="center">
-          <Button size="small" disabled>
-            Previous
-          </Button>
-          <Chip label="1" color="primary" />
-          <Button size="small">Next</Button>
-        </Box>
-      </Box>
-
-      {/* Add Enumerator Modal */}
-      <Modal
-        open={openAddModal}
-        onClose={() => setOpenAddModal(false)}
-        aria-labelledby="add-enumerator-modal"
-      >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          boxShadow: 24,
-          p: 4,
-        }}>
-          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            Add New Enumerator
-          </Typography>
-          <form onSubmit={handleAddSubmit}>
-            <Stack spacing={2}>
-              <TextField
-                fullWidth
-                label="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-              />
-              {/* <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              /> */}
-              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setOpenAddModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  variant="contained"
-                  disabled={isLoading}
-                  sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
-                >
-                  {isLoading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Add Enumerator'
-                  )}
-                </Button>
-              </Box>
-            </Stack>
-          </form>
-        </Box>
-      </Modal>
     </Box>
   );
 };

@@ -20,6 +20,7 @@ import AccountSetUp from "../pages/authentication/account-setup";
 import NotFound from "../pages/error/NotFound";
 import ErrorBoundary from "../pages/error/ErrorBoundary";
 import UserPage from "../pages/admin/Admin";
+import ForgotPassword from "../pages/authentication/forgot-password";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
     path: "/account-setup",
     element: <AccountSetUp />,
     errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "/",

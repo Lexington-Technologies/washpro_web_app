@@ -1,13 +1,17 @@
 import { FC, useState } from "react";
+import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Button,
   Checkbox,
+  CircularProgress,
   FormControlLabel,
   InputAdornment,
   Link,
   TextField,
   Typography,
+  useMediaQuery,
+  Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
@@ -17,7 +21,7 @@ interface LoginResponse {
   user: {
     id: string;
     name: string;
-    // add other user properties as needed
+    // Add other user properties as needed
   };
   token: string;
   refreshToken: string;
@@ -31,14 +35,29 @@ const SignInPage: FC = function () {
     email: "",
     password: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Responsive hook for detecting screen size
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    setIsSubmitting(true);
+  
+    // Trim whitespace from the email before submission
+    const sanitizedFormData = {
+      ...formData,
+      email: formData.email.trim(),
+    };
+  
     try {
-      const response = await apiController.post<LoginResponse>("/user/login", formData);
-      
+      const response = await apiController.post<LoginResponse>(
+        "/user/login",
+        sanitizedFormData
+      );
+  
       logIn(response.user, response.token, response.refreshToken);
       setAlert({ variant: "success", message: "Login successful" });
       navigate("/");
@@ -49,28 +68,23 @@ const SignInPage: FC = function () {
       });
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         position: "relative",
         width: "100vw",
         height: "100vh",
+        display: "flex",
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        {/* Left Side */}
-        <div
-          style={{
+      {!isMobile && (
+        <Box
+          sx={{
             width: "40%",
             backgroundColor: "#25306b",
             display: "flex",
@@ -80,24 +94,15 @@ const SignInPage: FC = function () {
             position: "relative",
           }}
         >
-          {/* Text Content */}
-          <div
-            style={{
-              textAlign: "center",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h3" style={{ color: "#fff", fontWeight: "bold" }}>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h3" sx={{ color: "#fff", fontWeight: "bold" }}>
               Welcome Back!
             </Typography>
-            <Typography variant="body1" style={{ color: "#fff", marginTop: "16px" }}>
+            <Typography variant="body1" sx={{ color: "#fff", mt: 2 }}>
               To keep connected with us, please login with your personal info.
             </Typography>
-          </div>
-          {/* Decorative Circles */}
+          </Box>
+          {/* Decorative Elements */}
           <img
             src="/public/svg/Polygon 2.svg"
             alt="Polygon"
@@ -111,127 +116,105 @@ const SignInPage: FC = function () {
           />
           <img
             src="/public/svg/Ellipse 5.svg"
-            alt="Polygon"
+            alt="Ellipse"
             style={{
               width: 105,
               height: 105,
-              position: "fixed",
+              position: "absolute",
               top: 90,
               left: 380,
             }}
           />
-          <img
-            src="/public/svg/Polygon 1.svg"
-            alt="Polygon"
-            style={{
-              width: 200,
-              height: 150,
-              position: "fixed",
-              top: 175,
-              left: 230,
-            }}
-          />
-          <img
-            src="/public/svg/Rectangle 4.svg"
-            alt="Polygon"
-            style={{
-              width: 100,
-              height: 50,
-              position: "fixed",
-              top: 400,
-              left: 230,
-            }}
-          />
-          <img
-            src="/public/svg/Ellipse 2.svg"
-            alt="Polygon"
-            style={{
-              width: 200,
-              height: 250,
-              position: "fixed",
-              top: 400,
-              left: 0,
-            }}
-          />
-        </div>
+        </Box>
+      )}
 
-        {/* Right Side */}
-        <div
+      {/* Right Side */}
+      <Box
+        sx={{
+          width: isMobile ? "100%" : "60%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#D5DAE1",
+        }}
+      >
+        <form
+          onSubmit={handleSubmit}
           style={{
-            width: "60%",
-            display: "flex",
-            backgroundColor: "#D5DAE1",
-            alignItems: "center",
-            justifyContent: "center",
+            width: "100%",
+            maxWidth: "400px",
+            backgroundColor: "#fff",
+            padding: "32px",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <form 
-            onSubmit={handleSubmit}
-            style={{ 
-              width: "400px",
-              backgroundColor: "#fff",
-              padding: "32px",
-              borderRadius: "8px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            {/* Logo and Header */}
-            <div style={{ textAlign: "center", marginBottom: "32px" }}>
-              <img
-                src="/logo.svg"
-                alt="Logo"
-                style={{ width: "225.28px", height: "55px" }}
-              />
-              <Typography variant="h6" style={{ marginTop: "16px" }}>
-                Enter your details to access your account.
-              </Typography>
-            </div>
-            {/* Login Form */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-              <TextField
-                label="Password"
-                variant="outlined"
-                fullWidth
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <VisibilityOff />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <FormControlLabel control={<Checkbox />} label="Remember me" />
-                <Link href="/forgot-password" underline="hover">
-                  Forgot Password?
-                </Link>
-              </div>
-              <Button type="submit" variant="contained" color="primary" fullWidth>
-                Submit
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          {/* Logo and Header */}
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <img
+              src="/logo.svg"
+              alt="Logo"
+              style={{ width: "225.28px", height: "55px" }}
+            />
+            <Typography variant="h6" sx={{ mt: 2 }}>
+              Enter your details to access your account.
+            </Typography>
+          </Box>
+          {/* Login Form */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              label="Email"
+              variant="standard"
+              fullWidth
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
+              required
+              type="email"
+            />
+            <TextField
+              label="Password"
+              variant="standard"
+              fullWidth
+              value={formData.password}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, password: e.target.value }))
+              }
+              required
+              type={showPassword ? "text" : "password"}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Button
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </Button>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <FormControlLabel control={<Checkbox />} label="Remember me" />
+              <Link href="/forgot-password" underline="hover">
+                Forgot Password?
+              </Link>
+            </Box>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+              startIcon={isSubmitting && <CircularProgress size={20} />}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
+          </Box>
+        </form>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,125 +1,160 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  CircularProgress,
+  useMediaQuery,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { apiController } from "../../axios";
+import { useSnackStore } from "../../store";
 
 const ForgotPassword = () => {
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { setAlert } = useSnackStore();
+  const isMobile = useMediaQuery("(max-width:768px)");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!emailOrPhone.trim()) {
+      setAlert({
+        variant: "error",
+        message: "Please enter your email or phone number."
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await apiController.post("/user/reset-password", {
+        emailOrPhone: emailOrPhone.trim()
+      });
+
+      setAlert({
+        variant: "success",
+        message: "Reset password link has been sent to your email or phone."
+      });
+      navigate("/login");
+    } catch (error) {
+      setAlert({
+        variant: "error",
+        message: error instanceof Error ? error.message : "Failed to send reset password link"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Box
       sx={{
         position: "relative",
         width: "100vw",
         height: "100vh",
-        backgroundColor: "#f1f1f5",
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        overflow: "hidden",
       }}
     >
+      {!isMobile && (
+        <Box
+          sx={{
+            width: "40%",
+            backgroundColor: "#25306b",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h3" sx={{ color: "#fff", fontWeight: "bold" }}>
+              Forgot Password?
+            </Typography>
+            <Typography variant="body1" sx={{ color: "#fff", mt: 2 }}>
+              Don't worry! It happens. Please enter your email or phone number.
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
       <Box
         sx={{
+          width: isMobile ? "100%" : "60%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          gap: 2,
-          padding: 4,
-          backgroundColor: "#ffffff",
-          borderRadius: 2,
+          justifyContent: "center",
+          backgroundColor: "#D5DAE1",
         }}
       >
-        <Typography
-          variant="h4"
-          sx={{
-            fontFamily: "Visby Round CF, Helvetica",
-            fontWeight: 700,
-            color: "rgba(61, 67, 74, 1)",
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            width: "100%",
+            maxWidth: "400px",
+            backgroundColor: "#fff",
+            padding: "32px",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
           }}
         >
-          Forgot Password?
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            fontFamily: "Visby Round CF, Helvetica",
-            fontWeight: 500,
-            color: "rgba(171, 172, 168, 1)",
-            textAlign: "center",
-            maxWidth: 342,
-          }}
-        >
-          Enter your email address or phone number, to which the reset password
-          link would be sent.
-        </Typography>
-        <TextField
-          label="Email or Phone Number"
-          defaultValue="email@example.com"
-          variant="outlined"
-          fullWidth
-          sx={{
-            maxWidth: 320,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 1,
-              backgroundColor: "#ffffff",
-              boxShadow: "0px 1px 2px #0000000d",
-            },
-            "& .MuiInputLabel-root": {
-              fontFamily: "Poppins, Helvetica",
-              fontWeight: 500,
-              color: "rgba(61, 67, 74, 1)",
-            },
-            "& .MuiInputBase-input": {
-              fontFamily: "Poppins, Helvetica",
-              fontWeight: 400,
-              color: "rgba(98, 98, 96, 1)",
-            },
-          }}
-        />
-        <Button
-          variant="contained"
-          sx={{
-            width: 327,
-            height: 48,
-            backgroundColor: "rgba(44, 190, 239, 1)",
-            borderRadius: 2,
-            textTransform: "none",
-            fontFamily: "Poppins, Helvetica",
-            fontWeight: 500,
-            fontSize: 16,
-            color: "#ffffff",
-            "&:hover": {
-              backgroundColor: "rgba(34, 160, 210, 1)",
-            },
-            "&:active": {
-              backgroundColor: "rgba(24, 130, 180, 1)",
-            },
-          }}
-        >
-          Submit
-        </Button>
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <img
+              src="/logo.svg"
+              alt="Logo"
+              style={{ width: "225.28px", height: "55px" }}
+            />
+            <Typography variant="h6" sx={{ mt: 2 }}>
+              Enter your email address or phone number to reset your password.
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              label="Email or Phone Number"
+              variant="standard"
+              fullWidth
+              value={emailOrPhone}
+              onChange={(e) => setEmailOrPhone(e.target.value)}
+              required
+            />
+            
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={isSubmitting}
+              sx={{ 
+                borderRadius: 2,
+                height: 48,
+                bgcolor: "#25306B",
+                "&:hover": { bgcolor: "#1a1f4b" }
+              }}
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Submit"
+              )}
+            </Button>
+
+            <Button
+              onClick={() => navigate("/login")}
+              variant="text"
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              Back to Login
+            </Button>
+          </Box>
+        </form>
       </Box>
-      <IconButton
-        aria-label="Return"
-        sx={{
-          position: "absolute",
-          top: 12,
-          left: 14,
-        }}
-      >
-        <ArrowBackIcon
-          sx={{
-            color: "rgba(98, 98, 96, 1)",
-          }}
-        />
-        <Typography
-          variant="h6"
-          sx={{
-            fontFamily: "Visby Round CF, Helvetica",
-            fontWeight: 700,
-            color: "rgba(98, 98, 96, 1)",
-            marginLeft: 1,
-          }}
-        >
-          Return
-        </Typography>
-      </IconButton>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -33,11 +33,12 @@ import {
   Info,
   MoreVert,
   Search,
-  Visibility,
 } from '@mui/icons-material';
 import { FaCheck, FaFaucet, FaFilter, FaTimes, FaWater } from 'react-icons/fa';
 import { FaWrench } from 'react-icons/fa6';
 import { GiWell } from 'react-icons/gi';
+import { apiController } from '../../axios';
+import { useSnackStore } from '../../store';
 
 // Interfaces
 interface StatCardProps {
@@ -62,6 +63,25 @@ interface AlertItem {
   type: string;
   message: string;
   severity: 'error' | 'warning' | 'info';
+}
+
+interface WaterSource {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+  quality: string;
+  status: string;
+  type: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Styled Components
@@ -214,6 +234,29 @@ const getSeverityIcon = (severity: AlertItem['severity']) => {
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
+  const [waterSources, setWaterSources] = useState<WaterSource[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { setAlert } = useSnackStore();
+
+  const fetchWaterSources = async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await apiController.get('/water-sources');
+      setWaterSources(data || []);
+    } catch (error) {
+      console.error('Error fetching water sources:', error);
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch water sources'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWaterSources();
+  }, []);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -454,40 +497,59 @@ const WaterSourcesDashboard: React.FC = () => {
           </Box>
           <TableContainer>
             <Table>
-              <TableHead>
+              <TableHead sx={{ bgcolor: '#25306B' }}>
                 <TableRow>
-                  <TableCell>SOURCE ID</TableCell>
-                  <TableCell>TYPE</TableCell>
-                  <TableCell>LOCATION</TableCell>
-                  <TableCell>STATUS</TableCell>
-                  <TableCell>LAST UPDATED</TableCell>
-                  <TableCell>ACTIONS</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Type</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Ward</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Village</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Hamlet</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Quality</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Captured At</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {tableData.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>{row.type}</TableCell>
-                    <TableCell>{row.location}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={row.status}
-                        color={row.status === 'Functional' ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{row.lastUpdated}</TableCell>
-                    <TableCell>
-                      <IconButton size="small">
-                        <Visibility style={{ color: "#2CBEEF" }}/>
-                      </IconButton>
-                      <IconButton size="small">
-                        <MoreVert />
-                      </IconButton>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                      <CircularProgress size={40} />
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : waterSources.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                      No water sources found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  waterSources.map((source) => (
+                    <TableRow key={source._id}>
+                      <TableCell>{source.type}</TableCell>
+                      <TableCell>{source.ward}</TableCell>
+                      <TableCell>{source.village}</TableCell>
+                      <TableCell>{source.hamlet}</TableCell>
+                      <TableCell>{source.quality}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={source.status}
+                          size="small"
+                          sx={{
+                            bgcolor: source.status === 'Functional' ? '#dcfce7' : '#fee2e2',
+                            color: source.status === 'Functional' ? '#16a34a' : '#dc2626',
+                            textTransform: 'capitalize',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{new Date(source.capturedAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <IconButton size="small">
+                          <MoreVert />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
