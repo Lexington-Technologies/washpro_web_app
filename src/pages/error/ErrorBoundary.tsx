@@ -1,4 +1,6 @@
-import { useRouteError, isRouteErrorResponse, Link, useNavigate } from 'react-router-dom';
+import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router-dom';
+import { Box, Button, Typography, Paper } from '@mui/material';
+import { Error as ErrorIcon, Home, ArrowBack } from '@mui/icons-material';
 
 const ErrorBoundary = () => {
   const error = useRouteError();
@@ -7,59 +9,90 @@ const ErrorBoundary = () => {
   const handleGoHome = () => navigate('/');
   const handleGoBack = () => navigate(-1);
   
-  if (isRouteErrorResponse(error)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="text-red-500 mb-6">
-          </div>
-          <h1 className="text-4xl font-bold mb-4 text-gray-800">Error {error.status}</h1>
-          <p className="text-xl mb-4 text-gray-600">{error.statusText}</p>
-          {error.data?.message && (
-            <p className="mb-6 text-gray-500">{error.data.message}</p>
-          )}
-          <div className="space-y-3">
-            <button 
-              onClick={handleGoHome}
-              className="block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              Back to Home
-            </button>
-            <button 
-              onClick={handleGoBack}
-              className="block w-full px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
-            >
-              Go Back
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="text-red-500 mb-6">
-        </div>
-        <h1 className="text-4xl font-bold mb-4 text-gray-800">Oops!</h1>
-        <p className="text-xl mb-6 text-gray-600">Something unexpected went wrong</p>
-        <div className="space-y-3">
-          <button 
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: '#f8fafc',
+        p: 3
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          maxWidth: 500,
+          width: '100%',
+          textAlign: 'center',
+          borderRadius: 2
+        }}
+      >
+        <ErrorIcon 
+          sx={{ 
+            fontSize: 64, 
+            color: '#ef4444',
+            mb: 2
+          }} 
+        />
+        
+        <Typography variant="h4" gutterBottom sx={{ color: '#1e293b', fontWeight: 'bold' }}>
+          {isRouteErrorResponse(error) ? `Error ${error.status}` : 'Oops!'}
+        </Typography>
+        
+        <Typography variant="h6" sx={{ color: '#64748b', mb: 3 }}>
+          {isRouteErrorResponse(error) 
+            ? error.statusText
+            : 'Something unexpected went wrong'}
+        </Typography>
+        
+        {isRouteErrorResponse(error) && error.data?.message && (
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              mb: 4,
+              color: '#94a3b8',
+              bgcolor: '#f1f5f9',
+              p: 2,
+              borderRadius: 1
+            }}
+          >
+            {error.data.message}
+          </Typography>
+        )}
+
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            startIcon={<Home />}
             onClick={handleGoHome}
-            className="block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            sx={{
+              bgcolor: '#25306B',
+              '&:hover': { bgcolor: '#1a1f4b' }
+            }}
           >
             Back to Home
-          </button>
-          <button 
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBack />}
             onClick={handleGoBack}
-            className="block w-full px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+            sx={{
+              color: '#25306B',
+              borderColor: '#25306B',
+              '&:hover': {
+                borderColor: '#1a1f4b',
+                bgcolor: 'rgba(37, 48, 107, 0.04)'
+              }
+            }}
           >
             Go Back
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
