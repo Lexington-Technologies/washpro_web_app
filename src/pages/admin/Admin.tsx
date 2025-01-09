@@ -247,6 +247,17 @@ const UserPage: React.FC = () => {
     }
   };
 
+  const formatLastLogin = (lastLogin: string) => {
+    try {
+      const date = parseISO(lastLogin);
+      if (!isValid(date)) return 'Never';
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return 'Never';
+    }
+  };
+  
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}

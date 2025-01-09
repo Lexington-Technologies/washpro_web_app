@@ -127,7 +127,7 @@ class ApiController {
     return this.request<T>('get', endpoint, undefined, params);
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: any, p0?: { headers: { 'Content-Type': string; }; }): Promise<T> {
     return this.request<T>('post', endpoint, data);
   }
 

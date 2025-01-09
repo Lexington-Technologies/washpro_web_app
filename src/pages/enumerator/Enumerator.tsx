@@ -24,7 +24,7 @@ import {
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { MoreVert } from '@mui/icons-material';
+import { MoreVert, Add, PersonAdd } from '@mui/icons-material';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
 import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
@@ -39,6 +39,12 @@ interface Enumerator {
 }
 
 interface EditEnumeratorFormData {
+  fullName: string;
+  email: string;
+  phone: string;
+}
+
+interface NewEnumerator {
   fullName: string;
   email: string;
   phone: string;
@@ -68,6 +74,12 @@ const EnumeratorPage: React.FC = () => {
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState<EditEnumeratorFormData>(initialEditFormData);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [newEnumerator, setNewEnumerator] = useState<NewEnumerator>({
+    fullName: '',
+    email: '',
+    phone: ''
+  });
   const { setAlert } = useSnackStore();
 
   const fetchEnumerators = async () => {
@@ -187,12 +199,72 @@ const EnumeratorPage: React.FC = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewEnumerator(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddEnumerator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const formData = {
+        fullName: newEnumerator.fullName.trim(),
+        email: newEnumerator.email.trim().toLowerCase(),
+        phone: newEnumerator.phone.trim()
+      };
+
+      console.log('Sending registration data:', formData);
+      const response = await apiController.post('/api/v1/enumerator/register', formData);
+      console.log('Registration response:', response);
+
+      setAlert({
+        variant: 'success',
+        message: 'Enumerator registered successfully'
+      });
+
+      // Reset form and close modal
+      setNewEnumerator({
+        fullName: '',
+        email: '',
+        phone: ''
+      });
+      setOpenAddModal(false);
+      
+      // Refresh enumerators list
+      fetchEnumerators();
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to register enumerator'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
           Enumerators
         </Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setOpenAddModal(true)}
+          sx={{ 
+            bgcolor: '#25306B', 
+            '&:hover': { bgcolor: '#1a1f4b' }
+          }}
+        >
+          Add Enumerator
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>
@@ -370,6 +442,93 @@ const EnumeratorPage: React.FC = () => {
             )}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Add Enumerator Modal */}
+      <Dialog
+        open={openAddModal}
+        onClose={() => {
+          setOpenAddModal(false);
+          setNewEnumerator({
+            fullName: '',
+            email: '',
+            phone: ''
+          });
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonAdd />
+            <Typography variant="h6">Add New Enumerator</Typography>
+          </Box>
+        </DialogTitle>
+        <form onSubmit={handleAddEnumerator}>
+          <DialogContent>
+            <Stack spacing={2.5} sx={{ mt: 1 }}>
+              <TextField
+                fullWidth
+                label="Full Name"
+                name="fullName"
+                value={newEnumerator.fullName}
+                onChange={handleInputChange}
+                required
+                error={newEnumerator.fullName.trim() === ''}
+                helperText={newEnumerator.fullName.trim() === '' ? 'Full name is required' : ''}
+                autoFocus
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={newEnumerator.email}
+                onChange={handleInputChange}
+                required
+                error={Boolean(newEnumerator.email && !newEnumerator.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))}
+                helperText={
+                  newEnumerator.email && !newEnumerator.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
+                    ? 'Enter a valid email address' 
+                    : ''
+                }
+              />
+              <TextField
+                fullWidth
+                label="Phone Number"
+                name="phone"
+                value={newEnumerator.phone}
+                onChange={handleInputChange}
+                required
+                error={newEnumerator.phone.trim() === ''}
+                helperText={newEnumerator.phone.trim() === '' ? 'Phone number is required' : ''}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button 
+              onClick={() => setOpenAddModal(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              variant="contained"
+              disabled={isLoading || 
+                !newEnumerator.fullName.trim() ||
+                !newEnumerator.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) ||
+                !newEnumerator.phone.trim()
+              }
+              sx={{ 
+                bgcolor: '#25306B', 
+                '&:hover': { bgcolor: '#1a1f4b' }
+              }}
+            >
+              {isLoading ? <CircularProgress size={24} /> : 'Register'}
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
     </Box>
   );

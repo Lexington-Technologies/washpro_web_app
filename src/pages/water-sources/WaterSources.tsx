@@ -24,15 +24,24 @@ import {
   TableRow,
   TextField,
   CircularProgress,
+  Menu,
+  MenuItem,
+  DialogContentText,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Dialog,
 } from '@mui/material';
 import {
-  Add,
   CheckCircle,
   Warning,
   ErrorOutline,
   Info,
   MoreVert,
   Search,
+  Edit,
+  Delete,
+  Visibility,
 } from '@mui/icons-material';
 import { FaCheck, FaFaucet, FaFilter, FaTimes, FaWater } from 'react-icons/fa';
 import { FaWrench } from 'react-icons/fa6';
@@ -82,6 +91,20 @@ interface WaterSource {
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+interface FormData {
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+  quality: string;
+  status: string;
+  type: string;
 }
 
 // Styled Components
@@ -154,24 +177,6 @@ const TabPanel = ({ children, value, index }: { children: React.ReactNode; value
   </div>
 );
 
-// Dummy Data
-const tableData = [
-  {
-    id: '#WS-001',
-    type: 'Hand Pump',
-    location: 'North District',
-    status: 'Functional',
-    lastUpdated: '2025-03-15',
-  },
-  {
-    id: '#WS-002',
-    type: 'Borehole',
-    location: 'East Region',
-    status: 'Non-Functional',
-    lastUpdated: '2025-03-14',
-  },
-];
-
 const maintenanceItems: MaintenanceItem[] = [
   { type: 'Filter Replacement', time: '2 hours ago' },
   { type: 'Pump Maintenance', time: '1 day ago' },
@@ -237,11 +242,31 @@ const WaterSourcesDashboard: React.FC = () => {
   const [waterSources, setWaterSources] = useState<WaterSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { setAlert } = useSnackStore();
+  const [selectedSource, setSelectedSource] = useState<WaterSource | null>(null);
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    picture: '',
+    ward: '',
+    village: '',
+    hamlet: '',
+    geolocation: {
+      type: 'Point',
+      coordinates: [0, 0]
+    },
+    quality: '',
+    status: '',
+    type: ''
+  });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const fetchWaterSources = async () => {
     setIsLoading(true);
     try {
-      const { data } = await apiController.get('/water-sources');
+      const  data  = await apiController.get<WaterSource[]>('/water-sources');
       setWaterSources(data || []);
     } catch (error) {
       console.error('Error fetching water sources:', error);
@@ -262,6 +287,150 @@ const WaterSourcesDashboard: React.FC = () => {
     setTabValue(newValue);
   };
 
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, source: WaterSource) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedSource(source);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleViewSource = async (id: string) => {
+    try {
+      setLoading(true);
+      const data = await apiController.get<WaterSource>(`/water-sources/${id}`);
+      setSelectedSource(data);
+      setOpenViewModal(true);
+    } catch (error) {
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch source details'
+      });
+    } finally {
+      setLoading(false);
+    }
+    handleMenuClose();
+  };
+
+  const handleEditClick = async (id: string) => {
+    try {
+      setLoading(true);
+      const data  = await apiController.get<WaterSource>(`/water-sources/${id}`);
+      setSelectedSource(data);
+      setFormData({
+        picture: data.picture,
+        ward: data.ward,
+        village: data.village,
+        hamlet: data.hamlet,
+        geolocation: data.geolocation,
+        quality: data.quality,
+        status: data.status,
+        type: data.type,
+      });
+      setOpenEditModal(true);
+    } catch (error) {
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to fetch source details'
+      });
+    } finally {
+      setLoading(false);
+    }
+    handleMenuClose();
+  };
+
+  const handleUpdateSource = async () => {
+    if (!selectedSource?._id) return; // Ensure a source is selected
+  
+    try {
+      setLoading(true); // Start loader
+      const formDataToSend = new FormData();
+  
+      // Append image if a new one is selected
+      if (selectedImage) {
+        formDataToSend.append('picture', selectedImage);
+      }
+  
+      // Append other form data fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'picture') {
+          if (key === 'geolocation') {
+            // Stringify geolocation object
+            formDataToSend.append(key, JSON.stringify(value));
+          } else {
+            // Append other fields as strings
+            formDataToSend.append(key, value as string);
+          }
+        }
+      });
+  
+      // API call to update the water source
+      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      // Success alert
+      setAlert({
+        variant: 'success',
+        message: 'Water source updated successfully',
+      });
+  
+      // Close modal and refresh data
+      setOpenEditModal(false);
+      fetchWaterSources();
+    } catch (error) {
+      // Error handling
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to update water source',
+      });
+    } finally {
+      setLoading(false); // Stop loader
+    }
+  };
+  
+  const handleDeleteClick = (source: WaterSource) => {
+    setSelectedSource(source);
+    setOpenDeleteModal(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteSource = async () => {
+    if (!selectedSource?._id) return;
+
+    try {
+      setLoading(true);
+      await apiController.delete(`/water-sources/${selectedSource._id}`);
+      setAlert({
+        variant: 'success',
+        message: 'Water source deleted successfully'
+      });
+      setOpenDeleteModal(false);
+      fetchWaterSources();
+    } catch (error) {
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to delete water source'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
       {/* Header */}
@@ -277,9 +446,6 @@ const WaterSourcesDashboard: React.FC = () => {
         <Box>
           <Button startIcon={<FaFilter style={{color: "#000000"}} />} variant="outlined" sx={{ mr: 1, borderColor: '#000000' }}>
             <Typography variant="body1" color="#000000">Filter</Typography>
-          </Button>
-          <Button startIcon={<Add />} variant="contained" sx={{ bgcolor: '#2CBEEF' }}>
-            Add Source
           </Button>
         </Box>
       </Box>
@@ -543,7 +709,10 @@ const WaterSourcesDashboard: React.FC = () => {
                       </TableCell>
                       <TableCell>{new Date(source.capturedAt).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <IconButton size="small">
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => handleMenuClick(e, source)}
+                        >
                           <MoreVert />
                         </IconButton>
                       </TableCell>
@@ -561,6 +730,212 @@ const WaterSourcesDashboard: React.FC = () => {
           </Box>
         </Box>
       </Card>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => selectedSource && handleViewSource(selectedSource._id)}>
+          <Visibility sx={{ mr: 1 }} /> View
+        </MenuItem>
+        <MenuItem onClick={() => selectedSource && handleEditClick(selectedSource._id)}>
+          <Edit sx={{ mr: 1 }} /> Edit
+        </MenuItem>
+        <MenuItem 
+          onClick={() => selectedSource && handleDeleteClick(selectedSource)}
+          sx={{ color: 'error.main' }}
+        >
+          <Delete sx={{ mr: 1 }} /> Delete
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Water Source Details</DialogTitle>
+        <DialogContent>
+          {selectedSource && (
+            <Box sx={{ mt: 2 }}>
+              {selectedSource.picture && (
+                <Box sx={{ mb: 2 }}>
+                  <img 
+                    src={selectedSource.picture} 
+                    alt="Water Source" 
+                    style={{ 
+                      width: '100%', 
+                      maxHeight: '300px', 
+                      objectFit: 'cover',
+                      borderRadius: '8px'
+                    }} 
+                  />
+                </Box>
+              )}
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Ward</Typography>
+                  <Typography>{selectedSource.ward}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Village</Typography>
+                  <Typography>{selectedSource.village}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Hamlet</Typography>
+                  <Typography>{selectedSource.hamlet}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Type</Typography>
+                  <Typography>{selectedSource.type}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Quality</Typography>
+                  <Typography>{selectedSource.quality}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Status</Typography>
+                  <Chip
+                    label={selectedSource.status}
+                    size="small"
+                    sx={{
+                      bgcolor: selectedSource.status === 'Functional' ? '#dcfce7' : '#fee2e2',
+                      color: selectedSource.status === 'Functional' ? '#16a34a' : '#dc2626',
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenViewModal(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Water Source</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Current Image Preview */}
+            {formData.picture && (
+              <Box sx={{ mb: 2 }}>
+                <img 
+                  src={formData.picture} 
+                  alt="Current" 
+                  style={{ 
+                    width: '100%', 
+                    maxHeight: '200px', 
+                    objectFit: 'cover',
+                    borderRadius: '8px'
+                  }} 
+                />
+              </Box>
+            )}
+            
+            {/* Image Upload */}
+            <TextField
+              type="file"
+              onChange={handleImageChange}
+              InputProps={{
+                inputProps: { accept: 'image/*' }
+              }}
+            />
+
+            {/* Form Fields */}
+            <TextField
+              fullWidth
+              label="Ward"
+              name="ward"
+              value={formData.ward}
+              onChange={handleFormChange}
+            />
+
+            <TextField
+              fullWidth
+              label="Village"
+              name="village"
+              value={formData.village}
+              onChange={handleFormChange}
+            />
+
+            <TextField
+              fullWidth
+              label="Hamlet"
+              name="hamlet"
+              value={formData.hamlet}
+              onChange={handleFormChange}
+            />
+
+            <TextField
+              select
+              fullWidth
+              label="Type"
+              name="type"
+              value={formData.type || ''}
+              onChange={handleFormChange}
+            >
+              <MenuItem value="Well">Well</MenuItem>
+              <MenuItem value="Stream">Stream</MenuItem>
+              <MenuItem value="Handpump Borehole">Handpump Borehole</MenuItem>
+              <MenuItem value="Motorized Borehole">Motorized Borehole</MenuItem>
+              <MenuItem value="Non-Motorized Borehole">Non-Motorized Borehole</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              fullWidth
+              label="Quality"
+              name="quality"
+              value={formData.quality || ''}
+              onChange={handleFormChange}
+            >
+              <MenuItem value="Good">Good</MenuItem>
+              <MenuItem value="Fair">Fair</MenuItem>
+              <MenuItem value="Poor">Poor</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              fullWidth
+              label="Status"
+              name="status"
+              value={formData.status || ''}
+              onChange={handleFormChange}
+            >
+              <MenuItem value="Functional">Functional</MenuItem>
+              <MenuItem value="Non-Functional">Non-Functional</MenuItem>
+            </TextField>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditModal(false)}>Cancel</Button>
+          <Button 
+            onClick={handleUpdateSource} 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Update'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
+        <DialogTitle>Delete Water Source</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this water source? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteModal(false)}>Cancel</Button>
+          <Button 
+            onClick={handleDeleteSource} 
+            color="error" 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -15,22 +15,83 @@ import {
   Chip,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination} from '@mui/material';
+  Pagination,
+  CircularProgress,
+  DialogContent,
+  Stack,
+  TextField,
+  MenuItem} from '@mui/material';
 import {
   MoreVert,
   CheckCircle,
   Error,
   Warning,
   FilterAlt,
-  Add,
   Fullscreen,
   MoreHoriz
 } from '@mui/icons-material';
 import { FaChartPie, FaFilter } from 'react-icons/fa6';
 import { FaDownload } from 'react-icons/fa';
+import { apiController } from '../../axios';
+import { useSnackStore } from '../../store';
+
+interface Gutter {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+  condition: string;
+  status: string;
+  dischargePoint: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface GutterFormData {
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+  condition: string;
+  status: string;
+  dischargePoint: string;
+}
+
+const initialFormState: GutterFormData = {
+  picture: '',
+  ward: '',
+  village: '',
+  hamlet: '',
+  geolocation: {
+    type: 'Point',
+    coordinates: [0, 0, 0]
+  },
+  condition: 'Constructed with Block',
+  status: 'Maintained',
+  dischargePoint: 'yes'
+};
 
 const GutterDashboard = () => {
   const [timeframe, setTimeframe] = useState('monthly');
+  const [gutters, setGutters] = useState<Gutter[]>([]);
+  const [selectedGutter, setSelectedGutter] = useState<Gutter | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const { setAlert } = useSnackStore();
+  const [formData, setFormData] = useState<GutterFormData>(initialFormState);
 
   const gutterTypes = [
     { type: 'Constructed', value: 245, color: '#00B4D8' },
@@ -55,6 +116,105 @@ const GutterDashboard = () => {
     }
   ];
 
+  const fetchGutters = async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await apiController.get('/api/v1/gutters');
+      setGutters(data || []);
+    } catch (error: any) {
+      console.error('Error fetching gutters:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to fetch gutters'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGetGutterById = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const { data } = await apiController.get(`/api/v1/gutters/${id}`);
+      setSelectedGutter(data);
+      setOpenEditModal(true);
+    } catch (error: any) {
+      console.error('Error fetching gutter details:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to fetch gutter details'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateGutter = async (formData: any) => {
+    setIsLoading(true);
+    try {
+      await apiController.post('/api/v1/gutters', formData);
+      setAlert({
+        variant: 'success',
+        message: 'Gutter created successfully'
+      });
+      setOpenAddModal(false);
+      fetchGutters(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error creating gutter:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to create gutter'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateGutter = async (id: string, formData: any) => {
+    setIsLoading(true);
+    try {
+      await apiController.put(`/api/v1/gutters/${id}`, formData);
+      setAlert({
+        variant: 'success',
+        message: 'Gutter updated successfully'
+      });
+      setOpenEditModal(false);
+      fetchGutters(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error updating gutter:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to update gutter'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteGutter = async (id: string) => {
+    setIsLoading(true);
+    try {
+      await apiController.delete(`/api/v1/gutters/${id}`);
+      setAlert({
+        variant: 'success',
+        message: 'Gutter deleted successfully'
+      });
+      setOpenDeleteModal(false);
+      fetchGutters(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error deleting gutter:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to delete gutter'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGutters();
+  }, []);
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
@@ -75,13 +235,6 @@ const GutterDashboard = () => {
               sx={{ color: 'text.primary' }}
             >
               Filter
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              sx={{ bgcolor: '#00B8D9' }}
-            >
-              Add Space
             </Button>
           </Box></Box>
       {/* Stats Cards */}
@@ -303,39 +456,74 @@ const GutterDashboard = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                <TableCell>IC</TableCell>
-                <TableCell>LOCATION</TableCell>
-                <TableCell>TYPE</TableCell>
-                <TableCell>STATUS</TableCell>
-                <TableCell>LAST MAINTENANCE</TableCell>
-                <TableCell align="right">ACTIONS</TableCell>
+                <TableCell>Picture</TableCell>
+                <TableCell>Ward</TableCell>
+                <TableCell>Village</TableCell>
+                <TableCell>Hamlet</TableCell>
+                <TableCell>Condition</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Discharge Point</TableCell>
+                <TableCell>Captured At</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {maintenanceData.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{row.ic}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.status}
-                      size="small"
-                      sx={{
-                        bgcolor: row.status === 'Maintained' ? '#D1FAE5' : '#FEF3C7',
-                        color: row.status === 'Maintained' ? '#10B981' : '#F59E0B',
-                        fontWeight: 500,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{row.lastMaintenance}</TableCell>
-                  <TableCell align="right">
-                    <IconButton>
-                      <MoreVert />
-                    </IconButton>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
+                    <CircularProgress size={24} />
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : gutters.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
+                    No gutters found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                gutters.map((gutter) => (
+                  <TableRow key={gutter._id}>
+                    <TableCell>
+                      {gutter.picture && (
+                        <img 
+                          src={gutter.picture} 
+                          alt="Gutter" 
+                          style={{ 
+                            width: 50, 
+                            height: 50, 
+                            objectFit: 'cover',
+                            borderRadius: '4px'
+                          }} 
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>{gutter.ward}</TableCell>
+                    <TableCell>{gutter.village}</TableCell>
+                    <TableCell>{gutter.hamlet}</TableCell>
+                    <TableCell>{gutter.condition}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={gutter.status}
+                        size="small"
+                        sx={{
+                          bgcolor: gutter.status === 'Maintained' ? '#D1FAE5' : '#FEF3C7',
+                          color: gutter.status === 'Maintained' ? '#10B981' : '#F59E0B',
+                          fontWeight: 500,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{gutter.dischargePoint}</TableCell>
+                    <TableCell>
+                      {new Date(gutter.capturedAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton onClick={() => handleGetGutterById(gutter._id)}>
+                        <MoreVert />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
