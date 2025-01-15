@@ -85,8 +85,8 @@ const EnumeratorPage: React.FC = () => {
   const fetchEnumerators = async () => {
     setIsLoading(true);
     try {
-      const response = await apiController.get('/enumerator');
-      setEnumerators(response || []);
+      const data = await apiController.get('/enumerator');
+      setEnumerators(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching enumerators:', error);
       setAlert({

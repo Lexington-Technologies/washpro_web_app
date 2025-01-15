@@ -366,9 +366,7 @@ const WaterSourcesDashboard: React.FC = () => {
       });
   
       // API call to update the water source
-      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend);
   
       // Success alert
       setAlert({

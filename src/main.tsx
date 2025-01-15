@@ -10,7 +10,7 @@ function SnackbarManager() {
   const { message, variant, setAlert } = useSnackStore();
 
   const handleClose = () => {
-    setAlert({ message: "", variant: null });
+    setAlert({ message: "", variant: "success" });
   };
 
   return (
@@ -20,11 +20,11 @@ function SnackbarManager() {
       onClose={handleClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
     >
-      {message && (
+      {message ? (
         <Alert onClose={handleClose} severity={variant || 'info'} variant="filled">
           {message}
         </Alert>
-      )}
+      ) : <></>}
     </Snackbar>
   );
 }

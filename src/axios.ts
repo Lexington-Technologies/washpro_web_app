@@ -39,8 +39,8 @@ class ApiController {
         const originalRequest = error.config;
 
         // Check if the error is due to an expired token
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+        if (error.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
+          (originalRequest as any)._retry = true;
 
           try {
             // Attempt to refresh the token
@@ -49,7 +49,7 @@ class ApiController {
             this.updateToken();
             // Retry the original request
             return this.axiosInstance(originalRequest);
-          } catch (refreshError) {
+          } catch {
             // If token refresh fails, log out the user
             useAuthStore.getState().logout();
             throw new Error('Session expired. Please log in again.');
@@ -57,7 +57,7 @@ class ApiController {
         }
 
         // Handle custom error messages from backend
-        const backendMessage = error.response?.data?.message;
+        const backendMessage = (error.response?.data as { message?: string })?.message;
         if (backendMessage) {
           // If there's a custom error message, throw it as an error
           throw new Error(backendMessage);
@@ -90,7 +90,7 @@ class ApiController {
       } else {
         throw new Error(response.data.message || 'Failed to refresh token');
       }
-    } catch (error) {
+    } catch {
       throw new Error('Unable to refresh token');
     }
   }
@@ -98,8 +98,8 @@ class ApiController {
   async request<T>(
     method: 'get' | 'post' | 'put' | 'delete',
     endpoint: string,
-    data?: any,
-    params?: any
+    data?: unknown,
+    params?: unknown
   ): Promise<T> {
     this.updateToken(); // Ensure the token is up-to-date before each request
 
@@ -123,19 +123,19 @@ class ApiController {
   }
 
   // Helper methods for specific HTTP verbs
-  async get<T>(endpoint: string, params?: any): Promise<T> {
+  async get<T>(endpoint: string, params?: unknown): Promise<T> {
     return this.request<T>('get', endpoint, undefined, params);
   }
 
-  async post<T>(endpoint: string, data?: any, p0?: { headers: { 'Content-Type': string; }; }): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>('post', endpoint, data);
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>('put', endpoint, data);
   }
 
-  async delete<T>(endpoint: string, data?: any): Promise<T> {
+  async delete<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>('delete', endpoint, data);
   }
 }

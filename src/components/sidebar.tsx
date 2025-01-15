@@ -1,4 +1,3 @@
-import { ReactElement, useState } from 'react';
 import {
   Box,
   List,
@@ -9,11 +8,10 @@ import {
   Divider,
   Collapse,
 } from "@mui/material";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   Dashboard,
   LocationOn,
-  Public,
   Delete,
   Waves,
   MonitorHeart,
@@ -25,183 +23,79 @@ import {
   Assignment,
   Visibility,
   People,
+  Warning,
+  Schedule,
 } from "@mui/icons-material";
+import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
 import { FaToilet, FaPoop, FaBiohazard } from "react-icons/fa";
 import { MdSanitizer, MdPlumbing } from "react-icons/md";
 import { useAuthStore } from "../store";
+import { useNavigate } from "react-router-dom";
 
-interface MenuItem {
-  text: string;
-  icon: ReactElement;
-  path: string;
-}
-
-interface SideBarProps {
+const SideBar = ({
+  isCollapsed,
+  onToggle,
+}: {
   isCollapsed: boolean;
   onToggle: () => void;
-}
+}) => {
+  const navigate = useNavigate();
+  const [openWaste, setOpenWaste] = useState(false);
+  const [openUsers, setOpenUsers] = useState(false);
+  const { logout } = useAuthStore();
 
-const NAVIGATION_ITEMS = {
-  main: [
+  const handleLogout = () => {
+    try {
+      logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/" },
     { text: "Intervention", icon: <LocationOn />, path: "/interventions" },
     { text: "Wash", icon: <MdSanitizer />, path: "/wash" },
-    { text: "Public Space Types", icon: <Public />, path: "/public-space-types" },
     { text: "Water Sources", icon: <RiWaterFlashFill />, path: "/water-sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
-  ],
-  waste: [
+    { text: "Water Source Risk", icon: <Warning />, path: "/water-source-risk" },
+    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" },
+  ];
+
+  const wasteSubItems = [
     { text: "Dump Sites", icon: <Delete />, path: "/dump-sites" },
     { text: "Gutters", icon: <Waves />, path: "/gutters" },
     { text: "Soakaways", icon: <MdPlumbing />, path: "/soak-aways" },
-  ],
-  users: [
+  ];
+
+  const usersSubItems = [
     { text: "Users", icon: <People />, path: "/users" },
     { text: "Enumerators", icon: <People />, path: "/enumerator" },
-  ],
-  bottom: [
+  ];
+
+  const bottomMenuItems = [
     { text: "Water Source Risk Monitoring", icon: <MonitorHeart />, path: "/monitor" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation" },
     { text: "Needs & Maintainers", icon: <Assignment />, path: "/needs-and-maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation" },
     { text: "Field Monitoring", icon: <Visibility />, path: "/field-monitoring" },
-  ],
-} as const;
-
-const SideBar = ({ isCollapsed, onToggle }: SideBarProps) => {
-  const navigate = useNavigate();
-  const { logout } = useAuthStore();
-  const [openSections, setOpenSections] = useState({
-    waste: false,
-    users: false,
-  });
-
-  const handleSectionToggle = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  const renderMenuItem = (item: MenuItem) => (
-    <ListItem key={item.text} disablePadding>
-      <ListItemButton
-        component={NavLink}
-        to={item.path}
-        sx={theme => ({
-          py: 1.5,
-          justifyContent: isCollapsed ? "center" : "flex-start",
-          "&.active": {
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.main,
-            },
-          },
-          "&:not(.active):hover": {
-            backgroundColor: theme.palette.action.hover,
-          },
-        })}
-      >
-        <ListItemIcon
-          sx={{
-            minWidth: 40,
-            color: "inherit",
-            justifyContent: "center",
-          }}
-        >
-          {item.icon}
-        </ListItemIcon>
-        {!isCollapsed && (
-          <ListItemText
-            primary={item.text}
-            primaryTypographyProps={{
-              fontSize: "0.875rem",
-            }}
-          />
-        )}
-      </ListItemButton>
-    </ListItem>
-  );
-
-  const renderCollapsibleSection = (
-    title: string,
-    items: MenuItem[],
-    section: keyof typeof openSections,
-    icon: ReactElement
-  ) => (
-    <>
-      <ListItem disablePadding>
-        <ListItemButton
-          onClick={() => handleSectionToggle(section)}
-          sx={theme => ({
-            py: 1.5,
-            justifyContent: isCollapsed ? "center" : "flex-start",
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          })}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 40,
-              color: "inherit",
-              justifyContent: "center",
-            }}
-          >
-            {icon}
-          </ListItemIcon>
-          {!isCollapsed && (
-            <>
-              <ListItemText
-                primary={title}
-                primaryTypographyProps={{
-                  fontSize: "0.875rem",
-                }}
-              />
-              {openSections[section] ? <ExpandLess /> : <ExpandMore />}
-            </>
-          )}
-        </ListItemButton>
-      </ListItem>
-      <Collapse in={openSections[section]} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-          {items.map(item => (
-            <ListItem key={item.text} disablePadding sx={{ pl: isCollapsed ? 2 : 4 }}>
-              {renderMenuItem(item)}
-            </ListItem>
-          ))}
-        </List>
-      </Collapse>
-    </>
-  );
+  ];
 
   return (
     <Box
-      component="nav"
-      sx={theme => ({
+      sx={{
         width: isCollapsed ? 100 : 320,
-        bgcolor: theme.palette.background.paper,
+        bgcolor: "white",
         height: "100%",
-        boxShadow: theme.shadows[1],
+        boxShadow: 1,
         display: "flex",
         flexDirection: "column",
-        transition: theme.transitions.create("width", {
-          duration: theme.transitions.duration.standard,
-        }),
-      })}
+        transition: "width 0.3s",
+      }}
     >
+      {/* Logo and Toggle Button */}
       <Box
         sx={{
           p: 2,
@@ -229,7 +123,6 @@ const SideBar = ({ isCollapsed, onToggle }: SideBarProps) => {
           sx={{
             width: 40,
             height: 40,
-            borderRadius: 1,
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -239,40 +132,282 @@ const SideBar = ({ isCollapsed, onToggle }: SideBarProps) => {
         </ListItemButton>
       </Box>
 
+      {/* Scrollable Navigation Items */}
       <Box
         sx={{
           flex: 1,
           overflowY: "auto",
+          paddingY: 1,
+          scrollbarWidth: "none",
           "&::-webkit-scrollbar": {
-            width: 6,
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            borderRadius: 3,
+            display: "none",
           },
         }}
       >
         <List>
-          {NAVIGATION_ITEMS.main.map(renderMenuItem)}
-          {renderCollapsibleSection("Waste", NAVIGATION_ITEMS.waste, "waste", <FaBiohazard />)}
-          {renderCollapsibleSection("Accounts", NAVIGATION_ITEMS.users, "users", <People />)}
-          {NAVIGATION_ITEMS.bottom.map(renderMenuItem)}
+          {/* Main Menu Items */}
+          {mainMenuItems.map((item, index) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={item.path}
+                sx={{
+                  py: 1.5,
+                  justifyContent: isCollapsed ? "center" : "flex-start",
+                  "&.active": {
+                    backgroundColor: "#25306B",
+                    color: "white",
+                    "&:hover": {
+                      bgcolor: "#25306B",
+                    },
+                  },
+                  "&:not(.active):hover": {
+                    bgcolor: "rgba(37, 48, 107, 0.04)",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      fontWeight: index === 0 ? 500 : 400,
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          {/* Waste Dropdown */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setOpenWaste(!openWaste)}
+              sx={{
+                py: 1.5,
+                justifyContent: isCollapsed ? "center" : "flex-start",
+                color: "#666",
+                "&:hover": {
+                  bgcolor: "rgba(37, 48, 107, 0.04)",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: "inherit",
+                  justifyContent: "center",
+                }}
+              >
+                <FaBiohazard />
+              </ListItemIcon>
+              {!isCollapsed && (
+                <>
+                  <ListItemText
+                    primary="Waste"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                  {openWaste ? <ExpandLess /> : <ExpandMore />}
+                </>
+              )}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={openWaste} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {wasteSubItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to={item.path}
+                    sx={{
+                      py: 1.5,
+                      pl: isCollapsed ? 2 : 4,
+                      justifyContent: isCollapsed ? "center" : "flex-start",
+                      "&.active": {
+                        backgroundColor: "#25306B",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "#25306B",
+                        },
+                      },
+                      "&:not(.active):hover": {
+                        bgcolor: "rgba(37, 48, 107, 0.04)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: "inherit",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    {!isCollapsed && (
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+
+          {/* Users Dropdown */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setOpenUsers(!openUsers)}
+              sx={{
+                py: 1.5,
+                justifyContent: isCollapsed ? "center" : "flex-start",
+                color: "#666",
+                "&:hover": {
+                  bgcolor: "rgba(37, 48, 107, 0.04)",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: "inherit",
+                  justifyContent: "center",
+                }}
+              >
+                <People />
+              </ListItemIcon>
+              {!isCollapsed && (
+                <>
+                  <ListItemText
+                    primary="Accounts"
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                  {openUsers ? <ExpandLess /> : <ExpandMore />}
+                </>
+              )}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={openUsers} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {usersSubItems.map((item) => (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    component={NavLink}
+                    to={item.path}
+                    sx={{
+                      py: 1.5,
+                      pl: isCollapsed ? 2 : 4,
+                      justifyContent: isCollapsed ? "center" : "flex-start",
+                      "&.active": {
+                        backgroundColor: "#25306B",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "#25306B",
+                        },
+                      },
+                      "&:not(.active):hover": {
+                        bgcolor: "rgba(37, 48, 107, 0.04)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 40,
+                        color: "inherit",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    {!isCollapsed && (
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                    )}
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+
+          {/* Bottom Menu Items */}
+          {bottomMenuItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={item.path}
+                sx={{
+                  py: 1.5,
+                  justifyContent: isCollapsed ? "center" : "flex-start",
+                  "&.active": {
+                    backgroundColor: "#25306B",
+                    color: "white",
+                    "&:hover": {
+                      bgcolor: "#25306B",
+                    },
+                  },
+                  "&:not(.active):hover": {
+                    bgcolor: "rgba(37, 48, 107, 0.04)",
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 40,
+                    color: "inherit",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
         </List>
       </Box>
 
+      {/* Logout Button */}
       <Divider />
-      <ListItem disablePadding>
+      <ListItem onClick={handleLogout} disablePadding>
         <ListItemButton
-          onClick={handleLogout}
-          sx={theme => ({
+          sx={{
             py: 1.5,
-            color: theme.palette.error.main,
+            color: "#ef4444",
             justifyContent: isCollapsed ? "center" : "flex-start",
             "&:hover": {
-              backgroundColor: theme.palette.error.light,
-              opacity: 0.1,
+              bgcolor: "rgba(239, 68, 68, 0.04)",
             },
-          })}
+          }}
         >
           <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
             <Logout />
