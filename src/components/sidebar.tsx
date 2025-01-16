@@ -25,6 +25,7 @@ import {
   Visibility,
   People,
   SmartToy,
+  Book,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -62,6 +63,7 @@ const SideBar = ({
     { text: "Water Sources", icon: <RiWaterFlashFill />, path: "/water-sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant" },
+    { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base" },
   ];
 
   const wasteSubItems = [

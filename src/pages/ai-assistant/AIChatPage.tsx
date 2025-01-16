@@ -135,6 +135,12 @@ const TypingAnimation = () => (
   </Box>
 );
 
+// Add new interface for Thread
+interface Thread {
+  id: string;
+  messages: StreamingMessage[];
+}
+
 const AIChatPage: React.FC = () => {
   const [messages, setMessages] = useState<StreamingMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -146,6 +152,9 @@ const AIChatPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showPrompts, setShowPrompts] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [currentThread, setCurrentThread] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [assistantId, setAssistantId] = useState<string | null>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -199,110 +208,176 @@ const AIChatPage: React.FC = () => {
     }
   }, []);
 
+  // Update assistant initialization
+  useEffect(() => {
+    const initializeAssistant = async () => {
+      try {
+        // First try to use the ID from environment variable
+        if (import.meta.env.VITE_OPENAI_ASSISTANT_ID) {
+          setAssistantId(import.meta.env.VITE_OPENAI_ASSISTANT_ID);
+          return;
+        }
+
+        // If no ID in env, create new assistant
+        const assistant = await openai.beta.assistants.create({
+          name: 'WashPro AI Assistant',
+          instructions: 'You are a helpful assistant that can help with water quality monitoring and maintenance tasks.',
+          model: 'gpt-4o-mini',
+        });
+        
+        setAssistantId(assistant.id);
+        console.log('Assistant created:', assistant.id);
+      } catch (error) {
+        console.error('Error creating assistant:', error);
+      }
+    };
+
+    initializeAssistant();
+  }, []);
+
+  // Update streamResponse function
   const streamResponse = async (userMessage: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+    if (!import.meta.env.VITE_OPENAI_API_KEY || !assistantId) {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
-        content: 'Error: OpenAI API key is not configured. Please check your environment variables.',
+        content: 'Error: OpenAI configuration is incomplete.',
         sender: 'ai',
         timestamp: new Date(),
         isStreaming: false
       }]);
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading here for configuration errors
       return;
     }
 
+    setIsTyping(true);
+    setIsLoading(true);
+
+    // Add streaming message placeholder
+    const streamingMessageId = Date.now().toString();
+    setMessages(prev => [...prev, {
+      id: streamingMessageId,
+      content: '',
+      sender: 'ai',
+      timestamp: new Date(),
+      isStreaming: true
+    }]);
+
     try {
-      const tempMessageId = Date.now().toString();
-      setMessages(prev => [...prev, {
-        id: tempMessageId,
-        content: '',
-        sender: 'ai',
-        timestamp: new Date(),
-        isStreaming: true
-      }]);
+      // Create or use existing thread
+      let threadId = currentThread;
+      if (!threadId) {
+        const thread = await openai.beta.threads.create();
+        threadId = thread.id;
+        setCurrentThread(thread.id);
+      }
 
-      // Create abort controller for cancelling stream
-      abortControllerRef.current = new AbortController();
-
-      const stream = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          // Add system message to set context
-          {
-            role: 'system',
-            content: 'You are a helpful assistant for WashPro, specializing in water, sanitation, and hygiene monitoring. You help analyze data, generate reports, and provide recommendations for improving water and sanitation facilities.'
-          },
-          // Add chat history
-          ...messages.map(m => ({
-            role: m.sender === 'user' ? 'user' : 'assistant',
-            content: m.content
-          })),
-          // Add current message
-          { role: 'user', content: userMessage }
-        ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1000,
-      }, {
-        signal: abortControllerRef.current.signal
+      // Add the user message to the thread
+      await openai.beta.threads.messages.create(threadId, {
+        role: 'user',
+        content: userMessage
       });
 
-      let fullResponse = '';
+      // Create a run with the stored assistant ID
+      const run = await openai.beta.threads.runs.create(threadId, {
+        assistant_id: assistantId,  // Use the stored assistant ID
+      });
 
-      try {
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          fullResponse += content;
-          
-          setMessages(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage.id === tempMessageId) {
-              return [
-                ...prev.slice(0, -1),
-                { ...lastMessage, content: fullResponse }
-              ];
-            }
-            return prev;
-          });
-        }
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          console.log('Stream aborted');
-        } else {
-          throw error;
+      // Update the streaming message content as responses come in
+      const updateStreamingMessage = (content: string) => {
+        setMessages(prev => prev.map(msg => 
+          msg.id === streamingMessageId 
+            ? { ...msg, content, isStreaming: true }
+            : msg
+        ));
+      };
+
+      // Poll and update the streaming message
+      let runStatus = await pollRunStatus(threadId, run.id, updateStreamingMessage);
+
+      // Once complete, finalize the message
+      if (runStatus === 'completed') {
+        const messages = await openai.beta.threads.messages.list(threadId);
+        const lastMessage = messages.data
+          .filter(msg => msg.role === 'assistant')
+          .sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )[0];
+
+        if (lastMessage) {
+          const content = lastMessage.content
+            .filter(item => item.type === 'text')
+            .map(item => item.text?.value || '')
+            .join('\n');
+
+          setMessages(prev => prev.map(msg => 
+            msg.id === streamingMessageId 
+              ? {
+                  id: lastMessage.id,
+                  content: content,
+                  sender: 'ai',
+                  timestamp: new Date(lastMessage.created_at),
+                  isStreaming: false
+                }
+              : msg
+          ));
         }
       }
 
-      // Update final message
-      setMessages(prev => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage.id === tempMessageId) {
-          return [
-            ...prev.slice(0, -1),
-            { ...lastMessage, content: fullResponse, isStreaming: false }
-          ];
-        }
-        return prev;
-      });
-
     } catch (error) {
-      console.error('OpenAI streaming error:', error);
-      // Show error in chat
-      setMessages(prev => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          content: 'Sorry, I encountered an error. Please try again.',
-          sender: 'ai',
-          timestamp: new Date(),
-          isStreaming: false
-        }
-      ]);
+      console.error('Assistant API error:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        content: 'Sorry, I encountered an error. Please try again.'+ error?.message,
+        sender: 'ai',
+        timestamp: new Date(),
+        isStreaming: false
+      }]);
     } finally {
+      setIsTyping(false);
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
+  };
+
+  // Update pollRunStatus to safely handle message content
+  const pollRunStatus = async (threadId: string, runId: string, onUpdate: (content: string) => void) => {
+    let status = 'in_progress';
+    let lastMessageId = '';
+    
+    while (status === 'in_progress' || status === 'queued') {
+      const run = await openai.beta.threads.runs.retrieve(threadId, runId);
+      status = run.status;
+
+      // Get latest messages while running
+      const messages = await openai.beta.threads.messages.list(threadId);
+      const latestMessage = messages.data[0];
+
+      if (latestMessage && latestMessage.id !== lastMessageId) {
+        lastMessageId = latestMessage.id;
+        // Safely extract text content from the message
+        const content = latestMessage.content
+          .filter(item => item.type === 'text')
+          .map(item => item.text?.value || '')
+          .join('\n');
+        
+        if (content) {
+          onUpdate(content);
+        }
+      }
+
+      if (status === 'failed' || status === 'expired' || status === 'cancelled') {
+        throw new Error(`Run ended with status: ${status}`);
+      }
+
+      if (status === 'requires_action') {
+        console.log('Function call required');
+      }
+
+      if (status !== 'completed') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    return status;
   };
 
   const handleSendMessage = async () => {
@@ -339,14 +414,24 @@ const AIChatPage: React.FC = () => {
     // You can add a snackbar notification here
   };
 
-  const handleClearChat = () => {
+  const handleClearChat = async () => {
     setMessages([]);
+    if (currentThread) {
+      try {
+        // Note: As of now, OpenAI doesn't provide a direct way to delete threads
+        // You might want to store the thread ID for future reference
+        setCurrentThread(null);
+      } catch (error) {
+        console.error('Error clearing chat:', error);
+      }
+    }
   };
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     setMessages([]);
     setShowPrompts(true);
     setSelectedCategory(null);
+    setCurrentThread(null);
   };
 
   const filteredTemplates = selectedCategory 

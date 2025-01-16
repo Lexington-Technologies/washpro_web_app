@@ -47,6 +47,7 @@ const NotFound = lazy(() => import("../pages/error/NotFound"));
 const ErrorBoundary = lazy(() => import("../pages/error/ErrorBoundary"));
 const UserPage = lazy(() => import("../pages/admin/Admin"));
 const AIChatPage = lazy(() => import("../pages/ai-assistant/AIChatPage"));
+const KnowledgeBase = lazy(() => import("../pages/knowledge-base/KnowledgeBase"));
 
 const router = createBrowserRouter([
   {
@@ -221,6 +222,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <AIChatPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "knowledge-base",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <KnowledgeBase />
           </Suspense>
         ),
       },
