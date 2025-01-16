@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,16 +13,18 @@ import {
   TableRow,
   IconButton,
   Pagination,
-  Tooltip,
+  CircularProgress,
 } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { FaChartLine, FaDownload, FaFilter } from 'react-icons/fa';
+import { useReactTable, getCoreRowModel, ColumnDef, flexRender } from '@tanstack/react-table';
+import axios from 'axios';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 const timeDistributionData = [
   {
@@ -39,7 +41,91 @@ const timeDistributionData = [
   },
 ];
 
+interface Observation {
+  id: string;
+  location: string;
+  date: string;
+  demographics: string;
+  riskLevel: 'high' | 'medium' | 'low';
+}
+
 const OpenDefication = () => {
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchObservations = async () => {
+      setIsLoading(true);
+      try {
+        const data = await axios.get<{ data: Observation[] }>('/open-defecations');
+        setObservations(data);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchObservations();
+  }, []);
+
+  // Define columns for the table
+  const columns: ColumnDef<Observation>[] = [
+    { accessorKey: 'location', header: 'Location' },
+    { accessorKey: 'date', header: 'Date' },
+    { accessorKey: 'demographics', header: 'Demographics' },
+    {
+      accessorKey: 'riskLevel',
+      header: 'Risk Level',
+      cell: (info) => {
+        const riskLevel = info.getValue() as 'high' | 'medium' | 'low';
+        const getRiskColor = (level: 'high' | 'medium' | 'low') => {
+          switch (level) {
+            case 'high':
+              return '#f44336';
+            case 'medium':
+              return '#ff9800';
+            case 'low':
+              return '#4caf50';
+            default:
+              return '#757575';
+          }
+        };
+        return (
+          <Box
+            sx={{
+              display: 'inline-block',
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              bgcolor: `${getRiskColor(riskLevel)}15`,
+              color: getRiskColor(riskLevel),
+              fontWeight: 500,
+            }}
+          >
+            {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+          </Box>
+        );
+      },
+    },
+    {
+      accessorKey: 'actions',
+      header: 'Actions',
+      cell: () => (
+        <IconButton size="small">
+          <MoreVertIcon />
+        </IconButton>
+      ),
+    },
+  ];
+
+  // Table instance
+  const table = useReactTable({
+    data: observations,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -128,9 +214,6 @@ const OpenDefication = () => {
                 <CartesianGrid strokeDasharray="10 10" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip title="Tooltip">
-                  <span></span>
-                </Tooltip>
                 <Legend
                   wrapperStyle={{
                     paddingTop: '20px',
@@ -162,41 +245,49 @@ const OpenDefication = () => {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Location</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Demographics</TableCell>
-                <TableCell>Risk Level</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableCell key={header.id}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
             </TableHead>
             <TableBody>
-              <ObservationRow
-                location="Sector 7, Block B"
-                date="08:30 AM"
-                demographics="Child"
-                riskLevel="high"
-              />
-              <ObservationRow
-                location="Sector 4, Block A"
-                date="09:15 AM"
-                demographics="Adult Male"
-                riskLevel="medium"
-              />
-              <ObservationRow
-                location="Sector 2, Block D"
-                date="10:45 AM"
-                demographics="Adult Female"
-                riskLevel="low"
-              />
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    No observations found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
+
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Showing 3 of 50 entries
+            Showing {table.getRowModel().rows.length} of {observations.length} entries
           </Typography>
-          <Pagination count={3} shape="rounded" />
+          <Pagination count={Math.ceil(observations.length / 10)} shape="rounded" />
         </Box>
       </Paper>
     </Box>
@@ -235,56 +326,5 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) 
     </Box>
   </Card>
 );
-
-// Observation Row Component
-interface ObservationRowProps {
-  location: string;
-  date: string;
-  demographics: string;
-  riskLevel: 'high' | 'medium' | 'low';
-}
-
-const ObservationRow: React.FC<ObservationRowProps> = ({ location, date, demographics, riskLevel }) => {
-  const getRiskColor = (level: 'high' | 'medium' | 'low') => {
-    switch (level) {
-      case 'high':
-        return '#f44336';
-      case 'medium':
-        return '#ff9800';
-      case 'low':
-        return '#4caf50';
-      default:
-        return '#757575';
-    }
-  };
-
-  return (
-    <TableRow>
-      <TableCell>{location}</TableCell>
-      <TableCell>{date}</TableCell>
-      <TableCell>{demographics}</TableCell>
-      <TableCell>
-        <Box
-          sx={{
-            display: 'inline-block',
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            bgcolor: `${getRiskColor(riskLevel)}15`,
-            color: getRiskColor(riskLevel),
-            fontWeight: 500,
-          }}
-        >
-          {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
-        </Box>
-      </TableCell>
-      <TableCell>
-        <IconButton size="small">
-          <MoreVertIcon />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  );
-};
 
 export default OpenDefication;

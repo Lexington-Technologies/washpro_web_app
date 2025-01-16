@@ -236,6 +236,20 @@ const getSeverityIcon = (severity: AlertItem['severity']) => {
   }
 };
 
+const calculateAnalytics = (sources: WaterSource[]) => {
+  return {
+    totalSources: sources.length,
+    functional: sources.filter(s => s.status === 'Functional').length,
+    nonFunctional: sources.filter(s => s.status === 'Non-Functional').length,
+    maintenanceDue: sources.filter(s => s.status === 'Maintenance Due').length,
+    wells: sources.filter(s => s.type === 'Well').length,
+    streams: sources.filter(s => s.type === 'Stream').length,
+    handpumpBoreholes: sources.filter(s => s.type === 'Handpump Borehole').length,
+    motorizedBoreholes: sources.filter(s => s.type === 'Motorized Borehole').length,
+    nonMotorizedBoreholes: sources.filter(s => s.type === 'Non-Motorized Borehole').length,
+  };
+};
+
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -261,13 +275,26 @@ const WaterSourcesDashboard: React.FC = () => {
     status: '',
     type: ''
   });
+  
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [analytics, setAnalytics] = useState({
+    totalSources: 0,
+    functional: 0,
+    nonFunctional: 0,
+    maintenanceDue: 0,
+    wells: 0,
+    streams: 0,
+    handpumpBoreholes: 0,
+    motorizedBoreholes: 0,
+    nonMotorizedBoreholes: 0,
+  });
 
   const fetchWaterSources = async () => {
     setIsLoading(true);
     try {
-      const  data  = await apiController.get<WaterSource[]>('/water-sources');
+      const data = await apiController.get<WaterSource[]>('/water-sources');
       setWaterSources(data || []);
+      setAnalytics(calculateAnalytics(data || []));
     } catch (error) {
       console.error('Error fetching water sources:', error);
       setAlert({
@@ -451,15 +478,60 @@ const WaterSourcesDashboard: React.FC = () => {
       {/* Main Stats */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
-          { title: 'Total Sources', value: '1,234', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
-          { title: 'Functional', value: '987', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
-          { title: 'Non-Functional', value: '247', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
-          { title: 'Maintenance Due', value: '89', icon: <FaWrench style={{  color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Well', value: '1,234', icon: <GiWell style={{  color: '#16A34A' }} />, bgColor: '#DCFCE7' },
-          { title: 'Streams', value: '89', icon: <FaWater style={{  color: '#25306B' }} />, bgColor: '#DBEAFE' },
-          { title: 'Handpump Boreholes', value: '987', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
-          { title: 'Motorized Boreholes', value: '247', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
-          { title: 'Non-Motorized Boreholes', value: '89', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
+          { 
+            title: 'Total Sources', 
+            value: analytics.totalSources, 
+            icon: <FaFaucet style={{ color: '#2563EB' }} />, 
+            bgColor: '#DBEAFE' 
+          },
+          { 
+            title: 'Functional', 
+            value: analytics.functional, 
+            icon: <FaCheck style={{ color: '#4CAF50' }} />, 
+            bgColor: '#E8F5E9' 
+          },
+          { 
+            title: 'Non-Functional', 
+            value: analytics.nonFunctional, 
+            icon: <FaTimes style={{ color: '#EF5350' }} />, 
+            bgColor: '#FFEBEE' 
+          },
+          { 
+            title: 'Maintenance Due', 
+            value: analytics.maintenanceDue, 
+            icon: <FaWrench style={{ color: '#FFA726' }} />, 
+            bgColor: '#FFF3E0' 
+          },
+          { 
+            title: 'Well', 
+            value: analytics.wells, 
+            icon: <GiWell style={{ color: '#16A34A' }} />, 
+            bgColor: '#DCFCE7' 
+          },
+          { 
+            title: 'Streams', 
+            value: analytics.streams, 
+            icon: <FaWater style={{ color: '#25306B' }} />, 
+            bgColor: '#DBEAFE' 
+          },
+          { 
+            title: 'Handpump Boreholes', 
+            value: analytics.handpumpBoreholes, 
+            icon: <FaFaucet style={{ color: '#2563EB' }} />, 
+            bgColor: '#DBEAFE' 
+          },
+          { 
+            title: 'Motorized Boreholes', 
+            value: analytics.motorizedBoreholes, 
+            icon: <FaCheck style={{ color: '#4CAF50' }} />, 
+            bgColor: '#E8F5E9' 
+          },
+          { 
+            title: 'Non-Motorized Boreholes', 
+            value: analytics.nonMotorizedBoreholes, 
+            icon: <FaTimes style={{ color: '#EF5350' }} />, 
+            bgColor: '#FFEBEE' 
+          },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <StatCard {...stat} />
@@ -653,42 +725,63 @@ const WaterSourcesDashboard: React.FC = () => {
                 InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
               />
               <Button startIcon={<FaFilter style={{ color: "#1F2937" }} />}>
-              <Typography variant="body1" color="#1F2937">
-                Filter
-              </Typography>
+                <Typography variant="body1" color="#1F2937">
+                  Filter
+                </Typography>
               </Button>
             </Box>
           </Box>
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: '#25306B' }}>
+          
+          <TableContainer sx={{ 
+            maxHeight: '500px',
+            overflow: 'auto',
+            '&::-webkit-scrollbar': {
+              width: '8px',
+              height: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: '#f1f1f1',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#888',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#555',
+            },
+          }}>
+            <Table stickyHeader>
+              <TableHead>
                 <TableRow>
-                  <TableCell sx={{ color: 'white' }}>Type</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Ward</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Village</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Hamlet</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Quality</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Captured At</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>S/N</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Type</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Ward</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Village</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Hamlet</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Quality</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Status</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Captured At</TableCell>
+                  <TableCell sx={{ bgcolor: '#25306B', color: 'white' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
                       <CircularProgress size={40} />
                     </TableCell>
                   </TableRow>
                 ) : waterSources.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
                       No water sources found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  waterSources.map((source) => (
+                  waterSources.map((source, index) => (
                     <TableRow key={source._id}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{source.type}</TableCell>
                       <TableCell>{source.ward}</TableCell>
                       <TableCell>{source.village}</TableCell>
@@ -720,6 +813,7 @@ const WaterSourcesDashboard: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Showing 1 to 2 of 1,234 entries
@@ -749,6 +843,7 @@ const WaterSourcesDashboard: React.FC = () => {
       </Menu>
 
       <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="md" fullWidth>
+        
         <DialogTitle>Water Source Details</DialogTitle>
         <DialogContent>
           {selectedSource && (
@@ -769,16 +864,16 @@ const WaterSourcesDashboard: React.FC = () => {
               )}
               <Grid container spacing={2}>
                 <Grid item xs={6}>
+                  <Typography variant="subtitle2">Hamlet</Typography>
+                  <Typography>{selectedSource.hamlet}</Typography>
+                </Grid>
+                <Grid item xs={6}>
                   <Typography variant="subtitle2">Ward</Typography>
                   <Typography>{selectedSource.ward}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2">Village</Typography>
                   <Typography>{selectedSource.village}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Hamlet</Typography>
-                  <Typography>{selectedSource.hamlet}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2">Type</Typography>

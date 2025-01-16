@@ -125,6 +125,41 @@ const SignInPage: FC = function () {
               left: 380,
             }}
           />
+          <img
+            src="/public/svg/polygon 1.svg"
+            alt="Ellipse"
+            style={{
+              width: 105,
+              height: 105,
+              position: "absolute",
+              top: 180,
+              left: 280,
+            }}
+          />
+          <img
+            src="/public/svg/rectangle 4.svg"
+            alt="Ellipse"
+            style={{
+              width: 50,
+              height: 50,
+              position: "absolute",
+              top: 380,
+              left: 190,
+            }}
+          />
+          <img
+            src="/public/svg/ellipse 2.svg"
+            alt="Ellipse"
+            style={{
+              width: 200,
+              height: 200,
+              position: "absolute",
+              top: 410,
+              left: 0,
+            }}
+          />
+
+
         </Box>
       )}
 

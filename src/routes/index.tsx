@@ -5,7 +5,7 @@ import DumpSites from "../pages/dump-site/DumpSite";
 import Interventions from "../pages/interventions/Interventions";
 import PublicSpaceTypes from "../pages/public-space-type/PublicSpaceTypes";
 import ToiletFacilities from "../pages/toilet-facilities/ToiletFacilities";
-// import Gutters from "../pages/gutters/Gutters";
+import Gutters from "../pages/gutters/Gutters";
 import SoakAways from "../pages/soak-aways/SoakAways";
 import WaterSourceRiskMonitoring from "../pages/monitor/WaterSourceRiskMonitoring";
 import OpenDefication from "../pages/open-defecation/OpenDefication";
@@ -70,10 +70,10 @@ const router = createBrowserRouter([
         path: "dump-sites",
         element: <DumpSites />,
       },
-      // {
-      //   path: "gutters",
-      //   element: <Gutters />,
-      // },
+      {
+        path: "gutters",
+        element: <Gutters />,
+      },
       {
         path: "soak-aways",
         element: <SoakAways />,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -12,6 +12,8 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  CircularProgress,
+  Pagination,
 } from '@mui/material';
 import {
   FilterAlt as FilterAltIcon,
@@ -21,8 +23,69 @@ import {
   Waves,
 } from '@mui/icons-material';
 import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  ColumnDef,
+} from '@tanstack/react-table';
+import axios from 'axios';
 
-const SoakAways = () => {
+interface Soakaway {
+  _id: string;
+  picture?: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  type: string;
+  status: string;
+  condition: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const columns: ColumnDef<Soakaway>[] = [
+  { accessorKey: 'type', header: 'Soakaways Types' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'condition', header: 'Condition' },
+  { accessorKey: 'ward', header: 'Ward' },
+  { accessorKey: 'village', header: 'Village' },
+  { accessorKey: 'hamlet', header: 'Hamlet' },
+  {
+    accessorKey: 'capturedAt',
+    header: 'Captured At',
+    cell: (info) => new Date(info.getValue() as string).toLocaleDateString(),
+  },
+];
+
+const SoakawaysDashboard: React.FC = () => {
+  const [soakaways, setSoakaways] = useState<Soakaway[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await axios.get<{ data: Soakaway[] }>('/soak-away');
+        setSoakaways(data);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const table = useReactTable({
+    data: soakaways,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -119,52 +182,66 @@ const SoakAways = () => {
             </Box>
           </Box>
           <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>WATER SOURCE TYPE</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>COUNT</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>PERCENTAGE</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>RISK LEVEL</TableCell>
+          <Table>
+            <TableHead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} sx={{ bgcolor: '#1e3a8a' }}>
+                  {headerGroup.headers.map((header) => (
+                    <TableCell key={header.id} sx={{ color: 'white' }}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              </TableHead>
-              <TableBody>
+              ))}
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
                 <TableRow>
-                  <TableCell>Maintained</TableCell>
-                  <TableCell>847</TableCell>
-                  <TableCell>68%</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#4caf50', fontSize: 12, mr: 1 }} />
-                      Low
-                    </Box>
+                  <TableCell colSpan={columns.length} align="center">
+                    <CircularProgress size={24} />
                   </TableCell>
                 </TableRow>
+              ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  <TableCell>Unmaintained</TableCell>
-                  <TableCell>311</TableCell>
-                  <TableCell>25%</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#ff9800', fontSize: 12, mr: 1 }} />
-                      Medium
-                    </Box>
+                  <TableCell colSpan={columns.length} align="center">
+                    No soakaways found
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell>Dilapidated</TableCell>
-                  <TableCell>89</TableCell>
-                  <TableCell>7%</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#f44336', fontSize: 12, mr: 1 }} />
-                      High
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Showing 1 to {table.getRowModel().rows.length} of {soakaways.length} entries
+          </Typography>
+          <Pagination
+            count={Math.ceil(soakaways.length / 10)}
+            sx={{
+              '& .Mui-selected': {
+                bgcolor: '#0ea5e9',
+                color: '#ffffff',
+              },
+            }}
+          />
+        </Box>
         </Paper>
 
         {/* Slab Safety Risk */}
@@ -278,4 +355,4 @@ const StatsCard = ({ title, value, icon, iconColor, valueColor }: StatsCardProps
   </Card>
 );
 
-export default SoakAways;
+export default SoakawaysDashboard;

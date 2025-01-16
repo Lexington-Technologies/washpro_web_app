@@ -60,8 +60,6 @@ const SideBar = ({
     { text: "Wash", icon: <MdSanitizer />, path: "/wash" },
     { text: "Water Sources", icon: <RiWaterFlashFill />, path: "/water-sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
-    { text: "Water Source Risk", icon: <Warning />, path: "/water-source-risk" },
-    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" },
   ];
 
   const wasteSubItems = [
@@ -76,11 +74,13 @@ const SideBar = ({
   ];
 
   const bottomMenuItems = [
+    { text: "Water Source Risk", icon: <Warning />, path: "/water-source-risk" },
     { text: "Water Source Risk Monitoring", icon: <MonitorHeart />, path: "/monitor" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation" },
     { text: "Needs & Maintainers", icon: <Assignment />, path: "/needs-and-maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation" },
     { text: "Field Monitoring", icon: <Visibility />, path: "/field-monitoring" },
+    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" }
   ];
 
   return (
