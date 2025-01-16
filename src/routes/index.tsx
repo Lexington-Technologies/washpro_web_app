@@ -21,6 +21,7 @@ import NotFound from "../pages/error/NotFound";
 import ErrorBoundary from "../pages/error/ErrorBoundary";
 import UserPage from "../pages/admin/Admin";
 import ForgotPassword from "../pages/authentication/forgot-password";
+import WaterDetails from "../pages/water-sources/WaterDetails";
 
 const router = createBrowserRouter([
   {
@@ -60,7 +61,16 @@ const router = createBrowserRouter([
       },
       {
         path: "water-sources",
-        element: <WaterSources />,
+        children: [
+          {
+            index: true,
+            element: <WaterSources />,
+          },
+          {
+            path: ":id",
+            element: <WaterDetails />,
+          },
+        ],
       },
       {
         path: "toilet-facilities",
