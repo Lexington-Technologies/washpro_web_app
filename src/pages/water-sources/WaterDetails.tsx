@@ -113,16 +113,16 @@ const WaterSourceDetails: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
+      
       <BackButton />
       
-      <Container maxWidth="lg">
         <Card elevation={3}>
           <Box sx={{ position: 'relative' }}>
             <CardMedia
               component="img"
               height="300"
-              image={waterSource.picture || '/api/placeholder/800/400'}
-              alt={`Water source at ${waterSource.village}`}
+              image={waterSource?.picture || '/api/placeholder/800/400'}
+              alt={`Water source at ${waterSource?.village}`}
             />
             <Box
               sx={{
@@ -134,13 +134,13 @@ const WaterSourceDetails: React.FC = () => {
               }}
             >
               <Chip
-                label={waterSource.status}
-                color={waterSource.status === 'Functional' ? 'success' : 'error'}
+                label={waterSource?.status}
+                color={waterSource?.status === 'Functional' ? 'success' : 'error'}
                 sx={{ bgcolor: 'white' }}
               />
               <Chip
-                label={waterSource.quality}
-                color={waterSource.quality === 'Drinkable' ? 'primary' : 'warning'}
+                label={waterSource?.quality}
+                color={waterSource?.quality === 'Drinkable' ? 'primary' : 'warning'}
                 sx={{ bgcolor: 'white' }}
               />
             </Box>
@@ -159,19 +159,19 @@ const WaterSourceDetails: React.FC = () => {
                       <Typography color="text.secondary">Ward:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{waterSource.ward}</Typography>
+                      <Typography>{waterSource?.ward}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Village:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{waterSource.village}</Typography>
+                      <Typography>{waterSource?.village}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Hamlet:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{waterSource.hamlet}</Typography>
+                      <Typography>{waterSource?.hamlet}</Typography>
                     </Grid>
                   </Grid>
                 </Box>
@@ -188,14 +188,14 @@ const WaterSourceDetails: React.FC = () => {
                       <Typography color="text.secondary">Type:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{waterSource.type}</Typography>
+                      <Typography>{waterSource?.type}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Coordinates:</Typography>
                     </Grid>
                     <Grid item xs={8}>
                       <Typography>
-                        {waterSource.geolocation.coordinates.join(', ')}
+                        {waterSource?.geolocation.coordinates.join(', ')}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -212,15 +212,15 @@ const WaterSourceDetails: React.FC = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Captured At:</Typography>
-                <Typography>{formatDate(waterSource.capturedAt)}</Typography>
+                <Typography>{formatDate(waterSource?.capturedAt)}</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Created At:</Typography>
-                <Typography>{formatDate(waterSource.createdAt)}</Typography>
+                <Typography>{formatDate(waterSource?.createdAt)}</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Last Updated:</Typography>
-                <Typography>{formatDate(waterSource.updatedAt)}</Typography>
+                <Typography>{formatDate(waterSource?.updatedAt)}</Typography>
               </Grid>
             </Grid>
 
@@ -236,7 +236,6 @@ const WaterSourceDetails: React.FC = () => {
             </Box>
           </CardContent>
         </Card>
-      </Container>
     </Box>
   );
 };

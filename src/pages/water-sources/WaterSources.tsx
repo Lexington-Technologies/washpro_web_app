@@ -6,23 +6,12 @@ import {
   Typography,
   Grid,
   Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Tab,
   Tabs,
   styled,
-  IconButton,
   Card,
   Chip,
   Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   CircularProgress,
   Menu,
@@ -34,11 +23,9 @@ import {
   Dialog,
 } from '@mui/material';
 import {
-  CheckCircle,
   Warning,
   ErrorOutline,
   Info,
-  MoreVert,
   Search,
   Edit,
   Delete,
@@ -241,19 +228,6 @@ const getSeverityIcon = (severity: AlertItem['severity']) => {
   }
 };
 
-const calculateAnalytics = (sources: WaterSource[]) => {
-  return {
-    totalSources: sources.length,
-    functional: sources.filter(s => s.status === 'Functional').length,
-    nonFunctional: sources.filter(s => s.status === 'Non-Functional').length,
-    maintenanceDue: sources.filter(s => s.status === 'Maintenance Due').length,
-    wells: sources.filter(s => s.type === 'Well').length,
-    streams: sources.filter(s => s.type === 'Stream').length,
-    handpumpBoreholes: sources.filter(s => s.type === 'Handpump Borehole').length,
-    motorizedBoreholes: sources.filter(s => s.type === 'Motorized Borehole').length,
-    nonMotorizedBoreholes: sources.filter(s => s.type === 'Non-Motorized Borehole').length,
-  };
-};
 // Define your row shape
 
 
@@ -325,7 +299,7 @@ const WaterSourcesDashboard: React.FC = () => {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['water-sources'],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?{"limit":${limit},"page":${page},"search":${search}}`),
   });
@@ -358,10 +332,6 @@ const WaterSourcesDashboard: React.FC = () => {
     setTabValue(newValue);
   };
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, source: WaterSource) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedSource(source);
-  };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
@@ -584,7 +554,7 @@ const WaterSourcesDashboard: React.FC = () => {
       </Grid>
 
       {/* Maintenance, progress and Alerts */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      {/* <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           <StyledPaper>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
@@ -672,7 +642,7 @@ const WaterSourcesDashboard: React.FC = () => {
             </List>
           </StyledPaper>
         </Grid>
-      </Grid>
+      </Grid> */}
 
       {/* Water Quality Tabs */}
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
