@@ -159,7 +159,9 @@ export function DataTable<T extends object>({
                                     sx={{ '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' } }}
                                 >
                                     {row.getVisibleCells().map(cell => (
-                                        <TableCell sx={{ cursor: 'pointer', textDecoration: 'none' }} component={Link} to={`${cell.row.original?._id}`} key={cell.id}>
+                                        <TableCell sx={{ cursor: 'pointer', textDecoration: 'none',
+                                            height: '40px',
+                                         }} component={Link} to={`${cell.row.original?._id}`} key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}
