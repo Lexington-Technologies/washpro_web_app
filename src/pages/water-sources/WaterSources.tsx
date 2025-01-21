@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -5,23 +6,12 @@ import {
   Typography,
   Grid,
   Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Tab,
   Tabs,
   styled,
-  IconButton,
   Card,
   Chip,
   Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   CircularProgress,
   Menu,
@@ -33,11 +23,9 @@ import {
   Dialog,
 } from '@mui/material';
 import {
-  CheckCircle,
   Warning,
   ErrorOutline,
   Info,
-  MoreVert,
   Search,
   Edit,
   Delete,
@@ -48,6 +36,9 @@ import { FaWrench } from 'react-icons/fa6';
 import { GiWell } from 'react-icons/gi';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
+import { DataTable } from '../../components/Table/DataTable';
+import { createColumnHelper } from '@tanstack/react-table';
+import { useQuery } from '@tanstack/react-query';
 
 // Interfaces
 interface StatCardProps {
@@ -91,6 +82,7 @@ interface WaterSource {
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
+  actions: any;
 }
 
 interface FormData {
@@ -236,11 +228,40 @@ const getSeverityIcon = (severity: AlertItem['severity']) => {
   }
 };
 
+// Define your row shape
+
+
+const columnHelper = createColumnHelper<WaterSource>()
+
+// Make some columns!
+const columns = [
+  columnHelper.accessor('picture', {
+    cell: props => <img style={{ width: '50px', height: '50px' }} src={props.row.original.picture} alt="water source" />
+  }),
+  columnHelper.accessor('ward', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('status', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('type', {
+    cell: info => info.getValue(),
+  }),
+  // columnHelper.accessor('actions', {
+  //   id: 'actions',
+  //   cell: props => <Button>{props.row.original._id}</Button>
+  // }),
+
+]
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
-  const [waterSources, setWaterSources] = useState<WaterSource[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const { setAlert } = useSnackStore();
   const [selectedSource, setSelectedSource] = useState<WaterSource | null>(null);
   const [openViewModal, setOpenViewModal] = useState(false);
@@ -261,36 +282,56 @@ const WaterSourcesDashboard: React.FC = () => {
     status: '',
     type: ''
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-  const fetchWaterSources = async () => {
-    setIsLoading(true);
-    try {
-      const  data  = await apiController.get<WaterSource[]>('/water-sources');
-      setWaterSources(data || []);
-    } catch (error) {
-      console.error('Error fetching water sources:', error);
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch water sources'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [analytics, setAnalytics] = useState({
+    totalSources: 0,
+    functional: 0,
+    nonFunctional: 0,
+    maintenanceDue: 0,
+    wells: 0,
+    streams: 0,
+    handpumpBoreholes: 0,
+    motorizedBoreholes: 0,
+    nonMotorizedBoreholes: 0,
+  });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['water-sources'],
+    queryFn: () => apiController.get<WaterSource[]>(`/water-sources?{"limit":${limit},"page":${page},"search":${search}}`),
+  });
 
   useEffect(() => {
-    fetchWaterSources();
-  }, []);
+    if (data) {
+      console.log({ data });
+    }
+  }, [data]);
+
+  // const fetchWaterSources = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const data = await apiController.get<WaterSource[]>('/water-sources');
+  //     setWaterSources(data || []);
+  //     setAnalytics(calculateAnalytics(data || []));
+  //   } catch (error) {
+  //     console.error('Error fetching water sources:', error);
+  //     setAlert({
+  //       variant: 'error',
+  //       message: error instanceof Error ? error.message : 'Failed to fetch water sources'
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, source: WaterSource) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedSource(source);
-  };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
@@ -316,7 +357,7 @@ const WaterSourcesDashboard: React.FC = () => {
   const handleEditClick = async (id: string) => {
     try {
       setLoading(true);
-      const data  = await apiController.get<WaterSource>(`/water-sources/${id}`);
+      const data = await apiController.get<WaterSource>(`/water-sources/${id}`);
       setSelectedSource(data);
       setFormData({
         picture: data.picture,
@@ -342,16 +383,16 @@ const WaterSourcesDashboard: React.FC = () => {
 
   const handleUpdateSource = async () => {
     if (!selectedSource?._id) return; // Ensure a source is selected
-  
+
     try {
       setLoading(true); // Start loader
       const formDataToSend = new FormData();
-  
+
       // Append image if a new one is selected
       if (selectedImage) {
         formDataToSend.append('picture', selectedImage);
       }
-  
+
       // Append other form data fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== 'picture') {
@@ -364,18 +405,16 @@ const WaterSourcesDashboard: React.FC = () => {
           }
         }
       });
-  
+
       // API call to update the water source
-      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-  
+      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend);
+
       // Success alert
       setAlert({
         variant: 'success',
         message: 'Water source updated successfully',
       });
-  
+
       // Close modal and refresh data
       setOpenEditModal(false);
       fetchWaterSources();
@@ -389,7 +428,7 @@ const WaterSourcesDashboard: React.FC = () => {
       setLoading(false); // Stop loader
     }
   };
-  
+
   const handleDeleteClick = (source: WaterSource) => {
     setSelectedSource(source);
     setOpenDeleteModal(true);
@@ -444,7 +483,7 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <Button startIcon={<FaFilter style={{color: "#000000"}} />} variant="outlined" sx={{ mr: 1, borderColor: '#000000' }}>
+          <Button startIcon={<FaFilter style={{ color: "#000000" }} />} variant="outlined" sx={{ mr: 1, borderColor: '#000000' }}>
             <Typography variant="body1" color="#000000">Filter</Typography>
           </Button>
         </Box>
@@ -453,15 +492,60 @@ const WaterSourcesDashboard: React.FC = () => {
       {/* Main Stats */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
-          { title: 'Total Sources', value: '1,234', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
-          { title: 'Functional', value: '987', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
-          { title: 'Non-Functional', value: '247', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
-          { title: 'Maintenance Due', value: '89', icon: <FaWrench style={{  color: '#FFA726' }} />, bgColor: '#FFF3E0' },
-          { title: 'Well', value: '1,234', icon: <GiWell style={{  color: '#16A34A' }} />, bgColor: '#DCFCE7' },
-          { title: 'Streams', value: '89', icon: <FaWater style={{  color: '#25306B' }} />, bgColor: '#DBEAFE' },
-          { title: 'Handpump Boreholes', value: '987', icon: <FaFaucet style={{  color: '#2563EB' }} />, bgColor: '#DBEAFE' },
-          { title: 'Motorized Boreholes', value: '247', icon: <FaCheck style={{  color: '#4CAF50' }} />, bgColor: '#E8F5E9' },
-          { title: 'Non-Motorized Boreholes', value: '89', icon: <FaTimes style={{  color: '#EF5350' }} />, bgColor: '#FFEBEE' },
+          {
+            title: 'Total Sources',
+            value: analytics.totalSources,
+            icon: <FaFaucet style={{ color: '#2563EB' }} />,
+            bgColor: '#DBEAFE'
+          },
+          {
+            title: 'Functional',
+            value: analytics.functional,
+            icon: <FaCheck style={{ color: '#4CAF50' }} />,
+            bgColor: '#E8F5E9'
+          },
+          {
+            title: 'Non-Functional',
+            value: analytics.nonFunctional,
+            icon: <FaTimes style={{ color: '#EF5350' }} />,
+            bgColor: '#FFEBEE'
+          },
+          {
+            title: 'Maintenance Due',
+            value: analytics.maintenanceDue,
+            icon: <FaWrench style={{ color: '#FFA726' }} />,
+            bgColor: '#FFF3E0'
+          },
+          {
+            title: 'Well',
+            value: analytics.wells,
+            icon: <GiWell style={{ color: '#16A34A' }} />,
+            bgColor: '#DCFCE7'
+          },
+          {
+            title: 'Streams',
+            value: analytics.streams,
+            icon: <FaWater style={{ color: '#25306B' }} />,
+            bgColor: '#DBEAFE'
+          },
+          {
+            title: 'Handpump Boreholes',
+            value: analytics.handpumpBoreholes,
+            icon: <FaFaucet style={{ color: '#2563EB' }} />,
+            bgColor: '#DBEAFE'
+          },
+          {
+            title: 'Motorized Boreholes',
+            value: analytics.motorizedBoreholes,
+            icon: <FaCheck style={{ color: '#4CAF50' }} />,
+            bgColor: '#E8F5E9'
+          },
+          {
+            title: 'Non-Motorized Boreholes',
+            value: analytics.nonMotorizedBoreholes,
+            icon: <FaTimes style={{ color: '#EF5350' }} />,
+            bgColor: '#FFEBEE'
+          },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <StatCard {...stat} />
@@ -470,184 +554,184 @@ const WaterSourcesDashboard: React.FC = () => {
       </Grid>
 
       {/* Maintenance, progress and Alerts */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-  <Grid item xs={12} md={4}>
-    <StyledPaper>
-      <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-        Water Quality Index
-      </Typography>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-          <CircularProgress
-            variant="determinate"
-            value={85}
-            size={120}
-            thickness={4}
-            sx={{ color: '#4CAF50' }}
-          />
-          <Box
-            sx={{
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              position: 'absolute',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h4" sx={{ color: '#4CAF50' }}>
-              85
+      {/* <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4}>
+          <StyledPaper>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
+              Water Quality Index
             </Typography>
-          </Box>
-        </Box>
-        <Typography variant="h6" sx={{ color: '#4CAF50', mt: 2 }}>
-          Excellent
-        </Typography>
-      </Box>
-      <Tabs
-        value={tabValue}
-        onChange={(_, newValue) => setTabValue(newValue)}
-        sx={{ mt: 3 }}
-      >
-        <Tab label="Physical" />
-        <Tab label="Chemical" />
-        <Tab label="Microbiological" />
-      </Tabs>
-    </StyledPaper>
-  </Grid>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                <CircularProgress
+                  variant="determinate"
+                  value={85}
+                  size={120}
+                  thickness={4}
+                  sx={{ color: '#4CAF50' }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="h4" sx={{ color: '#4CAF50' }}>
+                    85
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography variant="h6" sx={{ color: '#4CAF50', mt: 2 }}>
+                Excellent
+              </Typography>
+            </Box>
+            <Tabs
+              value={tabValue}
+              onChange={(_, newValue) => setTabValue(newValue)}
+              sx={{ mt: 3 }}
+            >
+              <Tab label="Physical" />
+              <Tab label="Chemical" />
+              <Tab label="Microbiological" />
+            </Tabs>
+          </StyledPaper>
+        </Grid>
 
-  <Grid item xs={12} md={4}>
-    <StyledPaper>
-    <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-    Recent Maintenance
-      </Typography>
-      <List>
-        {maintenanceItems.map((item, index) => (
-          <ListItem key={index}>
-            <ListItemIcon>
-              <CheckCircle sx={{ color: '#4CAF50' }} />
-            </ListItemIcon>
-            <ListItemText primary={item.type} secondary={item.time} />
-          </ListItem>
-        ))}
-      </List>
-    </StyledPaper>
-  </Grid>
+        <Grid item xs={12} md={4}>
+          <StyledPaper>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
+              Recent Maintenance
+            </Typography>
+            <List>
+              {maintenanceItems.map((item, index) => (
+                <ListItem key={index}>
+                  <ListItemIcon>
+                    <CheckCircle sx={{ color: '#4CAF50' }} />
+                  </ListItemIcon>
+                  <ListItemText primary={item.type} secondary={item.time} />
+                </ListItem>
+              ))}
+            </List>
+          </StyledPaper>
+        </Grid>
 
-  <Grid item xs={12} md={4}>
-    <StyledPaper>
-    <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-    Alert Notifications
-      </Typography>
-      <List>
-        {alertItems.map((alert, index) => (
-          <ListItem
-            key={index}
-            sx={{
-              bgcolor: getSeverityColor(alert.severity),
-              borderRadius: 1,
-              mb: 1,
-            }}
-          >
-            <ListItemIcon>{getSeverityIcon(alert.severity)}</ListItemIcon>
-            <ListItemText primary={alert.type} secondary={alert.message} />
-          </ListItem>
-        ))}
-      </List>
-    </StyledPaper>
-  </Grid>
-      </Grid>
+        <Grid item xs={12} md={4}>
+          <StyledPaper>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
+              Alert Notifications
+            </Typography>
+            <List>
+              {alertItems.map((alert, index) => (
+                <ListItem
+                  key={index}
+                  sx={{
+                    bgcolor: getSeverityColor(alert.severity),
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <ListItemIcon>{getSeverityIcon(alert.severity)}</ListItemIcon>
+                  <ListItemText primary={alert.type} secondary={alert.message} />
+                </ListItem>
+              ))}
+            </List>
+          </StyledPaper>
+        </Grid>
+      </Grid> */}
 
       {/* Water Quality Tabs */}
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-  <Tabs
-    value={tabValue}
-    onChange={handleTabChange}
-    sx={{
-      borderBottom: 1,
-      borderColor: 'divider',
-      '& .MuiTab-root': { minWidth: 'unset', px: 3 },
-      '& .Mui-selected': { color: '#0EA5E9' },
-      '& .MuiTabs-indicator': { backgroundColor: '#0EA5E9' },
-    }}
-  >
-    <Tab label="Physical" />
-    <Tab label="Chemical" />
-    <Tab label="Microbiological" />
-  </Tabs>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': { minWidth: 'unset', px: 3 },
+            '& .Mui-selected': { color: '#0EA5E9' },
+            '& .MuiTabs-indicator': { backgroundColor: '#0EA5E9' },
+          }}
+        >
+          <Tab label="Physical" />
+          <Tab label="Chemical" />
+          <Tab label="Microbiological" />
+        </Tabs>
 
-  <TabPanel value={tabValue} index={0}>
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        overflowX: 'auto',
-        gap: 2,
-        pt: 3,
-      }}
-    >
-      {metrics.map((metric, index) => (
-        <MetricItem key={index} value={metric.value} label={metric.label} color={metric.color} />
-      ))}
-    </Box>
-  </TabPanel>
+        <TabPanel value={tabValue} index={0}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              overflowX: 'auto',
+              gap: 2,
+              pt: 3,
+            }}
+          >
+            {metrics.map((metric, index) => (
+              <MetricItem key={index} value={metric.value} label={metric.label} color={metric.color} />
+            ))}
+          </Box>
+        </TabPanel>
 
-  <TabPanel value={tabValue} index={1}>
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        overflowX: 'auto',
-        gap: 2,
-        pt: 3,
-      }}
-    >
-      {metrics.map((metric, index) => (
-        <MetricItem
-          key={index}
-          value={metric.value}
-          label={`${metric.label} (Chemical)`}
-          color={metric.color}
-        />
-      ))}
-    </Box>
-  </TabPanel>
+        <TabPanel value={tabValue} index={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              overflowX: 'auto',
+              gap: 2,
+              pt: 3,
+            }}
+          >
+            {metrics.map((metric, index) => (
+              <MetricItem
+                key={index}
+                value={metric.value}
+                label={`${metric.label} (Chemical)`}
+                color={metric.color}
+              />
+            ))}
+          </Box>
+        </TabPanel>
 
-  <TabPanel value={tabValue} index={2}>
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        overflowX: 'auto',
-        gap: 2,
-        pt: 3,
-      }}
-    >
-      {metrics.map((metric, index) => (
-        <MetricItem
-          key={index}
-          value={metric.value}
-          label={`${metric.label} (Microbiological)`}
-          color={metric.color}
-        />
-      ))}
-    </Box>
-  </TabPanel>
-</Paper>
+        <TabPanel value={tabValue} index={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              overflowX: 'auto',
+              gap: 2,
+              pt: 3,
+            }}
+          >
+            {metrics.map((metric, index) => (
+              <MetricItem
+                key={index}
+                value={metric.value}
+                label={`${metric.label} (Microbiological)`}
+                color={metric.color}
+              />
+            ))}
+          </Box>
+        </TabPanel>
+      </Paper>
 
       {/* Table Section */}
       <Card sx={{ mt: 3 }}>
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{fontWeight:600,}}>Water Sources Overview</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600, }}>Water Sources Overview</Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 size="small"
@@ -655,73 +739,14 @@ const WaterSourcesDashboard: React.FC = () => {
                 InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
               />
               <Button startIcon={<FaFilter style={{ color: "#1F2937" }} />}>
-              <Typography variant="body1" color="#1F2937">
-                Filter
-              </Typography>
+                <Typography variant="body1" color="#1F2937">
+                  Filter
+                </Typography>
               </Button>
             </Box>
           </Box>
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: '#25306B' }}>
-                <TableRow>
-                  <TableCell sx={{ color: 'white' }}>Type</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Ward</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Village</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Hamlet</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Quality</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Captured At</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                      <CircularProgress size={40} />
-                    </TableCell>
-                  </TableRow>
-                ) : waterSources.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                      No water sources found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  waterSources.map((source) => (
-                    <TableRow key={source._id}>
-                      <TableCell>{source.type}</TableCell>
-                      <TableCell>{source.ward}</TableCell>
-                      <TableCell>{source.village}</TableCell>
-                      <TableCell>{source.hamlet}</TableCell>
-                      <TableCell>{source.quality}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={source.status}
-                          size="small"
-                          sx={{
-                            bgcolor: source.status === 'Functional' ? '#dcfce7' : '#fee2e2',
-                            color: source.status === 'Functional' ? '#16a34a' : '#dc2626',
-                            textTransform: 'capitalize',
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{new Date(source.capturedAt).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <IconButton 
-                          size="small" 
-                          onClick={(e) => handleMenuClick(e, source)}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+            <DataTable  setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Showing 1 to 2 of 1,234 entries
@@ -742,7 +767,7 @@ const WaterSourcesDashboard: React.FC = () => {
         <MenuItem onClick={() => selectedSource && handleEditClick(selectedSource._id)}>
           <Edit sx={{ mr: 1 }} /> Edit
         </MenuItem>
-        <MenuItem 
+        <MenuItem
           onClick={() => selectedSource && handleDeleteClick(selectedSource)}
           sx={{ color: 'error.main' }}
         >
@@ -751,25 +776,30 @@ const WaterSourcesDashboard: React.FC = () => {
       </Menu>
 
       <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="md" fullWidth>
+
         <DialogTitle>Water Source Details</DialogTitle>
         <DialogContent>
           {selectedSource && (
             <Box sx={{ mt: 2 }}>
               {selectedSource.picture && (
                 <Box sx={{ mb: 2 }}>
-                  <img 
-                    src={selectedSource.picture} 
-                    alt="Water Source" 
-                    style={{ 
-                      width: '100%', 
-                      maxHeight: '300px', 
+                  <img
+                    src={selectedSource.picture}
+                    alt="Water Source"
+                    style={{
+                      width: '100%',
+                      maxHeight: '300px',
                       objectFit: 'cover',
                       borderRadius: '8px'
-                    }} 
+                    }}
                   />
                 </Box>
               )}
               <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Hamlet</Typography>
+                  <Typography>{selectedSource.hamlet}</Typography>
+                </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2">Ward</Typography>
                   <Typography>{selectedSource.ward}</Typography>
@@ -777,10 +807,6 @@ const WaterSourcesDashboard: React.FC = () => {
                 <Grid item xs={6}>
                   <Typography variant="subtitle2">Village</Typography>
                   <Typography>{selectedSource.village}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Hamlet</Typography>
-                  <Typography>{selectedSource.hamlet}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2">Type</Typography>
@@ -817,19 +843,19 @@ const WaterSourcesDashboard: React.FC = () => {
             {/* Current Image Preview */}
             {formData.picture && (
               <Box sx={{ mb: 2 }}>
-                <img 
-                  src={formData.picture} 
-                  alt="Current" 
-                  style={{ 
-                    width: '100%', 
-                    maxHeight: '200px', 
+                <img
+                  src={formData.picture}
+                  alt="Current"
+                  style={{
+                    width: '100%',
+                    maxHeight: '200px',
                     objectFit: 'cover',
                     borderRadius: '8px'
-                  }} 
+                  }}
                 />
               </Box>
             )}
-            
+
             {/* Image Upload */}
             <TextField
               type="file"
@@ -907,8 +933,8 @@ const WaterSourcesDashboard: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditModal(false)}>Cancel</Button>
-          <Button 
-            onClick={handleUpdateSource} 
+          <Button
+            onClick={handleUpdateSource}
             variant="contained"
             disabled={loading}
           >
@@ -926,9 +952,9 @@ const WaterSourcesDashboard: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteModal(false)}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteSource} 
-            color="error" 
+          <Button
+            onClick={handleDeleteSource}
+            color="error"
             variant="contained"
             disabled={loading}
           >

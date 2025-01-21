@@ -219,7 +219,7 @@ const EnumeratorPage: React.FC = () => {
       };
 
       console.log('Sending registration data:', formData);
-      const response = await apiController.post('/api/v1/enumerator/register', formData);
+      const response = await apiController.post('/enumerator/register', formData);
       console.log('Registration response:', response);
 
       setAlert({

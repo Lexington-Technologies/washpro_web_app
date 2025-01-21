@@ -3,11 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://<kingkuta080>.github.io/<washpro_web_app>",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "vite build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -16,6 +19,8 @@
     "@iconify/react": "^5.2.0",
     "@mui/icons-material": "^6.3.0",
     "@mui/material": "^6.3.0",
+    "@tanstack/react-query": "^5.64.1",
+    "@tanstack/react-table": "^8.20.6",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.469.0",
@@ -37,6 +42,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "gh-pages": "^6.3.0",
     "globals": "^15.14.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.18.2",
