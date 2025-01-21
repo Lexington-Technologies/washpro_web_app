@@ -23,16 +23,8 @@ import {
   Assignment,
   Visibility,
   People,
-<<<<<<< HEAD
-  Warning,
-  Schedule,
-  WavesOutlined,
-  WavesTwoTone,
-  Plumbing,
-=======
   SmartToy,
   Book,
->>>>>>> origin/AI-two
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
