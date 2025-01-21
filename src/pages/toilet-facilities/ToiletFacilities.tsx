@@ -11,8 +11,10 @@ import {
   TableHead,
   TableRow,
   Grid,
-  Chip,
   styled,
+  Alert,
+  Container,
+  Skeleton,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -21,6 +23,8 @@ import {
 import { FaDownload, FaFilter, FaHandSparkles, FaSink, FaWrench, FaCalendar, FaCalendarCheck } from 'react-icons/fa';
 import { BsExclamationCircleFill } from 'react-icons/bs';
 import { FaArrowTrendDown } from 'react-icons/fa6';
+import { useQuery } from '@tanstack/react-query';
+import { apiController } from '../../axios';
 
 interface StatCardProps {
   title: string;
@@ -40,6 +44,30 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   borderRadius: theme.spacing(1),
   boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
 }));
+
+// Loading Skeleton Component
+const LoadingSkeleton: React.FC = () => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 4 }}>
+    <Skeleton variant="rectangular" height={300} />
+    <Skeleton variant="rectangular" height={150} />
+    <Skeleton variant="rectangular" height={150} />
+  </Box>
+);
+
+// Error Alert Component
+const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
+  <Container maxWidth="md" sx={{ mt: 3 }}>
+    <Alert severity="error">{message}</Alert>
+  </Container>
+);
+
+// Not Found Component
+const NotFoundAlert: React.FC = () => (
+  <Container maxWidth="md" sx={{ mt: 3 }}>
+    <Alert severity="info">No water source found</Alert>
+  </Container>
+);
+
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
   <StyledPaper>
@@ -77,11 +105,19 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 const ToiletFacilities: React.FC = () => {
-  const toiletTypes: ToiletTypeRow[] = [
-    { type: 'Western Style', count: 50, status: 'Operational' },
-    { type: 'Eastern Style', count: 30, status: 'Maintenance' },
-    { type: 'Accessible', count: 20, status: 'Operational' },
-  ];
+  const { data: toiletFacilities, isLoading, error } = useQuery({
+    queryKey: ['toiletFacilities'],
+    queryFn: () => apiController.get<ToiletTypeRow[]>('/toilet-facilities'),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isLoading) return <LoadingSkeleton />;
+  if (error instanceof Error) return <ErrorAlert message={error.message} />;
+  if (!toiletFacilities || toiletFacilities.length === 0) return <NotFoundAlert />;
+
+  const majorTypes = toiletFacilities.filter((facility) =>
+    ['Western Style', 'Eastern Style', 'Accessible'].includes(facility.type)
+  );
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
@@ -186,16 +222,22 @@ const ToiletFacilities: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {toiletTypes.map((row) => (
+                  {majorTypes.map((row) => (
                     <TableRow key={row.type}>
                       <TableCell>{row.type}</TableCell>
                       <TableCell>{row.count}</TableCell>
                       <TableCell>
-                        <Chip
-                          label={row.status}
-                          color={row.status === 'Operational' ? 'success' : 'warning'}
-                          size="small"
+                        <Box
+                          sx={{
+                            display: 'inline-block',
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            bgcolor: row.status === 'Operational' ? 'success.main' : 'warning.main',
+                            mr: 1,
+                          }}
                         />
+                        {row.status}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -18,12 +18,10 @@ import {
     TableRow,
     Paper,
     TablePagination,
-    IconButton,
     TextField,
     InputAdornment,
     LinearProgress,
     Typography,
-    Tooltip,
 } from '@mui/material';
 import {
     Search,
@@ -31,7 +29,7 @@ import {
     ArrowDownward,
 } from '@mui/icons-material';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface DataTableProps<T extends object> {
     data: T[];
@@ -64,7 +62,6 @@ export function DataTable<T extends object>({
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
 
-    const navigate = useNavigate();
     const table = useReactTable({
         data,
         columns,
@@ -186,4 +183,4 @@ export function DataTable<T extends object>({
             )}
         </Box>
     );
-} 
+}

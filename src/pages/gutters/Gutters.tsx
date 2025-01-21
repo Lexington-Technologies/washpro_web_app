@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
   Typography,
   Table,
-  TableBody,
   TableCell,
   TableContainer,
   TableHead,
@@ -12,17 +10,10 @@ import {
   Paper,
   Button,
   IconButton,
-  Chip,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination,
-  CircularProgress,
-  DialogContent,
-  Stack,
-  TextField,
-  MenuItem} from '@mui/material';
+  Pagination} from '@mui/material';
 import {
-  MoreVert,
   CheckCircle,
   Error,
   Warning,
@@ -32,189 +23,18 @@ import {
 } from '@mui/icons-material';
 import { FaChartPie, FaFilter } from 'react-icons/fa6';
 import { FaDownload } from 'react-icons/fa';
-import { apiController } from '../../axios';
-import { useSnackStore } from '../../store';
 
-interface Gutter {
-  _id: string;
-  picture: string;
-  ward: string;
-  village: string;
-  hamlet: string;
-  geolocation: {
-    type: string;
-    coordinates: number[];
-  };
-  condition: string;
-  status: string;
-  dischargePoint: string;
-  createdBy: string;
-  capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
-interface GutterFormData {
-  picture: string;
-  ward: string;
-  village: string;
-  hamlet: string;
-  geolocation: {
-    type: string;
-    coordinates: number[];
-  };
-  condition: string;
-  status: string;
-  dischargePoint: string;
-}
 
-const initialFormState: GutterFormData = {
-  picture: '',
-  ward: '',
-  village: '',
-  hamlet: '',
-  geolocation: {
-    type: 'Point',
-    coordinates: [0, 0, 0]
-  },
-  condition: 'Constructed with Block',
-  status: 'Maintained',
-  dischargePoint: 'yes'
-};
 
 const GutterDashboard = () => {
-  const [timeframe, setTimeframe] = useState('monthly');
-  const [gutters, setGutters] = useState<Gutter[]>([]);
-  const [selectedGutter, setSelectedGutter] = useState<Gutter | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const { setAlert } = useSnackStore();
-  const [formData, setFormData] = useState<GutterFormData>(initialFormState);
+
 
   const gutterTypes = [
     { type: 'Constructed', value: 245, color: '#00B4D8' },
     { type: 'Surface', value: 180, color: '#4CAF50' },
     { type: 'Dug', value: 120, color: '#FFC107' }
   ];
-
-  const maintenanceData = [
-    {
-      ic: 'North Valley Site',
-      location: 'North District',
-      type: 'Constructed',
-      status: 'Maintained',
-      lastMaintenance: '2 hours ago'
-    },
-    {
-      ic: 'East End Facility',
-      location: 'East Zone',
-      type: 'Surface',
-      status: 'Needs Attention',
-      lastMaintenance: '1 day ago'
-    }
-  ];
-
-  const fetchGutters = async () => {
-    setIsLoading(true);
-    try {
-      const { data } = await apiController.get('/api/v1/gutters');
-      setGutters(data || []);
-    } catch (error: any) {
-      console.error('Error fetching gutters:', error);
-      setAlert({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to fetch gutters'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGetGutterById = async (id: string) => {
-    setIsLoading(true);
-    try {
-      const { data } = await apiController.get(`/api/v1/gutters/${id}`);
-      setSelectedGutter(data);
-      setOpenEditModal(true);
-    } catch (error: any) {
-      console.error('Error fetching gutter details:', error);
-      setAlert({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to fetch gutter details'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateGutter = async (formData: any) => {
-    setIsLoading(true);
-    try {
-      await apiController.post('/api/v1/gutters', formData);
-      setAlert({
-        variant: 'success',
-        message: 'Gutter created successfully'
-      });
-      setOpenAddModal(false);
-      fetchGutters(); // Refresh the list
-    } catch (error: any) {
-      console.error('Error creating gutter:', error);
-      setAlert({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to create gutter'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateGutter = async (id: string, formData: any) => {
-    setIsLoading(true);
-    try {
-      await apiController.put(`/api/v1/gutters/${id}`, formData);
-      setAlert({
-        variant: 'success',
-        message: 'Gutter updated successfully'
-      });
-      setOpenEditModal(false);
-      fetchGutters(); // Refresh the list
-    } catch (error: any) {
-      console.error('Error updating gutter:', error);
-      setAlert({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to update gutter'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteGutter = async (id: string) => {
-    setIsLoading(true);
-    try {
-      await apiController.delete(`/api/v1/gutters/${id}`);
-      setAlert({
-        variant: 'success',
-        message: 'Gutter deleted successfully'
-      });
-      setOpenDeleteModal(false);
-      fetchGutters(); // Refresh the list
-    } catch (error: any) {
-      console.error('Error deleting gutter:', error);
-      setAlert({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to delete gutter'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchGutters();
-  }, []);
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
@@ -330,9 +150,7 @@ const GutterDashboard = () => {
             </Typography>
             <ToggleButtonGroup
               size="small"
-              value={timeframe}
               exclusive
-              onChange={(e, value) => value && setTimeframe(value)}
               sx={{
                 backgroundColor: '#F8FAFC',
                 borderRadius: 1,
@@ -467,7 +285,7 @@ const GutterDashboard = () => {
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
+            {/* <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={9} align="center">
@@ -517,14 +335,14 @@ const GutterDashboard = () => {
                       {new Date(gutter.capturedAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton onClick={() => handleGetGutterById(gutter._id)}>
+                      <IconButton>
                         <MoreVert />
                       </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
               )}
-            </TableBody>
+            </TableBody> */}
           </Table>
         </TableContainer>
         <Box

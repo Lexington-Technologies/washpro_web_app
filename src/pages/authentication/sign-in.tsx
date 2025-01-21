@@ -59,7 +59,7 @@ const SignInPage: FC = function () {
       );
   
       logIn(response.user, response.token, response.refreshToken);
-      setAlert({ variant: "success", message: "Login successful" });
+      // setAlert({ variant: "success", message: "Login successful" });
       navigate("/");
     } catch (error) {
       setAlert({

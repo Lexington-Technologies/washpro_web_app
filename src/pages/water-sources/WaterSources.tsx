@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -10,32 +9,16 @@ import {
   Tabs,
   styled,
   Card,
-  Chip,
-  Pagination,
   TextField,
-  CircularProgress,
-  Menu,
-  MenuItem,
-  DialogContentText,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Dialog,
+  Avatar,
 } from '@mui/material';
 import {
-  Warning,
-  ErrorOutline,
-  Info,
   Search,
-  Edit,
-  Delete,
-  Visibility,
 } from '@mui/icons-material';
 import { FaCheck, FaFaucet, FaFilter, FaTimes, FaWater } from 'react-icons/fa';
 import { FaWrench } from 'react-icons/fa6';
 import { GiWell } from 'react-icons/gi';
 import { apiController } from '../../axios';
-import { useSnackStore } from '../../store';
 import { DataTable } from '../../components/Table/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
@@ -54,16 +37,7 @@ interface MetricProps {
   color: string;
 }
 
-interface MaintenanceItem {
-  type: string;
-  time: string;
-}
 
-interface AlertItem {
-  type: string;
-  message: string;
-  severity: 'error' | 'warning' | 'info';
-}
 
 interface WaterSource {
   _id: string;
@@ -83,21 +57,22 @@ interface WaterSource {
   createdAt: string;
   updatedAt: string;
   actions: any;
+  publicSpace: string;
+  dependent: number;
+  space: string;
+  qualityTest: {
+    clearness: number;
+    odor: number;
+    ph: number;
+    salinity: number;
+    conductivity: number;
+    capturedAt: string;
+    createdBy: string;
+    updatedAt: string;
+    _id: string;
+  }[];
 }
 
-interface FormData {
-  picture: string;
-  ward: string;
-  village: string;
-  hamlet: string;
-  geolocation: {
-    type: string;
-    coordinates: number[];
-  };
-  quality: string;
-  status: string;
-  type: string;
-}
 
 // Styled Components
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -169,30 +144,7 @@ const TabPanel = ({ children, value, index }: { children: React.ReactNode; value
   </div>
 );
 
-const maintenanceItems: MaintenanceItem[] = [
-  { type: 'Filter Replacement', time: '2 hours ago' },
-  { type: 'Pump Maintenance', time: '1 day ago' },
-  { type: 'Pump Maintenance', time: '1 day ago' },
-  { type: 'Pump Maintenance', time: '1 day ago' },
-];
 
-const alertItems: AlertItem[] = [
-  {
-    type: 'Critical: Pump Failure',
-    message: 'Borehole #247 requires immediate attention',
-    severity: 'error',
-  },
-  {
-    type: 'Maintenance Due',
-    message: '5 sources require scheduled maintenance',
-    severity: 'warning',
-  },
-  {
-    type: 'Water Quality Check',
-    message: 'Quality test pending for Well #128',
-    severity: 'info',
-  },
-];
 
 const metrics = [
   { value: 8.5, label: 'Clarity', color: '#DBEAFE' },
@@ -202,31 +154,7 @@ const metrics = [
   { value: 8.8, label: 'Conductivity', color: '#E0E7FF' },
 ];
 
-const getSeverityColor = (severity: AlertItem['severity']) => {
-  switch (severity) {
-    case 'error':
-      return '#FEE2E2';
-    case 'warning':
-      return '#FEF3C7';
-    case 'info':
-      return '#E0F2FE';
-    default:
-      return '#F3F4F6';
-  }
-};
 
-const getSeverityIcon = (severity: AlertItem['severity']) => {
-  switch (severity) {
-    case 'error':
-      return <ErrorOutline color="error" />;
-    case 'warning':
-      return <Warning color="warning" />;
-    case 'info':
-      return <Info color="info" />;
-    default:
-      return null;
-  }
-};
 
 // Define your row shape
 
@@ -235,8 +163,19 @@ const columnHelper = createColumnHelper<WaterSource>()
 
 // Make some columns!
 const columns = [
+  columnHelper.accessor((_, index) => index + 1, {
+    id: 'index',
+    header: 'No.',
+    cell: info => info.getValue(),
+  }),
   columnHelper.accessor('picture', {
-    cell: props => <img style={{ width: '50px', height: '50px' }} src={props.row.original.picture} alt="water source" />
+    cell: props => (
+      <Avatar
+        src={props.row.original.picture}
+        alt="water source"
+        sx={{ width: 50, height: 50 }}
+      />
+    ),
   }),
   columnHelper.accessor('ward', {
     cell: info => info.getValue(),
@@ -261,29 +200,7 @@ const columns = [
 ]
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
-  const { setAlert } = useSnackStore();
-  const [selectedSource, setSelectedSource] = useState<WaterSource | null>(null);
-  const [openViewModal, setOpenViewModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    picture: '',
-    ward: '',
-    village: '',
-    hamlet: '',
-    geolocation: {
-      type: 'Point',
-      coordinates: [0, 0]
-    },
-    quality: '',
-    status: '',
-    type: ''
-  });
-
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [tabValue, setTabValue] = useState<number>(0);
   const [analytics, setAnalytics] = useState({
     totalSources: 0,
     functional: 0,
@@ -299,175 +216,41 @@ const WaterSourcesDashboard: React.FC = () => {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['water-sources'],
-    queryFn: () => apiController.get<WaterSource[]>(`/water-sources?{"limit":${limit},"page":${page},"search":${search}}`),
+  const { data, isLoading } = useQuery<WaterSource[], Error>({
+    queryKey: ['water-sources', { limit, page, search }],
+    queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
 
   useEffect(() => {
     if (data) {
-      console.log({ data });
+      const totalSources = data.length;
+      const functional = data.filter(source => source.status === 'Functional').length;
+      const nonFunctional = data.filter(source => source.status === 'Non Functional').length;
+      const maintenanceDue = data.filter(source => source.status === 'Maintenance Due').length;
+      const wells = data.filter(source => source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells').length;
+      const streams = data.filter(source => source.type === 'Stream').length;
+      const handpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes').length;
+      const motorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes').length;
+      const nonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes').length;
+
+      console.log("watersource", {data});
+
+      setAnalytics({
+        totalSources,
+        functional,
+        nonFunctional,
+        maintenanceDue,
+        wells,
+        streams,
+        handpumpBoreholes,
+        motorizedBoreholes,
+        nonMotorizedBoreholes,
+      });
     }
   }, [data]);
 
-  // const fetchWaterSources = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const data = await apiController.get<WaterSource[]>('/water-sources');
-  //     setWaterSources(data || []);
-  //     setAnalytics(calculateAnalytics(data || []));
-  //   } catch (error) {
-  //     console.error('Error fetching water sources:', error);
-  //     setAlert({
-  //       variant: 'error',
-  //       message: error instanceof Error ? error.message : 'Failed to fetch water sources'
-  //     });
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-  };
-
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleViewSource = async (id: string) => {
-    try {
-      setLoading(true);
-      const data = await apiController.get<WaterSource>(`/water-sources/${id}`);
-      setSelectedSource(data);
-      setOpenViewModal(true);
-    } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch source details'
-      });
-    } finally {
-      setLoading(false);
-    }
-    handleMenuClose();
-  };
-
-  const handleEditClick = async (id: string) => {
-    try {
-      setLoading(true);
-      const data = await apiController.get<WaterSource>(`/water-sources/${id}`);
-      setSelectedSource(data);
-      setFormData({
-        picture: data.picture,
-        ward: data.ward,
-        village: data.village,
-        hamlet: data.hamlet,
-        geolocation: data.geolocation,
-        quality: data.quality,
-        status: data.status,
-        type: data.type,
-      });
-      setOpenEditModal(true);
-    } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch source details'
-      });
-    } finally {
-      setLoading(false);
-    }
-    handleMenuClose();
-  };
-
-  const handleUpdateSource = async () => {
-    if (!selectedSource?._id) return; // Ensure a source is selected
-
-    try {
-      setLoading(true); // Start loader
-      const formDataToSend = new FormData();
-
-      // Append image if a new one is selected
-      if (selectedImage) {
-        formDataToSend.append('picture', selectedImage);
-      }
-
-      // Append other form data fields
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key !== 'picture') {
-          if (key === 'geolocation') {
-            // Stringify geolocation object
-            formDataToSend.append(key, JSON.stringify(value));
-          } else {
-            // Append other fields as strings
-            formDataToSend.append(key, value as string);
-          }
-        }
-      });
-
-      // API call to update the water source
-      await apiController.put(`/water-sources/${selectedSource._id}`, formDataToSend);
-
-      // Success alert
-      setAlert({
-        variant: 'success',
-        message: 'Water source updated successfully',
-      });
-
-      // Close modal and refresh data
-      setOpenEditModal(false);
-      fetchWaterSources();
-    } catch (error) {
-      // Error handling
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update water source',
-      });
-    } finally {
-      setLoading(false); // Stop loader
-    }
-  };
-
-  const handleDeleteClick = (source: WaterSource) => {
-    setSelectedSource(source);
-    setOpenDeleteModal(true);
-    handleMenuClose();
-  };
-
-  const handleDeleteSource = async () => {
-    if (!selectedSource?._id) return;
-
-    try {
-      setLoading(true);
-      await apiController.delete(`/water-sources/${selectedSource._id}`);
-      setAlert({
-        variant: 'success',
-        message: 'Water source deleted successfully'
-      });
-      setOpenDeleteModal(false);
-      fetchWaterSources();
-    } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete water source'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
-    }
   };
 
   return (
@@ -552,97 +335,6 @@ const WaterSourcesDashboard: React.FC = () => {
           </Grid>
         ))}
       </Grid>
-
-      {/* Maintenance, progress and Alerts */}
-      {/* <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-              Water Quality Index
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                <CircularProgress
-                  variant="determinate"
-                  value={85}
-                  size={120}
-                  thickness={4}
-                  sx={{ color: '#4CAF50' }}
-                />
-                <Box
-                  sx={{
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    position: 'absolute',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Typography variant="h4" sx={{ color: '#4CAF50' }}>
-                    85
-                  </Typography>
-                </Box>
-              </Box>
-              <Typography variant="h6" sx={{ color: '#4CAF50', mt: 2 }}>
-                Excellent
-              </Typography>
-            </Box>
-            <Tabs
-              value={tabValue}
-              onChange={(_, newValue) => setTabValue(newValue)}
-              sx={{ mt: 3 }}
-            >
-              <Tab label="Physical" />
-              <Tab label="Chemical" />
-              <Tab label="Microbiological" />
-            </Tabs>
-          </StyledPaper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-              Recent Maintenance
-            </Typography>
-            <List>
-              {maintenanceItems.map((item, index) => (
-                <ListItem key={index}>
-                  <ListItemIcon>
-                    <CheckCircle sx={{ color: '#4CAF50' }} />
-                  </ListItemIcon>
-                  <ListItemText primary={item.type} secondary={item.time} />
-                </ListItem>
-              ))}
-            </List>
-          </StyledPaper>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <StyledPaper>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, }}>
-              Alert Notifications
-            </Typography>
-            <List>
-              {alertItems.map((alert, index) => (
-                <ListItem
-                  key={index}
-                  sx={{
-                    bgcolor: getSeverityColor(alert.severity),
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                >
-                  <ListItemIcon>{getSeverityIcon(alert.severity)}</ListItemIcon>
-                  <ListItemText primary={alert.type} secondary={alert.message} />
-                </ListItem>
-              ))}
-            </List>
-          </StyledPaper>
-        </Grid>
-      </Grid> */}
 
       {/* Water Quality Tabs */}
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
@@ -746,222 +438,8 @@ const WaterSourcesDashboard: React.FC = () => {
             </Box>
           </Box>
             <DataTable  setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Showing 1 to 2 of 1,234 entries
-            </Typography>
-            <Pagination count={10} shape="rounded" />
-          </Box>
         </Box>
       </Card>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={() => selectedSource && handleViewSource(selectedSource._id)}>
-          <Visibility sx={{ mr: 1 }} /> View
-        </MenuItem>
-        <MenuItem onClick={() => selectedSource && handleEditClick(selectedSource._id)}>
-          <Edit sx={{ mr: 1 }} /> Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => selectedSource && handleDeleteClick(selectedSource)}
-          sx={{ color: 'error.main' }}
-        >
-          <Delete sx={{ mr: 1 }} /> Delete
-        </MenuItem>
-      </Menu>
-
-      <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="md" fullWidth>
-
-        <DialogTitle>Water Source Details</DialogTitle>
-        <DialogContent>
-          {selectedSource && (
-            <Box sx={{ mt: 2 }}>
-              {selectedSource.picture && (
-                <Box sx={{ mb: 2 }}>
-                  <img
-                    src={selectedSource.picture}
-                    alt="Water Source"
-                    style={{
-                      width: '100%',
-                      maxHeight: '300px',
-                      objectFit: 'cover',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Box>
-              )}
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Hamlet</Typography>
-                  <Typography>{selectedSource.hamlet}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Ward</Typography>
-                  <Typography>{selectedSource.ward}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Village</Typography>
-                  <Typography>{selectedSource.village}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Type</Typography>
-                  <Typography>{selectedSource.type}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Quality</Typography>
-                  <Typography>{selectedSource.quality}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Status</Typography>
-                  <Chip
-                    label={selectedSource.status}
-                    size="small"
-                    sx={{
-                      bgcolor: selectedSource.status === 'Functional' ? '#dcfce7' : '#fee2e2',
-                      color: selectedSource.status === 'Functional' ? '#16a34a' : '#dc2626',
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenViewModal(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Water Source</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Current Image Preview */}
-            {formData.picture && (
-              <Box sx={{ mb: 2 }}>
-                <img
-                  src={formData.picture}
-                  alt="Current"
-                  style={{
-                    width: '100%',
-                    maxHeight: '200px',
-                    objectFit: 'cover',
-                    borderRadius: '8px'
-                  }}
-                />
-              </Box>
-            )}
-
-            {/* Image Upload */}
-            <TextField
-              type="file"
-              onChange={handleImageChange}
-              InputProps={{
-                inputProps: { accept: 'image/*' }
-              }}
-            />
-
-            {/* Form Fields */}
-            <TextField
-              fullWidth
-              label="Ward"
-              name="ward"
-              value={formData.ward}
-              onChange={handleFormChange}
-            />
-
-            <TextField
-              fullWidth
-              label="Village"
-              name="village"
-              value={formData.village}
-              onChange={handleFormChange}
-            />
-
-            <TextField
-              fullWidth
-              label="Hamlet"
-              name="hamlet"
-              value={formData.hamlet}
-              onChange={handleFormChange}
-            />
-
-            <TextField
-              select
-              fullWidth
-              label="Type"
-              name="type"
-              value={formData.type || ''}
-              onChange={handleFormChange}
-            >
-              <MenuItem value="Well">Well</MenuItem>
-              <MenuItem value="Stream">Stream</MenuItem>
-              <MenuItem value="Handpump Borehole">Handpump Borehole</MenuItem>
-              <MenuItem value="Motorized Borehole">Motorized Borehole</MenuItem>
-              <MenuItem value="Non-Motorized Borehole">Non-Motorized Borehole</MenuItem>
-            </TextField>
-
-            <TextField
-              select
-              fullWidth
-              label="Quality"
-              name="quality"
-              value={formData.quality || ''}
-              onChange={handleFormChange}
-            >
-              <MenuItem value="Good">Good</MenuItem>
-              <MenuItem value="Fair">Fair</MenuItem>
-              <MenuItem value="Poor">Poor</MenuItem>
-            </TextField>
-
-            <TextField
-              select
-              fullWidth
-              label="Status"
-              name="status"
-              value={formData.status || ''}
-              onChange={handleFormChange}
-            >
-              <MenuItem value="Functional">Functional</MenuItem>
-              <MenuItem value="Non-Functional">Non-Functional</MenuItem>
-            </TextField>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenEditModal(false)}>Cancel</Button>
-          <Button
-            onClick={handleUpdateSource}
-            variant="contained"
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Update'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-        <DialogTitle>Delete Water Source</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this water source? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteModal(false)}>Cancel</Button>
-          <Button
-            onClick={handleDeleteSource}
-            color="error"
-            variant="contained"
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

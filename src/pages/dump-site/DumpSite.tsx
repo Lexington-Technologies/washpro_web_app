@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Box,
   Grid,
@@ -5,21 +6,21 @@ import {
   CardContent,
   Typography,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  LinearProgress,
+  TextField,
   IconButton,
   Pagination,
+  LinearProgress,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
+import { Search } from '@mui/icons-material';
+import { DataTable } from '../../components/Table/DataTable';
+import { createColumnHelper } from '@tanstack/react-table';
+import { useQuery } from '@tanstack/react-query';
+import { apiController } from '../../axios';
 
 const metricCards = [
   { title: "Total Site", value: "24", icon: "/svg/pie.svg", bgColor: "#e3f2fd" },
@@ -28,12 +29,24 @@ const metricCards = [
   { title: "Unmaintained", value: "7", icon: <WarningAmberIcon sx={{ fontSize: 15, color: "#EAB308" }} />, bgColor: "#fffde7" },
 ];
 
-const tableData = [
-  { site: "North Valley Site", location: "North District", status: "Maintained", capacity: 75, lastUpdate: "2 hours ago" },
-  { site: "East End Facility", location: "East Zone", status: "Overfilled", capacity: 95, lastUpdate: "1 day ago" },
-  { site: "North Valley Site", location: "North District", status: "Maintained", capacity: 60, lastUpdate: "2 hours ago" },
-  { site: "East End Facility", location: "East Zone", status: "Overfilled", capacity: 100, lastUpdate: "1 day ago" },
-];
+interface DumpSite {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: [number, number, number];
+  };
+  condition: string;
+  status: string;
+  safetyRisk: string;
+  evacuationSchedule: string;
+  lastEvacuationDate: string;
+  nextScheduledEvacuation: string;
+  capturedAt: string;
+}
 
 const notificationCards = [
   {
@@ -80,7 +93,44 @@ const notificationCards = [
   },
 ];
 
+const columnHelper = createColumnHelper<DumpSite>();
+
+const columns = [
+  columnHelper.accessor((_, index) => index + 1, {
+    id: 'index',
+    header: 'No.',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('picture', {
+    cell: info => <img src={info.getValue()} alt="Dump Site" style={{ width: 50, height: 50 }} />,
+  }),
+  columnHelper.accessor('ward', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('status', {
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('capturedAt', {
+    cell: info => new Date(info.getValue()).toLocaleString(),
+  }),
+];
+
 const DumpSites = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+
+  const { data, isLoading } = useQuery<DumpSite[], Error>({
+    queryKey: ['dump-sites', { limit, page, search }],
+    queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
+  });
+
   return (
     <Box sx={{ padding: 4, bgcolor: "#f8f9fc" }}>
       {/* Header Section */}
@@ -201,131 +251,79 @@ const DumpSites = () => {
               Dump Site Overview
             </Typography>
             <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                height: 48,
-                color: "#1F2937",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src="/svg/filter.svg"
-                alt="Export"
-                style={{ width: 20, height: 20, marginRight: 8 }}
+              <TextField
+                size="small"
+                placeholder="Search sites..."
+                InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
+                onChange={(e) => setSearch(e.target.value)}
               />
-              Filter
-            </Button>
               <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                height: 48,
-                color: "#1F2937",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src="/svg/dload.svg"
-                alt="Export"
-                style={{ width: 20, height: 20, marginRight: 8 }}
-              />
-              Export
-            </Button>
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  height: 48,
+                  color: "#1F2937",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src="/svg/filter.svg"
+                  alt="Filter"
+                  style={{ width: 20, height: 20, marginRight: 8 }}
+                />
+                Filter
+              </Button>
+              <Button
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  height: 48,
+                  color: "#1F2937",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src="/svg/dload.svg"
+                  alt="Export"
+                  style={{ width: 20, height: 20, marginRight: 8 }}
+                />
+                Export
+              </Button>
             </Box>
           </Box>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Site Name</TableCell>
-                  <TableCell>Location</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Capacity</TableCell>
-                  <TableCell>Last Update</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tableData.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{row.site}</TableCell>
-                    <TableCell>{row.location}</TableCell>
-                    <TableCell>
-                      <Typography
-                        sx={{
-                          padding: "4px 8px",
-                          borderRadius: "12px",
-                          display: "inline-block",
-                          backgroundColor:
-                            row.status === "Maintained" ? "#e8f5e9" : "#ffebee",
-                          color:
-                            row.status === "Maintained" ? "#16A34A" : "#D32F2F",
-                          fontWeight: "bold",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {row.status}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <LinearProgress
-                        variant="determinate"
-                        value={row.capacity}
-                        sx={{
-                          height: 8,
-                          borderRadius: "4px",
-                          backgroundColor: "#e0e0e0",
-                          "& .MuiLinearProgress-bar": {
-                            backgroundColor:
-                              row.capacity >= 80 ? "#D32F2F" : "#16A34A",
-                          },
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>{row.lastUpdate}</TableCell>
-                    <TableCell>
-                      <IconButton>
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
           <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 2,
-          }}
-        >
-          <Typography variant="body2" sx={{ color: "#25306B" }}>
-            Showing 1 to 2 of 1,234 entries
-          </Typography>
-          <Pagination
-            count={3}
-            variant="outlined"
-            shape="rounded"
             sx={{
-              "& .MuiPaginationItem-root": {
-                color: "#25306B", // Default color
-              },
-              "& .Mui-selected": {
-                backgroundColor: "#2563EB", // Active page background color
-                color: "#ffffff", // Active page text color
-                "&:hover": {
-                  backgroundColor: "#1D4ED8", // Darker shade on hover
-                },
-              },
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 2,
             }}
-          />
-        </Box>
+          >
+            <Typography variant="body2" sx={{ color: "#25306B" }}>
+              Showing 1 to {limit} of {data?.length || 0} entries
+            </Typography>
+            <Pagination
+              count={Math.ceil((data?.length || 0) / limit)}
+              variant="outlined"
+              shape="rounded"
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  color: "#25306B", // Default color
+                },
+                "& .Mui-selected": {
+                  backgroundColor: "#2563EB", // Active page background color
+                  color: "#ffffff", // Active page text color
+                  "&:hover": {
+                    backgroundColor: "#1D4ED8", // Darker shade on hover
+                  },
+                },
+              }}
+              onChange={(_, value) => setPage(value)}
+            />
+          </Box>
         </CardContent>
       </Card>
 

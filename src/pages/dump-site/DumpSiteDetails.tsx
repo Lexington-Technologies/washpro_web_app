@@ -26,30 +26,23 @@ interface Geolocation {
   coordinates: number[];
 }
 
-interface QualityTest {
-  clearness: number;
-  odor: number;
-  ph: number;
-  salinity: number;
-  conductivity: number;
-  capturedAt: string;
-}
-
-interface WaterSource {
+interface DumpSite {
   picture: string;
   ward: string;
   village: string;
   hamlet: string;
-  publicSpace: string;
   geolocation: Geolocation;
-  quality: string;
-  status: string;
   type: string;
-  qualityTest: QualityTest[];
+  status: string;
+  condition: string;
   createdBy: string;
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
+  safetyRisk: string;
+  evacuationSchedule: string;
+  lastEvacuationDate: string;
+  nextScheduledEvacuation: string;
 }
 
 // Utility to format dates
@@ -64,7 +57,7 @@ const formatDate = (dateString: string) => {
 };
 
 // Map Icon
-const waterSourceIcon = new L.Icon({
+const dumpSiteIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Red color icon URL
   iconSize: [30, 30],
   iconAnchor: [15, 30], // Adjust the anchor point to the center bottom of the icon
@@ -90,12 +83,12 @@ const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
 // Not Found Component
 const NotFoundAlert: React.FC = () => (
   <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="info">No water source found</Alert>
+    <Alert severity="info">No dump site found</Alert>
   </Container>
 );
 
 // Map Component
-const WaterSourceMap: React.FC<{ coordinates: number[] }> = ({ coordinates }) => (
+const DumpSiteMap: React.FC<{ coordinates: number[] }> = ({ coordinates }) => (
   <MapContainer
     center={[coordinates[1], coordinates[0]]}
     zoom={15}
@@ -106,27 +99,27 @@ const WaterSourceMap: React.FC<{ coordinates: number[] }> = ({ coordinates }) =>
       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       attribution="&copy; OpenStreetMap contributors"
     />
-    <Marker position={[coordinates[1], coordinates[0]]} icon={waterSourceIcon}>
-      <Popup>Water Source Location</Popup>
+    <Marker position={[coordinates[1], coordinates[0]]} icon={dumpSiteIcon}>
+      <Popup>Dump Site Location</Popup>
     </Marker>
   </MapContainer>
 );
 
 // Main Component
-const WaterSourceDetails: React.FC = () => {
+const DumpSiteDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: waterSource, isLoading, error } = useQuery({
-    queryKey: ['waterSource', id],
-    queryFn: () => apiController.get<WaterSource>(`/water-sources/${id}`),
+  const { data: dumpSite, isLoading, error } = useQuery({
+    queryKey: ['dumpSite', id],
+    queryFn: () => apiController.get<DumpSite>(`/dump-sites/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
 
   if (isLoading) return <LoadingSkeleton />;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
-  if (!waterSource) return <NotFoundAlert />;
+  if (!dumpSite) return <NotFoundAlert />;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
@@ -156,14 +149,14 @@ const WaterSourceDetails: React.FC = () => {
               <CardMedia
                 component="img"
                 height="100%"
-                image={waterSource.picture || '/api/placeholder/800/400'}
-                alt={`Water source at ${waterSource.village}`}
+                image={dumpSite.picture || '/api/placeholder/800/400'}
+                alt={`Dump site at ${dumpSite.village}`}
               />
             </Box>
 
             {/* Map Section */}
             <Box sx={{ flex: 1, height: { xs: '300px', md: '400px' } }}>
-              <WaterSourceMap coordinates={waterSource.geolocation.coordinates} />
+              <DumpSiteMap coordinates={dumpSite.geolocation.coordinates} />
             </Box>
           </Box>
 
@@ -179,19 +172,19 @@ const WaterSourceDetails: React.FC = () => {
                     <Typography color="text.secondary">Ward:</Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography>{waterSource.ward}</Typography>
+                    <Typography>{dumpSite.ward}</Typography>
                   </Grid>
                   <Grid item xs={4}>
                     <Typography color="text.secondary">Village:</Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography>{waterSource.village}</Typography>
+                    <Typography>{dumpSite.village}</Typography>
                   </Grid>
                   <Grid item xs={4}>
                     <Typography color="text.secondary">Hamlet:</Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography>{waterSource.hamlet}</Typography>
+                    <Typography>{dumpSite.hamlet}</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -205,13 +198,31 @@ const WaterSourceDetails: React.FC = () => {
                     <Typography color="text.secondary">Type:</Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography>{waterSource.type}</Typography>
+                    <Typography>{dumpSite.type}</Typography>
                   </Grid>
                   <Grid item xs={4}>
-                    <Typography color="text.secondary">Public Space:</Typography>
+                    <Typography color="text.secondary">Status:</Typography>
                   </Grid>
                   <Grid item xs={8}>
-                    <Typography>{waterSource.publicSpace}</Typography>
+                    <Typography>{dumpSite.status}</Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography color="text.secondary">Condition:</Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography>{dumpSite.condition}</Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography color="text.secondary">Safety Risk:</Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography>{dumpSite.safetyRisk}</Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography color="text.secondary">Evacuation Schedule:</Typography>
+                  </Grid>
+                  <Grid item xs={8}>
+                    <Typography>{dumpSite.evacuationSchedule}</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -226,15 +237,23 @@ const WaterSourceDetails: React.FC = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Captured At:</Typography>
-                <Typography>{formatDate(waterSource.capturedAt)}</Typography>
+                <Typography>{formatDate(dumpSite.capturedAt)}</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Created At:</Typography>
-                <Typography>{formatDate(waterSource.createdAt)}</Typography>
+                <Typography>{formatDate(dumpSite.createdAt)}</Typography>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Typography color="text.secondary">Last Updated:</Typography>
-                <Typography>{formatDate(waterSource.updatedAt)}</Typography>
+                <Typography>{formatDate(dumpSite.updatedAt)}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Typography color="text.secondary">Last Evacuation Date:</Typography>
+                <Typography>{formatDate(dumpSite.lastEvacuationDate)}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Typography color="text.secondary">Next Scheduled Evacuation:</Typography>
+                <Typography>{formatDate(dumpSite.nextScheduledEvacuation)}</Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -244,4 +263,4 @@ const WaterSourceDetails: React.FC = () => {
   );
 };
 
-export default WaterSourceDetails;
+export default DumpSiteDetails;
