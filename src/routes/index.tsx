@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import LoadingAnimation from "../components/LoadingAnimation";
+import ForgotPassword from "../pages/authentication/forgot-password";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -127,24 +128,11 @@ const router = createBrowserRouter([
       },
       {
         path: "water-sources",
-<<<<<<< HEAD
-        children: [
-          {
-            index: true,
-            element: <WaterSources />,
-          },
-          {
-            path: ":id",
-            element: <WaterDetails />,
-          },
-        ],
-=======
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <WaterSources />
           </Suspense>
         ),
->>>>>>> origin/AI-two
       },
       {
         path: "toilet-facilities",
@@ -156,24 +144,11 @@ const router = createBrowserRouter([
       },
       {
         path: "dump-sites",
-<<<<<<< HEAD
-        children: [
-          {
-            index: true,
-            element: <DumpSites />,
-          },
-          {
-            path: ":id",
-            element: <DumpSitesDetails />,
-          },
-        ],
-=======
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <DumpSites />
           </Suspense>
         ),
->>>>>>> origin/AI-two
       },
       {
         path: "gutters",

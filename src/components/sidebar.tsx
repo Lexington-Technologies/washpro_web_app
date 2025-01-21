@@ -20,19 +20,21 @@ import {
   ChevronRight,
   ExpandLess,
   ExpandMore,
-  Assignment,
   Visibility,
   People,
   SmartToy,
   Book,
+  Schedule,
+  Warning,
+  WavesOutlined,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
-import { FaToilet, FaPoop, FaBiohazard, FaUserAstronaut, FaUserCog, FaCog } from "react-icons/fa";
-import { MdSanitizer, MdPlumbing } from "react-icons/md";
+import { FaToilet, FaPoop, FaUserCog, FaCog } from "react-icons/fa";
+import { MdSanitizer } from "react-icons/md";
 import { useAuthStore } from "../store";
 import { useNavigate } from "react-router-dom";
-import { GiDam, GiTrashCan } from "react-icons/gi";
+import { GiTrashCan } from "react-icons/gi";
 
 const SideBar = ({
   isCollapsed,
