@@ -23,11 +23,16 @@ import {
   Assignment,
   Visibility,
   People,
+<<<<<<< HEAD
   Warning,
   Schedule,
   WavesOutlined,
   WavesTwoTone,
   Plumbing,
+=======
+  SmartToy,
+  Book,
+>>>>>>> origin/AI-two
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -64,6 +69,8 @@ const SideBar = ({
     { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash" },
     { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
+    { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant" },
+    { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base" },
   ];
 
   const wasteSubItems = [
