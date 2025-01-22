@@ -32,7 +32,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon, title, value, prefix }) => (
-  <Card>
+  <Card sx={{ height: '100%', boxShadow: 5 }}>
     <CardContent>
       <Box display="flex" alignItems="center" gap={1} mb={1}>
         {icon}
@@ -130,7 +130,7 @@ const InterventionOverview: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3, }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">
           Intervention Overview

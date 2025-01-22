@@ -21,7 +21,6 @@ interface LoginResponse {
   user: {
     id: string;
     name: string;
-    // Add other user properties as needed
   };
   token: string;
   refreshToken: string;

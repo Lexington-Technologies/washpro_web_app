@@ -41,7 +41,7 @@ const timeDistributionData = [
 
 const OpenDefication = () => {
   return (
-    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>

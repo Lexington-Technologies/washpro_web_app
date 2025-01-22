@@ -13,7 +13,7 @@ const NotFound = () => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "#f8fafc",
+        backgroundColor: '#f0f0f0',
       }}
     >
       <ErrorIcon sx={{ fontSize: 100, color: "#ef4444", mb: 2 }} />

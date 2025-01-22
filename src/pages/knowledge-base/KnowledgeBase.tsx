@@ -230,7 +230,7 @@ const KnowledgeBase: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
           Knowledge Base

@@ -651,7 +651,7 @@ const AIChatPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: '100%', p: 3, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%',backgroundColor: '#f0f0f0',p: 3, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
           AI Assistant
@@ -719,9 +719,10 @@ const AIChatPage: React.FC = () => {
                       sx={{ 
                         height: '100%',
                         transition: 'all 0.3s ease',
+                        boxShadow: 2, // Added default shadow
                         '&:hover': {
                           transform: 'translateY(-4px)',
-                          boxShadow: 3,
+                          boxShadow: 6, // Increased shadow on hover
                           '& .hover-icon': {
                             opacity: 1,
                           }
@@ -813,7 +814,8 @@ const AIChatPage: React.FC = () => {
           flexDirection: 'column',
           gap: 2,
           bgcolor: '#f8f9fa',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          boxShadow: 2 // Added shadow
         }}
       >
         {messages.length === 0 && !showPrompts && (
@@ -887,7 +889,8 @@ const AIChatPage: React.FC = () => {
           p: 2,
           display: 'flex',
           gap: 1,
-          alignItems: 'center'
+          alignItems: 'center',
+          boxShadow: 2 // Added shadow
         }}
       >
         <TextField
@@ -970,4 +973,4 @@ const AIChatPage: React.FC = () => {
   );
 };
 
-export default AIChatPage; 
+export default AIChatPage;

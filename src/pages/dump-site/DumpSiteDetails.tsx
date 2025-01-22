@@ -122,7 +122,7 @@ const DumpSiteDetails: React.FC = () => {
   if (!dumpSite) return <NotFoundAlert />;
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#f0f0f0', py: 4 }}>
       <Container maxWidth="lg">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Button

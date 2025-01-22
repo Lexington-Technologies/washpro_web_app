@@ -4,6 +4,7 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import ForgotPassword from "../pages/authentication/forgot-password";
 import WaterDetails from "../pages/water-sources/WaterDetails";
 import DumpSiteDetails from "../pages/dump-site/DumpSiteDetails";
+import Reports from "../pages/reports/Reports";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -141,8 +142,12 @@ const router = createBrowserRouter([
           },
           {
             path: ":id",
-            element: <WaterDetails />,
-          },
+            element: (
+              <Suspense fallback={<LoadingAnimation />}>
+                <WaterDetails />
+              </Suspense>
+              )
+            },
         ],
       },      
       {
@@ -166,8 +171,12 @@ const router = createBrowserRouter([
           },
           {
             path: ":id",
-            element: <DumpSiteDetails />,
-          },
+            element:(
+              <Suspense fallback={<LoadingAnimation />}>
+                <DumpSiteDetails />
+              </Suspense>
+                )
+              },
         ],
       },      
       {
@@ -258,6 +267,14 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      {
+        path: "reports",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <Reports />
+          </Suspense>
+        ),
+      }
     ],
   },
   {

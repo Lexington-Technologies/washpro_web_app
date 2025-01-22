@@ -27,6 +27,7 @@ import {
   Schedule,
   Warning,
   WavesOutlined,
+  Report,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -85,7 +86,8 @@ const SideBar = ({
     { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation" },
     { text: "Field Monitoring", icon: <Visibility />, path: "/field-monitoring" },
-    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" }
+    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" },
+    { text: "Reports", icon: <Report />, path: "/reports" }
   ];
 
   return (
@@ -174,8 +176,14 @@ const SideBar = ({
                 <ListItemIcon
                   sx={{
                     minWidth: 40,
-                    color: "inherit",
+                    color: "#25306B",
                     justifyContent: "center",
+                    "& svg": {
+                      fontSize: 24
+                    },
+                    ".active &": {
+                      color: "white"
+                    }
                   }}
                 >
                   {item.icon}
@@ -209,8 +217,11 @@ const SideBar = ({
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "inherit",
+                  color: "#25306B",
                   justifyContent: "center",
+                  "& svg": {
+                    fontSize: 24
+                  }
                 }}
               >
                 <GiTrashCan  style={{fontSize: 25}}/>
@@ -255,8 +266,14 @@ const SideBar = ({
                     <ListItemIcon
                       sx={{
                         minWidth: 40,
-                        color: "inherit",
+                        color: "#25306B",
                         justifyContent: "center",
+                        "& svg": {
+                          fontSize: 24
+                        },
+                        ".active &": {
+                          color: "white"
+                        }
                       }}
                     >
                       {item.icon}
@@ -291,8 +308,11 @@ const SideBar = ({
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "inherit",
+                  color: "#25306B",
                   justifyContent: "center",
+                  "& svg": {
+                    fontSize: 24
+                  }
                 }}
               >
                 <People />
@@ -337,8 +357,14 @@ const SideBar = ({
                     <ListItemIcon
                       sx={{
                         minWidth: 40,
-                        color: "inherit",
+                        color: "#25306B",
                         justifyContent: "center",
+                        "& svg": {
+                          fontSize: 24
+                        },
+                        ".active &": {
+                          color: "white"
+                        }
                       }}
                     >
                       {item.icon}
@@ -381,8 +407,14 @@ const SideBar = ({
                 <ListItemIcon
                   sx={{
                     minWidth: 40,
-                    color: "inherit",
+                    color: "#25306B",
                     justifyContent: "center",
+                    "& svg": {
+                      fontSize: 24
+                    },
+                    ".active &": {
+                      color: "white"
+                    }
                   }}
                 >
                   {item.icon}
@@ -414,7 +446,14 @@ const SideBar = ({
             },
           }}
         >
-          <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+          <ListItemIcon sx={{ 
+            minWidth: 40, 
+            color: "inherit",
+            justifyContent: "center",
+            "& svg": {
+              fontSize: 24
+            }
+          }}>
             <Logout />
           </ListItemIcon>
           {!isCollapsed && (

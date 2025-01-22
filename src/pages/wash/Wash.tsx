@@ -26,9 +26,10 @@ const StyledSelect = styled(Select)({
   marginRight: 8,
 });
 
-const StyledCard = styled(Card)({
+const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
-});
+  boxShadow: theme.shadows[5],
+}));
 
 // Sample data
 const waterQualityData = [
@@ -100,7 +101,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, title, value, unit }) => 
 
 const Wash: React.FC = () => {
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">WASH Monitoring</Typography>

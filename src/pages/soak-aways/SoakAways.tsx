@@ -24,7 +24,7 @@ import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench
 
 const SoakAways = () => {
   return (
-    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
@@ -84,7 +84,7 @@ const SoakAways = () => {
       {/* Main Content */}
       <Box sx={{ display: 'flex', gap: 2 }}>
         {/* Soakaway Condition Table */}
-        <Paper sx={{ flex: 2, p: 2, borderRadius: 2 }}>
+        <Paper sx={{ flex: 2, p: 2, borderRadius: 2, boxShadow: 10 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6" fontWeight={600}>Soakaway Condition</Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -168,7 +168,7 @@ const SoakAways = () => {
         </Paper>
 
         {/* Slab Safety Risk */}
-        <Paper sx={{ flex: 1, p: 2, borderRadius: 2 }}>
+        <Paper sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: 10 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>Slab Safety Risk</Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', bgcolor: '#f5f5f5', p: 1.5, borderRadius: 1 }}>
@@ -189,7 +189,7 @@ const SoakAways = () => {
         </Paper>
       </Box>
       {/* Geographic Risk Distribution */}
-      <Paper sx={{ mt: 2, p: 2, borderRadius: 2 }}>
+      <Paper sx={{ mt: 2, p: 2, borderRadius: 2, boxShadow: 10 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6">Geographic Risk Distribution</Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -253,7 +253,7 @@ interface StatsCardProps {
 }
 
 const StatsCard = ({ title, value, icon, iconColor, valueColor }: StatsCardProps) => (
-  <Card sx={{ flex: 1, p: 2, borderRadius: 2 }}>
+  <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: 10 }}>
     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
       {title}
     </Typography>

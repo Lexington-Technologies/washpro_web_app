@@ -37,7 +37,7 @@ const GutterDashboard = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
@@ -60,7 +60,7 @@ const GutterDashboard = () => {
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
   {/* Total Site Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
       <Typography color="text.secondary">Total Site</Typography>
       <Typography variant="h4" sx={{ fontWeight: 600 }}>24</Typography>
@@ -80,7 +80,7 @@ const GutterDashboard = () => {
   </Card>
 
   {/* Maintained Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
       <Typography color="text.secondary">Maintained</Typography>
       <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>14</Typography>
@@ -100,7 +100,7 @@ const GutterDashboard = () => {
   </Card>
 
   {/* Overfilled Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
       <Typography color="text.secondary">Overfilled</Typography>
       <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>3</Typography>
@@ -120,7 +120,7 @@ const GutterDashboard = () => {
   </Card>
 
   {/* Unmaintained Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
       <Typography color="text.secondary">Unmaintained</Typography>
       <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>7</Typography>
@@ -143,7 +143,7 @@ const GutterDashboard = () => {
       {/* Main Content */}
       <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
         {/* Timeframe Distribution */}
-        <Card sx={{ flex: 1, p: 3, borderRadius: 2, boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.1)' }}>
+        <Card sx={{ flex: 1, p: 3, borderRadius: 2, boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1E293B' }}>
               Gutter <br /> Type Distribution
@@ -213,7 +213,7 @@ const GutterDashboard = () => {
         </Card>
 
         {/* Gutter Location Map */}
-        <Card sx={{ flex: 2, p: 3, borderRadius: 2 }}>
+        <Card sx={{ flex: 2, p: 3, borderRadius: 2, boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="h6">Gutter Location Map</Typography>
             <Box>

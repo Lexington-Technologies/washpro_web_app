@@ -20,8 +20,8 @@ import {
   People,
   LocalHospital,
   Assessment,
-  Groups
-} from '@mui/icons-material';
+  Groups,
+  PanTool} from '@mui/icons-material';
 
 interface KPICardProps {
   icon: React.ReactNode;
@@ -31,7 +31,7 @@ interface KPICardProps {
 }
 
 const KPICard: React.FC<KPICardProps> = ({ icon, title, value, unit }) => (
-  <Card sx={{ height: '100%' }}>
+  <Card sx={{ height: '100%', boxShadow: 5 }}>
     <CardContent>
       <Box display="flex" alignItems="center" mb={1}>
         {icon}
@@ -54,7 +54,7 @@ interface Report {
 }
 
 const ReportCard: React.FC<{ report: Report }> = ({ report }) => (
-  <Card sx={{ height: '100%' }}>
+  <Card sx={{ height: '100%', boxShadow: 5 }}>
     <CardContent>
       <Typography variant="subtitle2" color="text.secondary">
         {report.timeAgo}
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
       unit: "%"
     },
     {
-      icon: <IconifyIcon icon="mdi:hand-wash" />,
+      icon: <PanTool color="primary" />,
       title: "Sanitation Activities",
       value: 56
     },
@@ -154,7 +154,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Key Performance Indicators (KPIs)
       </Typography>
@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
         ))}
       </Grid>
 
-      <Paper sx={{ p: 2, mb: 4 }}>
+      <Paper sx={{ p: 2, mb: 4, shadow: 5 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6">Location Distribution</Typography>
           <Box display="flex" gap={2}>

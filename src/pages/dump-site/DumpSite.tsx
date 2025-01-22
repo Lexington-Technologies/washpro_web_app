@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Grid,
@@ -7,14 +7,11 @@ import {
   Typography,
   Button,
   TextField,
-  IconButton,
   Pagination,
-  LinearProgress,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
 import { Search } from '@mui/icons-material';
 import { DataTable } from '../../components/Table/DataTable';
@@ -132,7 +129,7 @@ const DumpSites = () => {
   });
 
   return (
-    <Box sx={{ padding: 4, bgcolor: "#f8f9fc" }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header Section */}
       <Box
         sx={{

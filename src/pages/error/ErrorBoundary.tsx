@@ -17,6 +17,7 @@ const ErrorBoundary = () => {
         alignItems: 'center',
         justifyContent: 'center',
         bgcolor: '#f8fafc',
+        backgroundColor: '#f0f0f0',
         p: 3
       }}
     >

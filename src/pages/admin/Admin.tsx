@@ -64,16 +64,6 @@ const initialFormData: UserFormData = {
   role: '', 
 };
 
-const formatLastLogin = (lastLogin: string) => {
-  try {
-    const date = parseISO(lastLogin);
-    if (!isValid(date)) return 'Invalid date';
-    
-    return formatDistanceToNow(date, { addSuffix: true });
-  } catch {
-    return 'Invalid date';
-  }
-};
 
 const UserPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -259,7 +249,7 @@ const UserPage: React.FC = () => {
   
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>

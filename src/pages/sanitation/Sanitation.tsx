@@ -49,7 +49,7 @@ const Sanitation: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

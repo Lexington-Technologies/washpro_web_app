@@ -49,7 +49,7 @@ const getMaxCount = (data: SpaceDistribution[]) =>
 const DistributionBar: React.FC<SpaceDistribution> = ({ type, count, color }) => {
   const maxCount = getMaxCount(spaceDistribution);
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box sx={{ mb: 2, backgroundColor: '#f0f0f0', }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
         <Typography variant="body2">{type}</Typography>
         <Typography variant="body2" color="text.secondary">

@@ -39,11 +39,11 @@ interface ToiletTypeRow {
   status: 'Operational' | 'Maintenance';
 }
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  borderRadius: theme.spacing(1),
-  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-}));
+const StyledPaper = styled(Paper)`
+  padding: ${({ theme }) => theme.spacing(3)};
+  border-radius: ${({ theme }) => theme.spacing(1)};
+  box-shadow: 5;
+`;
 
 // Loading Skeleton Component
 const LoadingSkeleton: React.FC = () => (
@@ -102,6 +102,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: theme.spacing(1),
   textTransform: 'none',
+  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)', // Added shadow
 }));
 
 const ToiletFacilities: React.FC = () => {
@@ -120,7 +121,7 @@ const ToiletFacilities: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>

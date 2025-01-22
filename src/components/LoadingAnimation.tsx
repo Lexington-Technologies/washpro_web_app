@@ -1,5 +1,4 @@
-import { Box, CircularProgress, Typography } from '@mui/material';
-import { SmartToy } from '@mui/icons-material';
+import { Box, CircularProgress } from '@mui/material';
 import { RiWaterFlashFill } from 'react-icons/ri';
 
 const LoadingAnimation = () => {
@@ -39,9 +38,6 @@ const LoadingAnimation = () => {
           }}
         />
       </Box>
-      <Typography variant="h6" color="text.secondary">
-        Loading...
-      </Typography>
     </Box>
   );
 };

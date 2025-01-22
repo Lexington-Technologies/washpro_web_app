@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -22,6 +22,7 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
+import { RiWaterFlashFill } from 'react-icons/ri';
 
 // Interfaces
 interface StatCardProps {
@@ -56,7 +57,6 @@ interface WaterSource {
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
-  actions: any;
   publicSpace: string;
   dependent: number;
   space: string;
@@ -74,24 +74,25 @@ interface WaterSource {
 }
 
 
-// Styled Components
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  borderRadius: theme.spacing(1),
-  height: '100%',
-  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-}));
+// StyledComponents
+const StyledPaper = styled(Paper)`
+  padding: ${({ theme }) => theme.spacing(2)};
+  border-radius: ${({ theme }) => theme.spacing(1)};
+  height: 100%;
+  box-shadow: 10;
+`;
 
-const StyledMetricCircle = styled(Box)<{ bgcolor: string }>(({ bgcolor }) => ({
-  width: '64px',
-  height: '64px',
-  borderRadius: '50%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: bgcolor,
-  margin: '0 auto',
-}));
+const StyledMetricCircle = styled(Box)<{ bgcolor: string }>`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ bgcolor }) => bgcolor};
+  margin: 0 auto;
+  box-shadow: 10;
+`;
 
 // Components
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor }) => (
@@ -165,10 +166,11 @@ const columnHelper = createColumnHelper<WaterSource>()
 const columns = [
   columnHelper.accessor((_, index) => index + 1, {
     id: 'index',
-    header: 'No.',
+    header: 'S/N',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('picture', {
+    header: 'Picture',
     cell: props => (
       <Avatar
         src={props.row.original.picture}
@@ -178,25 +180,29 @@ const columns = [
     ),
   }),
   columnHelper.accessor('ward', {
+    header: 'Ward',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('village', {
+    header: 'Village',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('hamlet', {
+    header: 'Hamlet',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('status', {
+    header: 'Status',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('type', {
+    header: 'Type',
     cell: info => info.getValue(),
   }),
   // columnHelper.accessor('actions', {
   //   id: 'actions',
   //   cell: props => <Button>{props.row.original._id}</Button>
   // }),
-
 ]
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
@@ -254,7 +260,7 @@ const WaterSourcesDashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#F9FAFB', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
@@ -276,68 +282,75 @@ const WaterSourcesDashboard: React.FC = () => {
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
           {
-            title: 'Total Sources',
-            value: analytics.totalSources,
-            icon: <FaFaucet style={{ color: '#2563EB' }} />,
-            bgColor: '#DBEAFE'
+        title: 'Total Sources',
+        value: analytics.totalSources,
+        icon: <RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />,
+        bgColor: '#DBEAFE'
           },
           {
-            title: 'Functional',
-            value: analytics.functional,
-            icon: <FaCheck style={{ color: '#4CAF50' }} />,
-            bgColor: '#E8F5E9'
+        title: 'Functional',
+        value: analytics.functional,
+        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+        bgColor: '#E8F5E9'
           },
           {
-            title: 'Non-Functional',
-            value: analytics.nonFunctional,
-            icon: <FaTimes style={{ color: '#EF5350' }} />,
-            bgColor: '#FFEBEE'
+        title: 'Non-Functional',
+        value: analytics.nonFunctional,
+        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+        bgColor: '#FFEBEE'
           },
           {
-            title: 'Maintenance Due',
-            value: analytics.maintenanceDue,
-            icon: <FaWrench style={{ color: '#FFA726' }} />,
-            bgColor: '#FFF3E0'
+        title: 'Maintenance for Due',
+        value: analytics.maintenanceDue,
+        icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
+        bgColor: '#FFF3E0'
           },
           {
-            title: 'Well',
-            value: analytics.wells,
-            icon: <GiWell style={{ color: '#16A34A' }} />,
-            bgColor: '#DCFCE7'
+        title: 'Well',
+        value: analytics.wells,
+        icon: <GiWell style={{ color: '#16A34A', fontSize: '2rem' }} />,
+        bgColor: '#DCFCE7'
           },
           {
-            title: 'Streams',
-            value: analytics.streams,
-            icon: <FaWater style={{ color: '#25306B' }} />,
-            bgColor: '#DBEAFE'
+        title: 'Handpump Boreholes',
+        value: analytics.handpumpBoreholes,
+        icon: <FaFaucet style={{ color: '#2563EB', fontSize: '2rem' }} />,
+        bgColor: '#DBEAFE'
           },
           {
-            title: 'Handpump Boreholes',
-            value: analytics.handpumpBoreholes,
-            icon: <FaFaucet style={{ color: '#2563EB' }} />,
-            bgColor: '#DBEAFE'
+        title: 'Motorized Boreholes',
+        value: analytics.motorizedBoreholes,
+        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+        bgColor: '#E8F5E9'
           },
           {
-            title: 'Motorized Boreholes',
-            value: analytics.motorizedBoreholes,
-            icon: <FaCheck style={{ color: '#4CAF50' }} />,
-            bgColor: '#E8F5E9'
+        title: 'Non-Motorized Boreholes',
+        value: analytics.nonMotorizedBoreholes,
+        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+        bgColor: '#FFEBEE'
           },
           {
-            title: 'Non-Motorized Boreholes',
-            value: analytics.nonMotorizedBoreholes,
-            icon: <FaTimes style={{ color: '#EF5350' }} />,
-            bgColor: '#FFEBEE'
+        title: 'Streams',
+        value: analytics.streams,
+        icon: <FaWater style={{ color: '#25306B', fontSize: '2rem' }} />,
+        bgColor: '#DBEAFE'
           },
+          {
+        title: 'Non Streams',
+        value: analytics.streams,
+        icon: <FaWater style={{ color: '#25306B', fontSize: '2rem' }} />,
+        bgColor: '#DBEAFE'
+          },
+
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatCard {...stat} />
+        <StatCard {...stat} />
           </Grid>
         ))}
       </Grid>
 
       {/* Water Quality Tabs */}
-      <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+      <Paper sx={{ p: 3, borderRadius: 2, mb: 3, boxShadow: 5 }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -420,11 +433,11 @@ const WaterSourcesDashboard: React.FC = () => {
       </Paper>
 
       {/* Table Section */}
-      <Card sx={{ mt: 3 }}>
+      <Card sx={{ mt: 3, boxShadow: 5 }}>
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, }}>Water Sources Overview</Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, }}>
               <TextField
                 size="small"
                 placeholder="Search sources..."
