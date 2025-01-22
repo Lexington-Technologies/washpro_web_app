@@ -1,5 +1,6 @@
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { SmartToy } from '@mui/icons-material';
+import { RiWaterFlashFill } from 'react-icons/ri';
 
 const LoadingAnimation = () => {
   return (
@@ -22,15 +23,16 @@ const LoadingAnimation = () => {
           alignItems: 'center'
         }}
       >
-        <SmartToy 
-          sx={{ 
+        <RiWaterFlashFill 
+          style={{ 
             fontSize: 48, 
             color: '#25306B',
-            animation: 'pulse 2s infinite'
+            animation: 'pulse 2s infinite',
+            marginTop: 25,
           }} 
         />
         <CircularProgress
-          size={64}
+          size={100}
           sx={{
             position: 'absolute',
             color: '#25306B',
