@@ -2,12 +2,16 @@ import { AppBar, Box, IconButton, Toolbar, Typography, useMediaQuery, useTheme }
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MenuIcon from '@mui/icons-material/Menu';
+import ChevronRight from '@mui/icons-material/ChevronRight';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
 
 interface NavbarProps {
   onMenuClick: () => void;
+  onSidebarToggle: () => void;
+  isSidebarCollapsed: boolean;
 }
 
-export default function Navbar({ onMenuClick }: NavbarProps) {
+export default function Navbar({ onMenuClick, onSidebarToggle, isSidebarCollapsed }: NavbarProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -29,7 +33,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {/* Menu button for mobile */}
-          {isMobile && (
+          {isMobile ? (
             <IconButton
               color="inherit"
               edge="start"
@@ -37,6 +41,16 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               sx={{ mr: 2 }}
             >
               <MenuIcon />
+            </IconButton>
+          ) : (
+            /* Desktop sidebar toggle */
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={onSidebarToggle}
+              sx={{ mr: 2 }}
+            >
+              {isSidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
             </IconButton>
           )}
           

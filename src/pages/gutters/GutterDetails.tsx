@@ -191,9 +191,9 @@ const TechnicalDetails: React.FC<{ gutter: Gutter }> = ({ gutter }) => (
   </Grid>
 );
 
-const CARD_SPACING = 3;
-const CARD_PADDING = 2.5;
-const SECTION_MARGIN = 4;
+const CARD_SPACING = 10;
+const CARD_PADDING = 2;
+const SECTION_MARGIN = 9;
 
 const CardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Paper 

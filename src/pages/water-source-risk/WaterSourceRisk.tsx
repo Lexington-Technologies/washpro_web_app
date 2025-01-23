@@ -13,7 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
 import { Waves } from '@mui/icons-material';
 
-const WaterSourceRiskMonitoring = () => {
+const WaterSourceRisk = () => {
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -233,4 +233,4 @@ const AlertItem: React.FC<AlertItemProps> = ({ status, icon, title, description 
   );
 };
 
-export default WaterSourceRiskMonitoring;
+export default WaterSourceRisk;

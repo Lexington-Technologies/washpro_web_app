@@ -32,7 +32,7 @@ interface MonitoringActivity {
   lastUpdate: string;
 }
 
-const Monitoring: React.FC = () => {
+const RoutineActivies: React.FC = () => {
   const activities: MonitoringActivity[] = [
     {
       location: 'Ward A Site',
@@ -270,4 +270,4 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, color }) => (
   </Card>
 );
 
-export default Monitoring;
+export default RoutineActivies;

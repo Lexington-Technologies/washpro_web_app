@@ -7,7 +7,6 @@ import {
   Paper,
   IconButton,
   Pagination,
-  Tooltip,
   TextField,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
@@ -15,7 +14,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { FaChartLine, FaDownload, FaFilter } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -23,21 +21,6 @@ import { DataTable } from '../../components/Table/DataTable';
 import { apiController } from '../../axios';
 import { Avatar } from '@mui/material';
 import Search from '@mui/icons-material/Search';
-
-const timeDistributionData = [
-  {
-    name: 'Count',
-    'Motorized Boreholes': 25,
-    'Wells (Covered & Open)': 60,
-    'Surface Water Points': 35,
-  },
-  {
-    name: 'Percentage',
-    'Motorized Boreholes': 80,
-    'Wells (Covered & Open)': 25,
-    'Surface Water Points': 15,
-  },
-];
 
 interface OpenDefecation {
   _id: string;
@@ -191,31 +174,6 @@ const OpenDefication = () => {
           </Box>
         </Paper>
 
-        {/* Time Distribution */}
-        <Paper sx={{ flex: 1, p: 2, borderRadius: 2 }}>
-          <Typography variant="h6" fontWeight={600} sx={{ mb: 5 }}>Time Distribution</Typography>
-          <Box sx={{ height: 400 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timeDistributionData}>
-                <CartesianGrid strokeDasharray="10 10" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip title="Tooltip">
-                  <span></span>
-                </Tooltip>
-                <Legend
-                  wrapperStyle={{
-                    paddingTop: '20px',
-                    textAlign: 'center',
-                  }}
-                />
-                <Bar dataKey="Motorized Boreholes" fill="#8884d8" />
-                <Bar dataKey="Wells (Covered & Open)" fill="#82ca9d" />
-                <Bar dataKey="Surface Water Points" fill="#ffc658" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        </Paper>
       </Box>
 
       {/* Recent Observations Table */}

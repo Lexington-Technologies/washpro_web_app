@@ -5,9 +5,11 @@ import ForgotPassword from "../pages/authentication/forgot-password";
 import WaterDetails from "../pages/water-sources/WaterDetails";
 import DumpSiteDetails from "../pages/dump-site/DumpSiteDetails";
 import Reports from "../pages/reports/Reports";
-import GutterDetails from "../pages/gutters/GutterDetails";
 import SoakAwayDetails from "../pages/soak-aways/SoakAwayDetails";
 import OpenDeficationDetails from "../pages/open-defecation/OpenDeficationDetails";
+import GutterDetails from "../pages/gutters/GutterDetails";
+import WaterSourceRisk from "../pages/water-source-risk/WaterSourceRisk";
+import RoutineActivies from "../pages/routine-activites/RoutineActivies";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -40,12 +42,11 @@ const PublicSpaceTypes = lazy(() => import("../pages/public-space-type/PublicSpa
 const ToiletFacilities = lazy(() => import("../pages/toilet-facilities/ToiletFacilities"));
 const Gutters = lazy(() => import("../pages/gutters/Gutters"));
 const SoakAways = lazy(() => import("../pages/soak-aways/SoakAways"));
-const WaterSourceRiskMonitoring = lazy(() => import("../pages/monitor/WaterSourceRiskMonitoring"));
+const WaterSourceRiskMonitoring = lazy(() => import("../pages/water-source-risk/WaterSourceRisk"));
 const OpenDefication = lazy(() => import("../pages/open-defecation/OpenDefication"));
 const WaterSources = lazy(() => import("../pages/water-sources/WaterSources"));
 const NeedAndMaintainers = lazy(() => import("../pages/needs-and-maintainers/needs-and-maintainers"));
 const Sanitation = lazy(() => import("../pages/sanitation/Sanitation"));
-const Monitoring = lazy(() => import("../pages/field-monitoring/FieldMonitoring"));
 const Wash = lazy(() => import("../pages/wash/Wash"));
 const Enumerator = lazy(() => import("../pages/enumerator/Enumerator"));
 const SignIn = lazy(() => import("../pages/authentication/sign-in"));
@@ -121,6 +122,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <Wash />
+          </Suspense>
+        ),
+      },
+      {
+        path: "water-source-risk",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <WaterSourceRisk />
           </Suspense>
         ),
       },
@@ -270,10 +279,10 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "field-monitoring",
+        path: "routine-activities",
         element: (
           <Suspense fallback={<LoadingAnimation />}>
-            <Monitoring />
+            <RoutineActivies />
           </Suspense>
         ),
       },

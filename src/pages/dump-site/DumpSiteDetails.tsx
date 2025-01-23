@@ -27,7 +27,6 @@ import {
   LocationOn as LocationIcon,
   Build as BuildIcon,
   Timeline as TimelineIcon,
-  Person as PersonIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -68,11 +67,6 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit',
   });
-};
-
-// Add getDisplayValue utility function
-const getDisplayValue = (value?: string) => {
-  return value && value.trim() !== '' ? value : 'Not Available';
 };
 
 // Map Icon
@@ -233,14 +227,14 @@ const DumpSiteDetails: React.FC = () => {
               <CardMedia
                 component="img"
                 height="100%"
-                image={dumpSite.picture || '/api/placeholder/800/400'}
-                alt={`Dump site at ${dumpSite.village}`}
+                image={dumpSite?.picture || '/api/placeholder/800/400'}
+                alt={`Dump site at ${dumpSite?.village}`}
               />
             </Box>
 
             {/* Map Section */}
             <Box sx={{ flex: 1, height: { xs: '300px', md: '400px' } }}>
-              <DumpSiteMap coordinates={dumpSite.geolocation.coordinates} />
+              <DumpSiteMap coordinates={dumpSite?.geolocation.coordinates} />
             </Box>
           </Box>
 
@@ -255,25 +249,25 @@ const DumpSiteDetails: React.FC = () => {
                       <Typography color="text.secondary">Ward:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.ward}</Typography>
+                      <Typography>{dumpSite?.ward}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Village:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.village}</Typography>
+                      <Typography>{dumpSite?.village}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Hamlet:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.hamlet}</Typography>
+                      <Typography>{dumpSite?.hamlet}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Public Space:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.publicSpace}</Typography>
+                      <Typography>{dumpSite?.space}</Typography>
                     </Grid>
                   </Grid>
                 </Paper>
@@ -289,9 +283,9 @@ const DumpSiteDetails: React.FC = () => {
                     </Grid>
                     <Grid item xs={8}>
                       <Chip
-                        icon={getStatusIcon(dumpSite.status)}
-                        label={dumpSite.status}
-                        color={getStatusColor(dumpSite.status)}
+                        icon={getStatusIcon(dumpSite?.status)}
+                        label={dumpSite?.status}
+                        color={getStatusColor(dumpSite?.status)}
                       />
                     </Grid>
                     <Grid item xs={4}>
@@ -299,55 +293,22 @@ const DumpSiteDetails: React.FC = () => {
                     </Grid>
                     <Grid item xs={8}>
                       <Chip
-                        icon={getStatusIcon(dumpSite.condition)}
-                        label={dumpSite.condition}
-                        color={getStatusColor(dumpSite.condition)}
+                        icon={getStatusIcon(dumpSite?.condition)}
+                        label={dumpSite?.condition}
+                        color={getStatusColor(dumpSite?.condition)}
                       />
                     </Grid>
                     <Grid item xs={4}>
                       <Typography color="text.secondary">Safety Risk:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.safetyRisk}</Typography>
+                      <Typography>{dumpSite?.safetyRisk}</Typography>
                     </Grid>
                     <Grid item xs={4}>
-                      <Typography color="text.secondary">Evacuation :</Typography>
+                      <Typography color="text.secondary">Evacuation Schedule:</Typography>
                     </Grid>
                     <Grid item xs={8}>
-                      <Typography>{dumpSite.evacuationSchedule}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-
-              {/* Enumerator Details */}
-              <Grid item xs={12} md={6}>
-                <SectionHeader icon={<PersonIcon color="primary" />} title="Enumerator Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Created By:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(dumpSite.createdBy)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Phone:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(dumpSite.phone)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Email:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(dumpSite.email)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Name:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(dumpSite.name)}</Typography>
+                      <Typography>{dumpSite?.evacuationSchedule}</Typography>
                     </Grid>
                   </Grid>
                 </Paper>
@@ -362,23 +323,23 @@ const DumpSiteDetails: React.FC = () => {
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid item xs={12} sm={4}>
                   <Typography color="text.secondary">Captured At:</Typography>
-                  <Typography>{formatDate(dumpSite.capturedAt)}</Typography>
+                  <Typography>{formatDate(dumpSite?.capturedAt)}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography color="text.secondary">Created At:</Typography>
-                  <Typography>{formatDate(dumpSite.createdAt)}</Typography>
+                  <Typography>{formatDate(dumpSite?.createdAt)}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography color="text.secondary">Last Updated:</Typography>
-                  <Typography>{formatDate(dumpSite.updatedAt)}</Typography>
+                  <Typography>{formatDate(dumpSite?.updatedAt)}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography color="text.secondary">Last Evacuation Date:</Typography>
-                  <Typography>{formatDate(dumpSite.lastEvacuationDate)}</Typography>
+                  <Typography>{formatDate(dumpSite?.lastEvacuationDate)}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography color="text.secondary">Next Scheduled Evacuation:</Typography>
-                  <Typography>{formatDate(dumpSite.nextScheduledEvacuation)}</Typography>
+                  <Typography>{formatDate(dumpSite?.nextScheduledEvacuation)}</Typography>
                 </Grid>
               </Grid>
             </Paper>

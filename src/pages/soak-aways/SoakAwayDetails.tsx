@@ -250,9 +250,9 @@ const TimelineDetails: React.FC<{ soakaway: SoakAway }> = ({ soakaway }) => (
   </Grid>
 );
 
-const CARD_SPACING = 3;
-const CARD_PADDING = 2.5;
-const SECTION_MARGIN = 4;
+const CARD_SPACING = 10;
+const CARD_PADDING = 2;
+const SECTION_MARGIN = 10;
 
 const CardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Paper 
@@ -261,8 +261,8 @@ const CardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
       p: CARD_PADDING,
       borderRadius: 1.5,
       bgcolor: themeColors.paper,
-      height: '100%',
-      minHeight: 160,
+      height: '90%',
+      minHeight: "100%",
       display: 'flex',
       flexDirection: 'column',
     }}
