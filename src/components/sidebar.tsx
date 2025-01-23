@@ -9,6 +9,7 @@ import {
   Collapse,
 } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
+import { useMediaQuery, useTheme, Drawer } from "@mui/material";
 import {
   Dashboard,
   LocationOn,
@@ -44,6 +45,9 @@ const SideBar = ({
   isCollapsed: boolean;
   onToggle: () => void;
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const navigate = useNavigate();
   const [openWaste, setOpenWaste] = useState(false);
   const [openUsers, setOpenUsers] = useState(false);
@@ -55,6 +59,12 @@ const SideBar = ({
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);
+    }
+  };
+
+  const handleClose = () => {
+    if (isMobile) {
+      onToggle();
     }
   };
 
@@ -90,7 +100,7 @@ const SideBar = ({
     { text: "Reports", icon: <Report />, path: "/reports" }
   ];
 
-  return (
+  const sidebarContent = (
     <Box
       sx={{
         width: isCollapsed ? 100 : 320,
@@ -125,18 +135,20 @@ const SideBar = ({
             }}
           />
         </Link>
-        <ListItemButton
-          onClick={onToggle}
-          sx={{
-            width: 40,
-            height: 40,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
-        </ListItemButton>
+        {!isMobile && (
+          <ListItemButton
+            onClick={onToggle}
+            sx={{
+              width: 40,
+              height: 40,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </ListItemButton>
+        )}
       </Box>
 
       {/* Scrollable Navigation Items */}
@@ -467,6 +479,37 @@ const SideBar = ({
           )}
         </ListItemButton>
       </ListItem>
+    </Box>
+  );
+
+  return isMobile ? (
+    <Drawer
+      variant="temporary"
+      open={!isCollapsed}
+      onClose={handleClose}
+      ModalProps={{
+        keepMounted: true,
+      }}
+      sx={{
+        display: { xs: 'block', md: 'none' },
+        '& .MuiDrawer-paper': {
+          width: 320,
+          boxSizing: 'border-box',
+        },
+      }}
+    >
+      {sidebarContent}
+    </Drawer>
+  ) : (
+    <Box
+      component="nav"
+      sx={{
+        width: isCollapsed ? 100 : 320,
+        flexShrink: 0,
+        display: { xs: 'none', md: 'block' },
+      }}
+    >
+      {sidebarContent}
     </Box>
   );
 };

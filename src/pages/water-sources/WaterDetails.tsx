@@ -377,9 +377,9 @@ const WaterSourceDetails: React.FC = () => {
               </Grid>
 
 
-               {/* Agent Details */}
+               {/* Enumerator Details */}
                <Grid item xs={12} md={6}>
-                <SectionHeader icon={<PersonIcon color="primary" />} title="Agent Details" />
+                <SectionHeader icon={<PersonIcon color="primary" />} title="Enumerator Details" />
                 <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
                   <Grid container spacing={2}>
                     <Grid item xs={4}>

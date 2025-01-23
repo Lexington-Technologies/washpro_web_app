@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -12,6 +12,10 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  TextField,
+  Chip,
+  Avatar,
+  Pagination,
 } from '@mui/material';
 import {
   FilterAlt as FilterAltIcon,
@@ -19,10 +23,100 @@ import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Waves,
+  Search,
 } from '@mui/icons-material';
 import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
+import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import { DataTable } from '../../components/Table/DataTable';
+import { apiController } from '../../axios';
+
+// Add SoakAway interface
+interface SoakAway {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  publicSpace: string;
+  space: string;
+  condition: string;
+  status: string;
+  daysSinceLastEvacuation: number;
+  evacuationFrequency: string;
+  safetyRisk: string;
+  daysSinceLastMaintenance: number | null;
+  daysUntilEvacuation: number | null;
+  maintenanceStatus: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+}
+
+// Add column helper
+const columnHelper = createColumnHelper<SoakAway>();
+
+const columns = [
+  columnHelper.accessor((_, index) => index + 1, {
+    id: 'index',
+    header: 'S/N',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('picture', {
+    header: 'Picture',
+    cell: props => (
+      <Avatar
+        src={props.getValue()}
+        alt="soakaway"
+        sx={{ width: 50, height: 50 }}
+      />
+    ),
+  }),
+  columnHelper.accessor('ward', {
+    header: 'Ward',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    header: 'Village',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    header: 'Hamlet',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('status', {
+    header: 'Status',
+    cell: info => (
+      <Chip
+        label={info.getValue()}
+        color={info.getValue() === 'Maintained' ? 'success' : 'warning'}
+        size="small"
+      />
+    ),
+  }),
+  columnHelper.accessor('capturedAt', {
+    header: 'Captured At',
+    cell: info => new Date(info.getValue()).toLocaleDateString(),
+  }),
+];
 
 const SoakAways = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+
+  const { data: soakAways, isLoading } = useQuery<SoakAway[], Error>({
+    queryKey: ['soak-aways', { limit, page, search }],
+    queryFn: () => apiController.get<SoakAway[]>(`/soak-aways?limit=${limit}&page=${page}&search=${search}`),
+  });
+
+  console.log("soakaway", soakAways);
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
@@ -239,6 +333,73 @@ const SoakAways = () => {
         </Box>
       </Paper>
 
+      {/* Soakaway Overview */}
+      <Paper sx={{ mt: 3, p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Typography variant="h6">Soakaway Overview</Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              size="small"
+              placeholder="Search soakaways..."
+              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Button
+              startIcon={<FaFilter />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Filter
+            </Button>
+            <Button
+              startIcon={<FaDownload />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Export
+            </Button>
+          </Box>
+        </Box>
+
+        <DataTable 
+          setSearch={setSearch}
+          setPage={setPage}
+          setLimit={setLimit}
+          isLoading={isLoading}
+          columns={columns}
+          data={soakAways || []}
+        />
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 3,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Showing 1 to {limit} of {soakAways?.length || 0} entries
+          </Typography>
+          <Pagination
+            count={Math.ceil((soakAways?.length || 0) / limit)}
+            page={page}
+            onChange={(_, value) => setPage(value)}
+            sx={{
+              '& .Mui-selected': {
+                bgcolor: '#0EA5E9',
+                color: '#FFFFFF',
+              },
+            }}
+          />
+        </Box>
+      </Paper>
     </Box>
   );
 };

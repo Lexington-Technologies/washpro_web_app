@@ -8,6 +8,7 @@ import {
   Button,
   TextField,
   Pagination,
+  Avatar, // Add this import at the top
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -97,9 +98,23 @@ const columns = [
     id: 'index',
     header: 'No.',
     cell: info => info.getValue(),
+    size: 50,
   }),
   columnHelper.accessor('picture', {
-    cell: info => <img src={info.getValue()} alt="Dump Site" style={{ width: 50, height: 50 }} />,
+    header: 'Picture',
+    cell: props => (
+      <Avatar
+        src={props.getValue()}
+        alt="Dump Site"
+        sx={{ 
+          width: 40, 
+          height: 40,
+          borderRadius: '50%',
+          border: '2px solid #e5e7eb',
+        }}
+      />
+    ),
+    size: 80,
   }),
   columnHelper.accessor('ward', {
     cell: info => info.getValue(),
@@ -127,7 +142,7 @@ const DumpSites = () => {
     queryKey: ['dump-sites', { limit, page, search }],
     queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("dump data",data)
+  console.log("dumpdata",data)
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header Section */}

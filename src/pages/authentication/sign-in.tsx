@@ -151,9 +151,9 @@ const SignInPage: FC = function () {
           {/* Logo and Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <img
-              src="/logo.svg"
+              src="/logo.png"
               alt="Logo"
-              style={{ width: "225.28px", height: "55px" }}
+              style={{ width: 350, }}
             />
             <Typography variant="h6" sx={{ mt: 2 }}>
               Enter your details to access your account.

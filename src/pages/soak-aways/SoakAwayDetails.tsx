@@ -34,28 +34,30 @@ import L from 'leaflet';
 import { apiController } from '../../axios';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
-interface Geolocation {
-  type: string;
-  coordinates: number[];
-}
-
-interface Gutter {
+interface SoakAway {
   _id: string;
   picture: string;
   ward: string;
   village: string;
   hamlet: string;
-  geolocation: Geolocation;
+  publicSpace: string;
+  space: string;
   condition: string;
   status: string;
-  dischargePoint: string;
+  daysSinceLastEvacuation: number;
+  evacuationFrequency: string;
+  safetyRisk: string;
+  daysSinceLastMaintenance: number | null;
+  daysUntilEvacuation: number | null;
+  maintenanceStatus: string;
   createdBy: string;
-  phone?: string;    // Add optional fields for Enumerator Details
-  email?: string;
-  name?: string;
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
 }
 
 const themeColors = {
@@ -124,13 +126,14 @@ const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }
   </Box>
 );
 
-const LocationDetails: React.FC<{ gutter: Gutter }> = ({ gutter }) => (
-  <Grid container spacing={2}>
+const LocationDetails: React.FC<{ soakaway: SoakAway }> = ({ soakaway }) => (
+  <Grid container spacing={1.5}>
     {[
-      { label: 'Ward', value: gutter.ward },
-      { label: 'Village', value: gutter.village },
-      { label: 'Hamlet', value: gutter.hamlet },
-      { label: 'Discharge Point', value: gutter.dischargePoint },
+      { label: 'Ward', value: soakaway.ward },
+      { label: 'Village', value: soakaway.village },
+      { label: 'Hamlet', value: soakaway.hamlet },
+      { label: 'Public Space', value: soakaway.publicSpace },
+      { label: 'Space Type', value: soakaway.space },
     ].map((item) => (
       <React.Fragment key={item.label}>
         <Grid item xs={4}>
@@ -144,50 +147,106 @@ const LocationDetails: React.FC<{ gutter: Gutter }> = ({ gutter }) => (
   </Grid>
 );
 
-const AgentDetails: React.FC<{ gutter: Gutter }> = ({ gutter }) => (
-  <Grid container spacing={2}>
+const TechnicalDetails: React.FC<{ soakaway: SoakAway }> = ({ soakaway }) => (
+  <Grid container spacing={1.5}>
     {[
-      { label: 'Created By', value: gutter.createdBy },
-      { label: 'Phone', value: gutter.phone },
-      { label: 'Email', value: gutter.email },
-      { label: 'Name', value: gutter.name },
+      { 
+        label: 'Status', 
+        value: soakaway.status,
+        chip: true,
+        color: getStatusColor(soakaway.status)
+      },
+      { 
+        label: 'Condition', 
+        value: soakaway.condition,
+        chip: true,
+        color: getStatusColor(soakaway.condition)
+      },
+      { 
+        label: 'Safety Risk', 
+        value: soakaway.safetyRisk,
+        chip: true,
+        color: soakaway.safetyRisk === 'Fair' ? 'warning' : 'error'
+      },
     ].map((item) => (
       <React.Fragment key={item.label}>
         <Grid item xs={4}>
           <Typography color="text.secondary">{item.label}:</Typography>
         </Grid>
         <Grid item xs={8}>
-          <Typography>{getDisplayValue(item.value)}</Typography>
+          {item.chip ? (
+            <Chip
+              label={item.value}
+              color={item.color}
+              size="small"
+            />
+          ) : (
+            <Typography>{item.value}</Typography>
+          )}
         </Grid>
       </React.Fragment>
     ))}
   </Grid>
 );
 
-const TechnicalDetails: React.FC<{ gutter: Gutter }> = ({ gutter }) => (
+const MaintenanceDetails: React.FC<{ soakaway: SoakAway }> = ({ soakaway }) => (
+  <Grid container spacing={1.5}>
+    {[
+      { 
+        label: 'Maintenance Status', 
+        value: soakaway.maintenanceStatus,
+        chip: true,
+        color: soakaway.maintenanceStatus === 'Overdue' ? 'error' : 'warning'
+      },
+      { 
+        label: 'Days Since Last Evacuation', 
+        value: `${soakaway.daysSinceLastEvacuation} days` 
+      },
+      { 
+        label: 'Evacuation Frequency', 
+        value: soakaway.evacuationFrequency 
+      },
+      { 
+        label: 'Days Until Next Evacuation', 
+        value: soakaway.daysUntilEvacuation ?? 'Not scheduled'
+      },
+      {
+        label: 'Days Since Last Maintenance',
+        value: soakaway.daysSinceLastMaintenance ? `${soakaway.daysSinceLastMaintenance} days` : 'No record'
+      }
+    ].map((item) => (
+      <React.Fragment key={item.label}>
+        <Grid item xs={4}>
+          <Typography color="text.secondary">{item.label}:</Typography>
+        </Grid>
+        <Grid item xs={8}>
+          {item.chip ? (
+            <Chip
+              label={item.value}
+              color={item.color}
+              size="small"
+            />
+          ) : (
+            <Typography>{item.value}</Typography>
+          )}
+        </Grid>
+      </React.Fragment>
+    ))}
+  </Grid>
+);
+
+const TimelineDetails: React.FC<{ soakaway: SoakAway }> = ({ soakaway }) => (
   <Grid container spacing={2}>
-    <Grid item xs={4}>
-      <Typography color="text.secondary">Status:</Typography>
-    </Grid>
-    <Grid item xs={8}>
-      <Chip
-        icon={getStatusIcon(gutter.status)}
-        label={gutter.status}
-        color={getStatusColor(gutter.status)}
-      />
-    </Grid>
-    <Grid item xs={4}>
-      <Typography color="text.secondary">Condition:</Typography>
-    </Grid>
-    <Grid item xs={8}>
-      <Typography>{gutter.condition}</Typography>
-    </Grid>
-    <Grid item xs={4}>
-      <Typography color="text.secondary">Discharge Point:</Typography>
-    </Grid>
-    <Grid item xs={8}>
-      <Typography>{gutter.dischargePoint}</Typography>
-    </Grid>
+    {[
+      { label: 'Captured At', value: soakaway.capturedAt },
+      { label: 'Created At', value: soakaway.createdAt },
+      { label: 'Last Updated', value: soakaway.updatedAt },
+    ].map((item) => (
+      <Grid item xs={12} sm={4} key={item.label}>
+        <Typography color="text.secondary">{item.label}:</Typography>
+        <Typography>{formatDate(item.value)}</Typography>
+      </Grid>
+    ))}
   </Grid>
 );
 
@@ -212,13 +271,13 @@ const CardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </Paper>
 );
 
-const GutterDetails: React.FC = () => {
+const SoakAwayDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: gutter, isLoading, error } = useQuery({
-    queryKey: ['gutter', id],
-    queryFn: () => apiController.get<Gutter>(`/gutters/${id}`),
+  const { data: soakaway, isLoading, error } = useQuery({
+    queryKey: ['soakaway', id],
+    queryFn: () => apiController.get<SoakAway>(`/soak-aways/${id}`),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
@@ -227,8 +286,8 @@ const GutterDetails: React.FC = () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Gutter at ${gutter?.village}`,
-          text: `Gutter details for ${gutter?.village}, ${gutter?.ward}`,
+          title: `SoakAway at ${soakaway?.village}`,
+          text: `SoakAway details for ${soakaway?.village}, ${soakaway?.ward}`,
           url: window.location.href,
         });
       } else {
@@ -242,7 +301,7 @@ const GutterDetails: React.FC = () => {
 
   if (isLoading) return <LoadingAnimation />;
   if (error instanceof Error) return <Alert severity="error">{error.message}</Alert>;
-  if (!gutter) return <Alert severity="info">No gutter found</Alert>;
+  if (!soakaway) return <Alert severity="info">No soakaway found</Alert>;
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: themeColors.background, py: 3 }}>
@@ -257,12 +316,12 @@ const GutterDetails: React.FC = () => {
             Back
           </Button>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Tooltip title="Chat about this gutter">
+            <Tooltip title="Chat about this soakaway">
               <Button variant="contained" startIcon={<ChatIcon />}>
                 Chat
               </Button>
             </Tooltip>
-            <Tooltip title="Share gutter details">
+            <Tooltip title="Share soakaway details">
               <Button variant="contained" startIcon={<ShareIcon />} onClick={handleShare}>
                 Share
               </Button>
@@ -282,8 +341,8 @@ const GutterDetails: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Box
                 component="img"
-                src={gutter.picture || '/api/placeholder/800/400'}
-                alt={`Gutter at ${gutter.village}`}
+                src={soakaway.picture || '/api/placeholder/800/400'}
+                alt={`SoakAway at ${soakaway.village}`}
                 sx={{
                   width: '100%',
                   height: 400,
@@ -295,7 +354,7 @@ const GutterDetails: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Box sx={{ height: 400, borderRadius: 1, overflow: 'hidden' }}>
                 <MapContainer
-                  center={[gutter.geolocation.coordinates[1], gutter.geolocation.coordinates[0]]}
+                  center={[soakaway.geolocation.coordinates[1], soakaway.geolocation.coordinates[0]]}
                   zoom={15}
                   style={{ height: '100%', width: '100%' }}
                 >
@@ -304,10 +363,10 @@ const GutterDetails: React.FC = () => {
                     attribution="© OpenStreetMap contributors"
                   />
                   <Marker
-                    position={[gutter.geolocation.coordinates[1], gutter.geolocation.coordinates[0]]}
+                    position={[soakaway.geolocation.coordinates[1], soakaway.geolocation.coordinates[0]]}
                     icon={gutterIcon}
                   >
-                    <Popup>Gutter Location</Popup>
+                    <Popup>SoakAway Location</Popup>
                   </Marker>
                 </MapContainer>
               </Box>
@@ -320,7 +379,7 @@ const GutterDetails: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <SectionHeader icon={<LocationIcon color="primary" />} title="Location Details" />
                 <CardWrapper>
-                  <LocationDetails gutter={gutter} />
+                  <LocationDetails soakaway={soakaway} />
                 </CardWrapper>
               </Grid>
 
@@ -328,15 +387,15 @@ const GutterDetails: React.FC = () => {
               <Grid item xs={12} md={6}>
                 <SectionHeader icon={<BuildIcon color="primary" />} title="Technical Details" />
                 <CardWrapper>
-                  <TechnicalDetails gutter={gutter} />
+                  <TechnicalDetails soakaway={soakaway} />
                 </CardWrapper>
               </Grid>
 
-              {/* Enumerator Details */}
+              {/* Maintenance Details */}
               <Grid item xs={12} md={6}>
-                <SectionHeader icon={<PersonIcon color="primary" />} title="Enumerator Details" />
+                <SectionHeader icon={<BuildIcon color="primary" />} title="Maintenance Details" />
                 <CardWrapper>
-                  <AgentDetails gutter={gutter} />
+                  <MaintenanceDetails soakaway={soakaway} />
                 </CardWrapper>
               </Grid>
             </Grid>
@@ -353,18 +412,7 @@ const GutterDetails: React.FC = () => {
                 bgcolor: themeColors.paper 
               }}
             >
-              <Grid container spacing={2}>
-                {[
-                  { label: 'Captured At', value: gutter.capturedAt },
-                  { label: 'Created At', value: gutter.createdAt },
-                  { label: 'Last Updated', value: gutter.updatedAt },
-                ].map((item) => (
-                  <Grid item xs={12} sm={4} key={item.label}>
-                    <Typography color="text.secondary">{item.label}:</Typography>
-                    <Typography>{formatDate(item.value)}</Typography>
-                  </Grid>
-                ))}
-              </Grid>
+              <TimelineDetails soakaway={soakaway} />
             </Paper>
           </CardContent>
         </Card>
@@ -373,4 +421,4 @@ const GutterDetails: React.FC = () => {
   );
 };
 
-export default GutterDetails;
+export default SoakAwayDetails;

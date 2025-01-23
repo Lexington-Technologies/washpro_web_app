@@ -87,7 +87,7 @@ export function DataTable<T extends object>({
                         fullWidth
                         size="small"
                         value={globalFilter}
-                        onChange={e => setSearch?.(e.target.value)}
+                        onChange={e => setSearch(e.target.value)}
                         placeholder={searchPlaceholder}
                         InputProps={{
                             startAdornment: (
@@ -158,7 +158,7 @@ export function DataTable<T extends object>({
                                     {row.getVisibleCells().map(cell => (
                                         <TableCell sx={{ cursor: 'pointer', textDecoration: 'none',
                                             height: '40px',
-                                         }} component={Link as any} to={`${cell.row.original?._id}`} key={cell.id}>
+                                         }} component={Link} to={`${cell.row.original?._id}`} key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}
@@ -175,9 +175,9 @@ export function DataTable<T extends object>({
                     component="div"
                     count={table.getFilteredRowModel().rows.length}
                     page={table.getState().pagination.pageIndex}
-                    onPageChange={(_, page) => setPage?.(page)}
+                    onPageChange={(_, page) => setPage(page)}
                     rowsPerPage={table.getState().pagination.pageSize}
-                    onRowsPerPageChange={e => setLimit?.(Number(e.target.value))}
+                    onRowsPerPageChange={e => setLimit(Number(e.target.value))}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                 />
             )}

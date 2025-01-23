@@ -168,6 +168,7 @@ const columns = [
     id: 'index',
     header: 'S/N',
     cell: info => info.getValue(),
+    size: 50,
   }),
   columnHelper.accessor('picture', {
     header: 'Picture',
@@ -175,9 +176,15 @@ const columns = [
       <Avatar
         src={props.row.original.picture}
         alt="water source"
-        sx={{ width: 50, height: 50 }}
+        sx={{ 
+          width: 40, 
+          height: 40,
+          borderRadius: '50%', // Make avatar round
+          border: '2px solid #e5e7eb', // Add subtle border
+        }}
       />
     ),
+    size: 80,
   }),
   columnHelper.accessor('ward', {
     header: 'Ward',

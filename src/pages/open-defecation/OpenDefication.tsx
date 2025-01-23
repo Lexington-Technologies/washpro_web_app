@@ -1,28 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   Button,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   IconButton,
   Pagination,
   Tooltip,
+  TextField,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { FaChartLine, FaDownload, FaFilter } from 'react-icons/fa';
+import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import { DataTable } from '../../components/Table/DataTable';
+import { apiController } from '../../axios';
+import { Avatar } from '@mui/material';
+import Search from '@mui/icons-material/Search';
 
 const timeDistributionData = [
   {
@@ -39,14 +39,86 @@ const timeDistributionData = [
   },
 ];
 
+interface OpenDefecation {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  publicSpace: string;
+  space: string;
+  footTraffic: string;
+  peakTime: string[];
+  demographics: string[];
+  environmentalCharacteristics: string[];
+  dailyAverage: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+}
+
+const columnHelper = createColumnHelper<OpenDefecation>();
+
+const columns = [
+  columnHelper.accessor((_, index) => index + 1, {
+    id: 'index',
+    header: 'S/N',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('picture', {
+    header: 'Picture',
+    cell: props => (
+      <Avatar
+        src={props.getValue()}
+        alt="open defecation"
+        sx={{ width: 50, height: 50 }}
+      />
+    ),
+  }),
+  columnHelper.accessor('ward', {
+    header: 'Ward',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    header: 'Village',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    header: 'Hamlet',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('peakTime', {
+    header: 'Peak Time',
+    cell: info => info.getValue().join(', '),
+  }),
+  columnHelper.accessor('capturedAt', {
+    header: 'Captured At',
+    cell: info => new Date(info.getValue()).toLocaleDateString(),
+  }),
+];
+
 const OpenDefication = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+
+  const { data: openDefecations, isLoading } = useQuery<OpenDefecation[], Error>({
+    queryKey: ['open-defecations', { limit, page, search }],
+    queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
+  });
+  console.log("openDefecations", openDefecations);
   return (
     <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600, mb: 0.5 }}>
-            Open Defecation Observation
+            Open Defecation
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Detailed insights about your selected location
@@ -150,53 +222,67 @@ const OpenDefication = () => {
       <Paper sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Recent Observations</Typography>
-          <Box>
-            <Button startIcon={<FaFilter style={{color:"#1F2937"}}/>} sx={{ mr: 1 }}>
-              <Typography variant="body1" color="#1F2937">Filter</Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              size="small"
+              placeholder="Search observations..."
+              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Button
+              startIcon={<FaFilter />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Filter
             </Button>
-            <Button startIcon={<FaDownload style={{color: "#1F2937"}} />}>
-              <Typography variant="body1" color="#1F2937">Export</Typography>
+            <Button
+              startIcon={<FaDownload />}
+              sx={{
+                color: '#1F2937',
+                borderColor: '#E5E7EB',
+                '&:hover': { bgcolor: '#F9FAFB' },
+              }}
+            >
+              Export
             </Button>
           </Box>
         </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Location</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Demographics</TableCell>
-                <TableCell>Risk Level</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <ObservationRow
-                location="Sector 7, Block B"
-                date="08:30 AM"
-                demographics="Child"
-                riskLevel="high"
-              />
-              <ObservationRow
-                location="Sector 4, Block A"
-                date="09:15 AM"
-                demographics="Adult Male"
-                riskLevel="medium"
-              />
-              <ObservationRow
-                location="Sector 2, Block D"
-                date="10:45 AM"
-                demographics="Adult Female"
-                riskLevel="low"
-              />
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+
+        <DataTable 
+          setSearch={setSearch}
+          setPage={setPage}
+          setLimit={setLimit}
+          isLoading={isLoading}
+          columns={columns}
+          data={openDefecations || []}
+        />
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 3,
+          }}
+        >
           <Typography variant="body2" color="text.secondary">
-            Showing 3 of 50 entries
+            Showing 1 to {limit} of {openDefecations?.length || 0} entries
           </Typography>
-          <Pagination count={3} shape="rounded" />
+          <Pagination
+            count={Math.ceil((openDefecations?.length || 0) / limit)}
+            page={page}
+            onChange={(_, value) => setPage(value)}
+            sx={{
+              '& .Mui-selected': {
+                bgcolor: '#0EA5E9',
+                color: '#FFFFFF',
+              },
+            }}
+          />
         </Box>
       </Paper>
     </Box>
@@ -235,56 +321,5 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) 
     </Box>
   </Card>
 );
-
-// Observation Row Component
-interface ObservationRowProps {
-  location: string;
-  date: string;
-  demographics: string;
-  riskLevel: 'high' | 'medium' | 'low';
-}
-
-const ObservationRow: React.FC<ObservationRowProps> = ({ location, date, demographics, riskLevel }) => {
-  const getRiskColor = (level: 'high' | 'medium' | 'low') => {
-    switch (level) {
-      case 'high':
-        return '#f44336';
-      case 'medium':
-        return '#ff9800';
-      case 'low':
-        return '#4caf50';
-      default:
-        return '#757575';
-    }
-  };
-
-  return (
-    <TableRow>
-      <TableCell>{location}</TableCell>
-      <TableCell>{date}</TableCell>
-      <TableCell>{demographics}</TableCell>
-      <TableCell>
-        <Box
-          sx={{
-            display: 'inline-block',
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            bgcolor: `${getRiskColor(riskLevel)}15`,
-            color: getRiskColor(riskLevel),
-            fontWeight: 500,
-          }}
-        >
-          {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
-        </Box>
-      </TableCell>
-      <TableCell>
-        <IconButton size="small">
-          <MoreVertIcon />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  );
-};
 
 export default OpenDefication;

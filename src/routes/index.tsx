@@ -6,6 +6,8 @@ import WaterDetails from "../pages/water-sources/WaterDetails";
 import DumpSiteDetails from "../pages/dump-site/DumpSiteDetails";
 import Reports from "../pages/reports/Reports";
 import GutterDetails from "../pages/gutters/GutterDetails";
+import SoakAwayDetails from "../pages/soak-aways/SoakAwayDetails";
+import OpenDeficationDetails from "../pages/open-defecation/OpenDeficationDetails";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -203,11 +205,24 @@ const router = createBrowserRouter([
       },
       {
         path: "soak-aways",
-        element: (
+        children: [
+          {
+            index: true,
+            element:(
           <Suspense fallback={<LoadingAnimation />}>
             <SoakAways />
           </Suspense>
-        ),
+            )
+          },
+          {
+            path: ":id",
+            element:(
+              <Suspense fallback={<LoadingAnimation />}>
+                <SoakAwayDetails />
+              </Suspense>
+                )
+              },
+        ],
       },
       {
         path: "monitor",
@@ -219,11 +234,24 @@ const router = createBrowserRouter([
       },
       {
         path: "open-defecation",
-        element: (
+        children: [
+          {
+            index: true,
+            element:(
           <Suspense fallback={<LoadingAnimation />}>
             <OpenDefication />
           </Suspense>
-        ),
+            )
+          },
+          {
+            path: ":id",
+            element:(
+              <Suspense fallback={<LoadingAnimation />}>
+                <OpenDeficationDetails />
+              </Suspense>
+                )
+              },
+        ],
       },
       {
         path: "needs-and-maintainers",
