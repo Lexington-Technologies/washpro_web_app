@@ -2,33 +2,113 @@ import {
   Box,
   Card,
   Typography,
-  Table,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Button,
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination} from '@mui/material';
+  Pagination,
+  Avatar,
+  TextField,
+  Chip,
+} from '@mui/material';
 import {
   CheckCircle,
   Error,
   Warning,
   FilterAlt,
   Fullscreen,
-  MoreHoriz
+  MoreHoriz,
+  Search,
 } from '@mui/icons-material';
 import { FaChartPie, FaFilter } from 'react-icons/fa6';
 import { FaDownload } from 'react-icons/fa';
+import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import { DataTable } from '../../components/Table/DataTable';
+import { apiController } from '../../axios';
+import { useState } from 'react';
 
+// Add Gutter interface
+interface Gutter {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+  condition: string;
+  status: string;
+  dischargePoint: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
+// Add column helper and column definitions
+const columnHelper = createColumnHelper<Gutter>();
 
+const columns = [
+  columnHelper.accessor((_, index) => index + 1, {
+    id: 'index',
+    header: 'S/N',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('picture', {
+    header: 'Picture',
+    cell: props => (
+      <Avatar
+        src={props.getValue()}
+        alt="gutter"
+        sx={{ width: 50, height: 50 }}
+      />
+    ),
+  }),
+  columnHelper.accessor('ward', {
+    header: 'Ward',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    header: 'Village',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    header: 'Hamlet',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('status', {
+    header: 'Status',
+    cell: info => (
+      <Chip
+        label={info.getValue()}
+        color={info.getValue() === 'Maintained' ? 'success' : 'warning'}
+        size="small"
+      />
+    ),
+  }),
+  columnHelper.accessor('capturedAt', {
+    header: 'Captured At',
+    cell: info => new Date(info.getValue()).toLocaleDateString(),
+  }),
+];
 
 const GutterDashboard = () => {
+  // Add state management
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
+  // Add query hook
+  const { data: gutters, isLoading } = useQuery<Gutter[], Error>({
+    queryKey: ['gutters', { limit, page, search }],
+    queryFn: () => apiController.get<Gutter[]>(`/gutters?limit=${limit}&page=${page}&search=${search}`),
+  });
+
+  console.log("gutter data",gutters)
 
   const gutterTypes = [
     { type: 'Constructed', value: 245, color: '#00B4D8' },
@@ -243,11 +323,16 @@ const GutterDashboard = () => {
 
 
       {/* Maintenance Table */}
-      {/* Maintenance Table */}
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6">Maintenance Status</Typography>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              size="small"
+              placeholder="Search gutters..."
+              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
+              onChange={(e) => setSearch(e.target.value)}
+            />
             <Button
               startIcon={<FaFilter />}
               sx={{
@@ -270,81 +355,16 @@ const GutterDashboard = () => {
             </Button>
           </Box>
         </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ bgcolor: '#F8FAFC' }}>
-                <TableCell>Picture</TableCell>
-                <TableCell>Ward</TableCell>
-                <TableCell>Village</TableCell>
-                <TableCell>Hamlet</TableCell>
-                <TableCell>Condition</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Discharge Point</TableCell>
-                <TableCell>Captured At</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            {/* <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={9} align="center">
-                    <CircularProgress size={24} />
-                  </TableCell>
-                </TableRow>
-              ) : gutters.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} align="center">
-                    No gutters found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                gutters.map((gutter) => (
-                  <TableRow key={gutter._id}>
-                    <TableCell>
-                      {gutter.picture && (
-                        <img 
-                          src={gutter.picture} 
-                          alt="Gutter" 
-                          style={{ 
-                            width: 50, 
-                            height: 50, 
-                            objectFit: 'cover',
-                            borderRadius: '4px'
-                          }} 
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell>{gutter.ward}</TableCell>
-                    <TableCell>{gutter.village}</TableCell>
-                    <TableCell>{gutter.hamlet}</TableCell>
-                    <TableCell>{gutter.condition}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={gutter.status}
-                        size="small"
-                        sx={{
-                          bgcolor: gutter.status === 'Maintained' ? '#D1FAE5' : '#FEF3C7',
-                          color: gutter.status === 'Maintained' ? '#10B981' : '#F59E0B',
-                          fontWeight: 500,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>{gutter.dischargePoint}</TableCell>
-                    <TableCell>
-                      {new Date(gutter.capturedAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton>
-                        <MoreVert />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody> */}
-          </Table>
-        </TableContainer>
+
+        <DataTable 
+          setSearch={setSearch}
+          setPage={setPage}
+          setLimit={setLimit}
+          isLoading={isLoading}
+          columns={columns}
+          data={gutters || []}
+        />
+
         <Box
           sx={{
             display: 'flex',
@@ -354,10 +374,12 @@ const GutterDashboard = () => {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            Showing 1 to 2 of 1,234 entries
+            Showing 1 to {limit} of {gutters?.length || 0} entries
           </Typography>
           <Pagination
-            count={3}
+            count={Math.ceil((gutters?.length || 0) / limit)}
+            page={page}
+            onChange={(_, value) => setPage(value)}
             sx={{
               '& .Mui-selected': {
                 bgcolor: '#0EA5E9',

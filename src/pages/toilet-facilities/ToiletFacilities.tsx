@@ -14,7 +14,6 @@ import {
   styled,
   Alert,
   Container,
-  Skeleton,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -25,6 +24,7 @@ import { BsExclamationCircleFill } from 'react-icons/bs';
 import { FaArrowTrendDown } from 'react-icons/fa6';
 import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
+import LoadingAnimation from '../../components/LoadingAnimation';
 
 interface StatCardProps {
   title: string;
@@ -45,14 +45,6 @@ const StyledPaper = styled(Paper)`
   box-shadow: 5;
 `;
 
-// Loading Skeleton Component
-const LoadingSkeleton: React.FC = () => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 4 }}>
-    <Skeleton variant="rectangular" height={300} />
-    <Skeleton variant="rectangular" height={150} />
-    <Skeleton variant="rectangular" height={150} />
-  </Box>
-);
 
 // Error Alert Component
 const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
@@ -102,7 +94,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: theme.spacing(1),
   textTransform: 'none',
-  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)', // Added shadow
+  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
 }));
 
 const ToiletFacilities: React.FC = () => {
@@ -112,13 +104,40 @@ const ToiletFacilities: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isLoading) return <LoadingSkeleton />;
+  // Add this aggregation function
+  const getAggregatedToiletTypes = (facilities: ToiletTypeRow[]) => {
+    const groupedFacilities = facilities.reduce((acc, facility) => {
+      // Extract the base type (WC, Pit Latrine, etc.)
+      const baseType = facility.type.split(' ')[0];
+      if (!acc[baseType]) {
+        acc[baseType] = {
+          type: baseType,
+          count: 0,
+          operational: 0
+        };
+      }
+      acc[baseType].count += facility.count;
+      if (facility.status === 'Operational') {
+        acc[baseType].operational += facility.count;
+      }
+      return acc;
+    }, {} as Record<string, { type: string; count: number; operational: number }>);
+
+    return Object.values(groupedFacilities);
+  };
+
+  // Add this helper function for safe percentage calculation
+  const calculatePercentage = (operational: number, total: number): string => {
+    if (total === 0) return '0%';
+    const percentage = Math.round((operational / total) * 100);
+    return `${percentage}%`;
+  };
+
+  if (isLoading) return <LoadingAnimation />;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
   if (!toiletFacilities || toiletFacilities.length === 0) return <NotFoundAlert />;
 
-  const majorTypes = toiletFacilities.filter((facility) =>
-    ['Western Style', 'Eastern Style', 'Accessible'].includes(facility.type)
-  );
+  const aggregatedTypes = getAggregatedToiletTypes(toiletFacilities);
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -218,27 +237,28 @@ const ToiletFacilities: React.FC = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>TYPE</TableCell>
-                    <TableCell>COUNT</TableCell>
-                    <TableCell>STATUS</TableCell>
+                    <TableCell>TOTAL COUNT</TableCell>
+                    <TableCell>OPERATIONAL</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {majorTypes.map((row) => (
-                    <TableRow key={row.type}>
+                  {aggregatedTypes.map((row, index) => (
+                    <TableRow key={`${row.type}-${index}`}>
                       <TableCell>{row.type}</TableCell>
                       <TableCell>{row.count}</TableCell>
                       <TableCell>
-                        <Box
-                          sx={{
-                            display: 'inline-block',
-                            width: 10,
-                            height: 10,
-                            borderRadius: '50%',
-                            bgcolor: row.status === 'Operational' ? 'success.main' : 'warning.main',
-                            mr: 1,
-                          }}
-                        />
-                        {row.status}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              display: 'inline-block',
+                              width: 10,
+                              height: 10,
+                              borderRadius: '50%',
+                              bgcolor: 'success.main',
+                            }}
+                          />
+                          {`${row.operational} (${calculatePercentage(row.operational, row.count)})`}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}

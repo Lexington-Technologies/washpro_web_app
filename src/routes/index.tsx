@@ -5,6 +5,7 @@ import ForgotPassword from "../pages/authentication/forgot-password";
 import WaterDetails from "../pages/water-sources/WaterDetails";
 import DumpSiteDetails from "../pages/dump-site/DumpSiteDetails";
 import Reports from "../pages/reports/Reports";
+import GutterDetails from "../pages/gutters/GutterDetails";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -181,11 +182,24 @@ const router = createBrowserRouter([
       },      
       {
         path: "gutters",
-        element: (
+        children: [
+          {
+            index: true,
+            element:(
           <Suspense fallback={<LoadingAnimation />}>
             <Gutters />
           </Suspense>
-        ),
+            )
+          },
+          {
+            path: ":id",
+            element:(
+              <Suspense fallback={<LoadingAnimation />}>
+                <GutterDetails />
+              </Suspense>
+                )
+              },
+        ],
       },
       {
         path: "soak-aways",

@@ -118,9 +118,9 @@ const SideBar = ({
             src="/logo.svg"
             alt="WashPro Logo"
             style={{
-              width: isCollapsed ? 50 : 200,
+              width: isCollapsed ? 50 : 270,
               height: isCollapsed ? 50 : "auto",
-              objectFit: "contain",
+              objectFit: "fill",
               transition: "width 0.3s, height 0.3s",
             }}
           />

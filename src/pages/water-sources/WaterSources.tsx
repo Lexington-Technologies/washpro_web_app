@@ -300,7 +300,7 @@ const WaterSourcesDashboard: React.FC = () => {
         bgColor: '#FFEBEE'
           },
           {
-        title: 'Maintenance for Due',
+        title: 'Due for Maintenance',
         value: analytics.maintenanceDue,
         icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
         bgColor: '#FFF3E0'
