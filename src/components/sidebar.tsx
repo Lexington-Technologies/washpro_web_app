@@ -73,33 +73,33 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   };
 
   const mainMenuItems = [
-    { text: "Dashboard", icon: <Dashboard />, path: "/" },
-    { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions" },
-    { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash" },
-    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources" },
-    { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities" },
-    { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant" },
-    { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base" },
+    { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
+    { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
+    { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
+    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
+    { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
+    { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
+    { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base", title: "Knowledge Base" },
   ];
 
   const wasteSubItems = [
-    { text: "Dump Sites", icon: <Delete />, path: "/dump-sites" },
-    { text: "Gutters", icon: <Waves />, path: "/gutters" },
-    { text: "Soakaways", icon: <Waves />, path: "/soak-aways" },
+    { text: "Dump Sites", icon: <Delete />, path: "/dump-sites", title: "Dump Sites" },
+    { text: "Gutters", icon: <Waves />, path: "/gutters", title: "Gutters" },
+    { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
   ];
 
   const usersSubItems = [
-    { text: "Admins", icon: <FaUserCog />, path: "/users" },
-    { text: "Enumerators", icon: <People />, path: "/enumerator" },
+    { text: "Admins", icon: <FaUserCog />, path: "/users", title: "Admins" },
+    { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
   ];
 
   const bottomMenuItems = [
-    { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk" },
-    { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation" },
-    { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers" },
-    { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation" },
-    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities" },
-    { text: "Reports", icon: <Report />, path: "/reports" }
+    { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
+    { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
+    { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
+    { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
+    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
+    { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" }
   ];
 
   const renderMenuItem = (item: any) => (
@@ -108,6 +108,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
         component={NavLink}
         to={item.path}
         onClick={handleNavigation}
+        title={item.title}
         sx={{
           py: 1.5,
           justifyContent: isCollapsed ? "center" : "flex-start",

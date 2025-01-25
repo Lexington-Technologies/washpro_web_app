@@ -10,6 +10,7 @@ import OpenDeficationDetails from "../pages/open-defecation/OpenDeficationDetail
 import GutterDetails from "../pages/gutters/GutterDetails";
 import WaterSourceRisk from "../pages/water-source-risk/WaterSourceRisk";
 import RoutineActivies from "../pages/routine-activites/RoutineActivies";
+import ToiletFacilitiesDetails from "../pages/toilet-facilities/ToiletFacilitiesDetails";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -164,11 +165,24 @@ const router = createBrowserRouter([
       },      
       {
         path: "toilet-facilities",
-        element: (
-          <Suspense fallback={<LoadingAnimation />}>
-            <ToiletFacilities />
-          </Suspense>
-        ),
+        children: [
+          {
+            index: true,
+            element: (
+            <Suspense fallback={<LoadingAnimation />}>
+              <ToiletFacilities />
+            </Suspense>
+            )
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<LoadingAnimation />}>
+                <ToiletFacilitiesDetails />
+              </Suspense>
+              )
+            },
+        ],
       },
       {
         path: "dump-sites",

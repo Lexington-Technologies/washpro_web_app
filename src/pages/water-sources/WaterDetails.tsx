@@ -1,462 +1,471 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Alert,
-  Button,
-  Container,
-  Divider,
-  Chip,
-  Paper,
-  Tooltip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Download as DownloadIcon,
-  Share as ShareIcon,
-  Chat as ChatIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  LocationOn as LocationIcon,
-  Build as BuildIcon,
-  Person as PersonIcon,
-  Assignment as AssignmentIcon,
-  Timeline as TimelineIcon,
-  WaterDrop as WaterDropIcon,
-} from '@mui/icons-material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
+  import React, { useState } from 'react';
+  import { MapPin, Droplets, Calendar, User, Home, MapIcon, TestTube2, Layers, Users, ArrowLeft, MessageCircle, Download, ZoomIn, X } from 'lucide-react';
+  import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+  import { format } from 'date-fns';
+  import { 
+    Box, 
+    Card, 
+    CardContent, 
+    Typography, 
+    Grid, 
+    Container, 
+    Paper,
+    styled,
+    Tabs,
+    Tab,
+    Alert,
+    IconButton,
+    Stack,
+    Tooltip,
+    Modal} from '@mui/material';
+  import 'leaflet/dist/leaflet.css';
+  import { useQuery } from '@tanstack/react-query';
+  import { apiController } from '../../axios';
+  import { useParams, useNavigate } from 'react-router-dom';
+  import LoadingAnimation from '../../components/LoadingAnimation';
+  import { FaShareNodes } from 'react-icons/fa6';
 
-// Interfaces remain the same
-interface Geolocation {
-  type: string;
-  coordinates: number[];
-}
-
-interface QualityTest {
-  clearness: number;
-  odor: number;
-  ph: number;
-  salinity: number;
-  conductivity: number;
-  capturedAt: string;
-}
-
-interface WaterSource {
-  picture: string;
-  ward: string;
-  village: string;
-  hamlet: string;
-  publicSpace: string;
-  geolocation: Geolocation;
-  quality: string;
-  status: string;
-  type: string;
-  qualityTest: QualityTest[];
-  createdBy: string;
-  capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Utility functions with MUI theme colors
-const getStatusColor = (status: string): 'success' | 'warning' | 'error' => {
-  switch (status.toLowerCase()) {
-    case 'functional':
-      return 'success';
-    case 'needs_repair':
-    case 'maintenance_required':
-      return 'warning';
-    case 'non_functional':
-    default:
-      return 'error';
+  // Define types for the water source and quality test
+  interface WaterSource {
+    geolocation: {
+      type: string;
+      coordinates: [number, number, number];
+    };
+    publicSpace: string;
+    dependent: number;
+    _id: string;
+    domain: string;
+    picture: string;
+    ward: string;
+    village: string;
+    hamlet: string;
+    space: string;
+    quality: string;
+    status: string;
+    type: string;
+    createdBy: string;
+    capturedAt: string;
+    qualityTest: QualityTest[];
+    __v: number;
+    createdAt: string;
+    updatedAt: string;
   }
-};
 
-const getStatusIcon = (status: string) => {
-  switch (getStatusColor(status)) {
-    case 'success':
-      return <CheckCircleIcon color="success" />;
-    case 'warning':
-      return <WarningIcon color="warning" />;
-    case 'error':
-      return <ErrorIcon color="error" />;
+  interface QualityTest {
+    clearness: number;
+    odor: number;
+    ph: number;
+    salinity: number;
+    conductivity: number;
+    capturedAt: string;
+    createdBy: string;
+    updatedAt: string;
+    _id: string;
   }
-};
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
-// Map icon remains the same
-const waterSourceIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-  iconSize: [30, 30],
-  iconAnchor: [15, 30],
-  popupAnchor: [0, -30],
-});
-
-// Quality Test Chart Component
-const QualityTestChart = ({ data }: { data: QualityTest[] }) => {
-  const chartData = data.map(test => ({
-    date: new Date(test.capturedAt).toLocaleDateString(),
-    ph: test.ph,
-    salinity: test.salinity,
-    conductivity: test.conductivity,
+  const DataCardWrapper = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.paper,
   }));
 
-  return (
-    <Box sx={{ width: '100%', height: 300, mt: 4 }}>
-      <ResponsiveContainer>
-        <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <ChartTooltip />
-          <Line type="monotone" dataKey="ph" stroke="#2196f3" name="pH" />
-          <Line type="monotone" dataKey="salinity" stroke="#4caf50" name="Salinity" />
-          <Line type="monotone" dataKey="conductivity" stroke="#ff9800" name="Conductivity" />
-        </LineChart>
-      </ResponsiveContainer>
-    </Box>
-  );
-};
-
-// Latest Quality Test Summary Component
-const QualityTestSummary = ({ test }: { test: QualityTest }) => (
-  <TableContainer component={Paper}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Metric</TableCell>
-          <TableCell align="right">Value</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {Object.entries(test)
-          .filter(([key]) => !['capturedAt', 'createdBy', 'updatedAt', '_id'].includes(key))
-          .map(([key, value]) => (
-            <TableRow key={key}>
-              <TableCell component="th" scope="row">
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </TableCell>
-              <TableCell align="right">{value}</TableCell>
-            </TableRow>
-          ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
-
-const getDisplayValue = (value?: string) => {
-  return value && value.trim() !== '' ? value : 'Not Available';
-};
-
-// Add these theme colors
-const themeColors = {
-  primary: '#1976d2',
-  secondary: '#dc004e',
-  success: '#4caf50',
-  warning: '#ff9800',
-  error: '#f44336',
-  background: '#f5f5f5',
-  paper: '#ffffff',
-};
-
-// Update the section headers and cards with new styling
-const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-    {icon}
-    <Typography variant="h6" component="h2" color="primary">
-      {title}
-    </Typography>
-  </Box>
-);
-
-// Main Component
-const WaterSourceDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  const { data: waterSource, isLoading, error } = useQuery({
-    queryKey: ['waterSource', id],
-    queryFn: () => apiController.get<WaterSource>(`/water-sources/${id}`),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Water Source at ${waterSource?.village}`,
-          text: `Water source details for ${waterSource?.village}, ${waterSource?.ward}`,
-          url: window.location.href,
-        });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
-  if (isLoading) return <LoadingAnimation />;
-
-  if (error instanceof Error || !waterSource) {
+  function DataCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity={error ? "error" : "info"}>
-          {error ? error.message : "No water source found"}
-        </Alert>
-      </Container>
+      <DataCardWrapper elevation={1}>
+        <Icon style={{ color: '#1976d2', width: 20, height: 20 }} />
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography variant="body1" fontWeight="medium">
+            {value}
+          </Typography>
+        </Box>
+      </DataCardWrapper>
     );
   }
 
-  return (
-    <Box sx={{ minHeight: '100vh', bgcolor: themeColors.background, py: 4 }}>
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </Button>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Tooltip title="Chat about this water source">
-              <Button variant="contained" startIcon={<ChatIcon />}>
-                Chat
-              </Button>
-            </Tooltip>
-            <Tooltip title="Share water source details">
-              <Button variant="contained" startIcon={<ShareIcon />} onClick={handleShare}>
-                Share
-              </Button>
-            </Tooltip>
-            <Tooltip title="Download detailed report">
-              <Button variant="contained" startIcon={<DownloadIcon />}>
-                Download Report
-              </Button>
-            </Tooltip>
-          </Box>
-        </Box>
+  const WaterSourceDetails: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const [tabValue, setTabValue] = useState(0);
+    const [isImageOpen, setIsImageOpen] = useState(false); // State to control image modal
 
-        <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Grid container spacing={3} sx={{ p: 3 }}>
-            <Grid item xs={12} md={6}>
-              <Box
-                component="img"
-                src={waterSource?.picture || '/api/placeholder/800/400'}
-                alt={`Water source at ${waterSource?.village}`}
-                sx={{
-                  width: '100%',
-                  height: 400,
-                  objectFit: 'cover',
-                  borderRadius: 1,
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ height: 400, borderRadius: 1, overflow: 'hidden' }}>
-                <MapContainer
-                  center={[waterSource?.geolocation.coordinates[1], waterSource?.geolocation.coordinates[0]]}
-                  zoom={15}
+    const { data: waterSource, isLoading, error } = useQuery<WaterSource>({
+      queryKey: ['waterSource', id],
+      queryFn: () => apiController.get<WaterSource>(`/water-sources/${id}`).then(res => res),
+      enabled: !!id,
+      staleTime: 5 * 60 * 1000,
+    });
+
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+      setTabValue(newValue);
+    };
+
+    const handleGoBack = () => {
+      navigate(-1); // Navigate to the previous page
+    };
+
+    const handleChat = () => {
+      // Add chat functionality here
+      console.log('Chat button clicked');
+    };
+
+    const handleShare = () => {
+      try {
+        navigator.share({
+          title: 'Water Source Details',
+          text: `Check out this water source at ${waterSource?.ward}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Sharing failed', error);
+      }
+    };
+
+    const handleDownload = () => {
+      // Add download functionality here
+      console.log('Download button clicked');
+    };
+
+    const handleImageClick = () => {
+      setIsImageOpen(true); // Open the image modal
+    };
+
+    const handleCloseImage = () => {
+      setIsImageOpen(false); // Close the image modal
+    };
+
+    if (isLoading) return <LoadingAnimation />;
+
+    if (error || !waterSource) {
+      return (
+        <Container maxWidth="lg" sx={{ mt: 4 }}>
+          <Alert severity={error ? "error" : "info"}>
+            {error ? error.message : "No water source found"}
+          </Alert>
+        </Container>
+      );
+    }
+
+    const position: [number, number] = [waterSource?.geolocation.coordinates[1], waterSource?.geolocation.coordinates[0]];
+    const picture = waterSource?.picture;
+
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 1 }}>
+        <Container maxWidth="lg">
+          {/* Top Bar with Back Button and Action Buttons */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+            {/* Back Button */}
+            <Tooltip title="Go back">
+              <IconButton onClick={handleGoBack} sx={{ color: 'primary.main' }}>
+                <ArrowLeft />
+              </IconButton>
+            </Tooltip>
+
+            {/* Action Buttons (Chat, Share, Download) */}
+            <Stack direction="row" spacing={2}>
+              <Tooltip title="Chat">
+                <IconButton onClick={handleChat} sx={{ color: 'primary.main' }}>
+                  <MessageCircle />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Share">
+                <IconButton onClick={handleShare} sx={{ color: 'primary.main' }}>
+                  <FaShareNodes />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Download">
+                <IconButton onClick={handleDownload} sx={{ color: 'primary.main' }}>
+                  <Download />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Stack>
+
+          <Typography variant="h4" fontWeight="bold" color='#25306B' gutterBottom>
+            Water Source Details
+          </Typography>
+
+          {/* Map Section */}
+          <Box sx={{ mb: 4, position: 'relative' }}>
+            {/* Location Info Card */}
+            <Card elevation={3} sx={{ p: 2, position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, width: 'calc(100% - 32px)', maxWidth: 750 }}>
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={4} md={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MapPin style={{ color: '#1976d2', width: 20, height: 20 }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Latitude
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" noWrap>
+                        {position[0].toFixed(6)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4} md={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MapPin style={{ color: '#1976d2', width: 20, height: 20 }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Longitude
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" noWrap>
+                        {position[1].toFixed(6)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4} md={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Home style={{ color: '#1976d2', width: 20, height: 20 }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Ward
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" noWrap>
+                        {waterSource?.ward}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4} md={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MapIcon style={{ color: '#1976d2', width: 20, height: 20 }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Hamlet
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" noWrap>
+                        {waterSource?.hamlet}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4} md={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Home style={{ color: '#1976d2', width: 20, height: 20 }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Village
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" noWrap>
+                        {waterSource?.village}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Card>
+
+            <Card elevation={3}>
+              <Box height={500}>
+                <MapContainer 
+                  center={position} 
+                  zoom={13} 
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="© OpenStreetMap contributors"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
-                  <Marker
-                    position={[waterSource?.geolocation.coordinates[1], waterSource?.geolocation.coordinates[0]]}
-                    icon={waterSourceIcon}
-                  >
-                    <Popup>Water Source Location</Popup>
+                  <Marker position={position}>
+                    <Popup>
+                      {waterSource?.type} at {waterSource?.ward}
+                    </Popup>
                   </Marker>
                 </MapContainer>
               </Box>
-            </Grid>
-          </Grid>
+            </Card>
+          </Box>
 
-          <CardContent>
-            <Grid container spacing={4}>
-              {/* Location Details */}
-              <Grid item xs={12} md={6}>
-                <SectionHeader icon={<LocationIcon color="primary" />} title="Location Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
+          {/* Tabs Section */}
+          <Card elevation={3}>
+            <CardContent>
+              <Tabs value={tabValue} onChange={handleTabChange} aria-label="water source tabs">
+                <Tab label="General Information" />
+                <Tab label="Quality Test Results" />
+              </Tabs>
+              <Box sx={{ mt: 3 }}>
+                {tabValue === 0 && (
                   <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Ward:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{waterSource?.ward}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Village:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{waterSource?.village}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Hamlet:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{waterSource?.hamlet}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Public Space:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{waterSource?.publicSpace}</Typography>
+                    {/* Image in General Information Tab */}
+                    <Grid item xs={12}>
+                      <Card elevation={3}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                          <Box
+                            component="img"
+                            src={picture}
+                            alt="Water Source"
+                            onClick={handleImageClick}
+                            sx={{
+                              width: 300,
+                              height: 300,
+                              objectFit: 'cover',
+                              cursor: 'pointer',
+                              borderRadius: 1,
+                              mr: 2,
+                            }}
+                          />
+                          <Tooltip title="Zoom In">
+                            <IconButton
+                              onClick={handleImageClick}
+                              sx={{
+                                position: 'absolute',
+                                top: 10,
+                                right: 890,
+                                color: 'white',
+                                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                '&:hover': {
+                                  bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                },
+                              }}
+                            >
+                              <ZoomIn />
+                            </IconButton>
+                          </Tooltip>
+                          <Box>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={MapPin} label="Ward" value={waterSource.ward} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={Home} label="Village" value={waterSource.village} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={MapIcon} label="Hamlet" value={waterSource.hamlet} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={Droplets} label="Quality" value={waterSource.quality} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={Layers} label="Type" value={waterSource.type} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={User} label="Created By" value={waterSource.createdBy} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={Calendar} label="Captured At" value={format(new Date(waterSource.capturedAt), 'PPP')} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={Users} label="Dependents" value={waterSource.dependent} />
+                              </Grid>
+                              <Grid item xs={12} sm={6} md={4}>
+                                <DataCard icon={MapPin} label="Public Space" value={waterSource.publicSpace} />
+                              </Grid>
+                            </Grid>
+                          </Box>
+                        </Box>
+                      </Card>
                     </Grid>
                   </Grid>
-                </Paper>
-              </Grid>
+                )}
+                  {tabValue === 1 && (
+                    <Grid container spacing={1} >
+                      {waterSource?.qualityTest.map((test) => (
+                        <React.Fragment key={test._id} >
+                          <Grid item xs={12} md={6}>
+                            <DataCard 
+                              icon={TestTube2} 
+                              label="Clearness"
+                              value={test.clearness}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <DataCard 
+                              icon={TestTube2} 
+                              label="Odor"
+                              value={test.odor}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <DataCard 
+                              icon={TestTube2} 
+                              label="pH"
+                              value={test.ph}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <DataCard 
+                              icon={TestTube2} 
+                              label="Salinity"
+                              value={test.salinity}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <DataCard 
+                              icon={TestTube2} 
+                              label="Conductivity"
+                              value={test.conductivity}
+                            />
+                          </Grid>
+                        </React.Fragment>
+                      ))}
+                    </Grid>
+                  )}
+              </Box>
+            </CardContent>
+          </Card>
 
-                            {/* Technical Details */}
-                            <Grid item xs={12} md={6}>
-                <SectionHeader icon={<BuildIcon color="primary" />} title="Technical Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Type:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Chip
-                        label={waterSource?.type}
-                        color="primary"
-                        variant="outlined"
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Status:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Chip
-                        icon={getStatusIcon(waterSource?.status)}
-                        label={waterSource?.status}
-                        color={getStatusColor(waterSource?.status)}
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Quality:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Chip
-                        icon={getStatusIcon(waterSource?.quality)}
-                        label={waterSource?.quality}
-                        color={getStatusColor(waterSource?.quality)}
-                      />
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
+  {/* Updated Image Modal */}
+<Modal open={isImageOpen} onClose={handleCloseImage}>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      maxWidth: "100%",
+      maxHeight: "100%",
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 1,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      outline: 'none',
+    }}
+  >
+    {/* Close Button */}
+    <IconButton
+      onClick={handleCloseImage}
+      sx={{
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        color: 'white',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        },
+        zIndex: 1,
+      }}
+    >
+      <X />
+    </IconButton>
 
+    {/* Image */}
+    <Box
+      component="img"
+      src={picture}
+      alt="Water Source"
+      sx={{
+        maxWidth: '70%',
+        maxHeight: '70%',
+        objectFit: 'contain',
+        borderRadius: 1,
+      }}
+    />
+  </Box>
+</Modal>        
+</Container>
+      </Box>
+    );
+  };
 
-               {/* Enumerator Details */}
-               <Grid item xs={12} md={6}>
-                <SectionHeader icon={<PersonIcon color="primary" />} title="Enumerator Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Captured By:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(waterSource?.createdBy)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Phone:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(waterSource?.phone)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Email Address:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(waterSource?.email)}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Name:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{getDisplayValue(waterSource?.name)}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-              
-
-
-            </Grid>
-
-            <Divider sx={{ my: 4 }} />
-
-            {/* Quality Test Data */}
-            {waterSource?.qualityTest && waterSource?.qualityTest.length > 0 && (
-              <>
-                <SectionHeader icon={<WaterDropIcon color="primary" />} title="Water Quality History" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <QualityTestChart data={waterSource?.qualityTest} />
-                </Paper>
-                <Box sx={{ mt: 4 }}>
-                  <SectionHeader icon={<AssignmentIcon color="primary" />} title="Latest Quality Test Results" />
-                  <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                    <QualityTestSummary test={waterSource?.qualityTest[waterSource?.qualityTest.length - 1]} />
-                  </Paper>
-                </Box>
-              </>
-            )}
-
-            <Divider sx={{ my: 4 }} />
-
-            {/* Timeline Information */}
-            <SectionHeader icon={<TimelineIcon color="primary" />} title="Timeline" />
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Captured At:</Typography>
-                  <Typography>{formatDate(waterSource?.capturedAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Created At:</Typography>
-                  <Typography>{formatDate(waterSource?.createdAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Last Updated:</Typography>
-                  <Typography>{formatDate(waterSource?.updatedAt)}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
-  );
-};
-
-export default WaterSourceDetails;
+  export default WaterSourceDetails;

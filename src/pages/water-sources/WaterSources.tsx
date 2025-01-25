@@ -5,8 +5,6 @@ import {
   Typography,
   Grid,
   Button,
-  Tab,
-  Tabs,
   styled,
   Card,
   TextField,
@@ -15,8 +13,8 @@ import {
 import {
   Search,
 } from '@mui/icons-material';
-import { FaCheck, FaFaucet, FaFilter, FaTimes, FaWater } from 'react-icons/fa';
-import { FaWrench } from 'react-icons/fa6';
+import { FaCheck, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaFaucet, FaFaucetDrip, FaWrench } from 'react-icons/fa6';
 import { GiWell } from 'react-icons/gi';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
@@ -31,13 +29,6 @@ interface StatCardProps {
   icon: React.ReactNode;
   bgColor: string;
 }
-
-interface MetricProps {
-  value: number;
-  label: string;
-  color: string;
-}
-
 
 
 interface WaterSource {
@@ -82,18 +73,6 @@ const StyledPaper = styled(Paper)`
   box-shadow: 10;
 `;
 
-const StyledMetricCircle = styled(Box)<{ bgcolor: string }>`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ bgcolor }) => bgcolor};
-  margin: 0 auto;
-  box-shadow: 10;
-`;
-
 // Components
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor }) => (
   <StyledPaper>
@@ -121,41 +100,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor }) => (
     </Box>
   </StyledPaper>
 );
-
-const MetricItem: React.FC<MetricProps> = ({ value, label, color }) => (
-  <Box sx={{ textAlign: 'center', px: 2 }}>
-    <StyledMetricCircle bgcolor={color}>
-      <Typography variant="h5" sx={{ fontWeight: 500 }}>
-        {value}
-      </Typography>
-    </StyledMetricCircle>
-    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-      {label}
-    </Typography>
-  </Box>
-);
-
-const TabPanel = ({ children, value, index }: { children: React.ReactNode; value: number; index: number }) => (
-  <div hidden={value !== index}>
-    {value === index && (
-      <Box sx={{ pt: 3 }}>
-        {children}
-      </Box>
-    )}
-  </div>
-);
-
-
-
-const metrics = [
-  { value: 8.5, label: 'Clarity', color: '#DBEAFE' },
-  { value: 9.0, label: 'Taste', color: '#DCFCE7' },
-  { value: 7.5, label: 'Odor', color: '#FEF9C3' },
-  { value: 8.0, label: 'Turbidity', color: '#F3E8FF' },
-  { value: 8.8, label: 'Conductivity', color: '#E0E7FF' },
-];
-
-
 
 // Define your row shape
 
@@ -213,7 +157,6 @@ const columns = [
 ]
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
-  const [tabValue, setTabValue] = useState<number>(0);
   const [analytics, setAnalytics] = useState({
     totalSources: 0,
     functional: 0,
@@ -224,6 +167,21 @@ const WaterSourcesDashboard: React.FC = () => {
     handpumpBoreholes: 0,
     motorizedBoreholes: 0,
     nonMotorizedBoreholes: 0,
+    functionalWells: 0,
+    nonFunctionalWells: 0,
+    maintenanceDueWells: 0,
+    functionalStreams: 0,
+    nonFunctionalStreams: 0,
+    maintenanceDueStreams: 0,
+    functionalHandpumpBoreholes: 0,
+    nonFunctionalHandpumpBoreholes: 0,
+    maintenanceDueHandpumpBoreholes: 0,
+    functionalMotorizedBoreholes: 0,
+    nonFunctionalMotorizedBoreholes: 0,
+    maintenanceDueMotorizedBoreholes: 0,
+    functionalNonMotorizedBoreholes: 0,
+    nonFunctionalNonMotorizedBoreholes: 0,
+    maintenanceDueNonMotorizedBoreholes: 0,
   });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -233,6 +191,7 @@ const WaterSourcesDashboard: React.FC = () => {
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
+  console.log("card", {data});
 
   useEffect(() => {
     if (data) {
@@ -245,6 +204,21 @@ const WaterSourcesDashboard: React.FC = () => {
       const handpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes').length;
       const motorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes').length;
       const nonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes').length;
+      const functionalWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Functional').length;
+      const nonFunctionalWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Non Functional').length;
+      const maintenanceDueWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Maintenance Due').length;
+      const functionalStreams = data.filter(source => source.type === 'Stream' && source.status === 'Functional').length;
+      const nonFunctionalStreams = data.filter(source => source.type === 'Stream' && source.status === 'Non Functional').length;
+      const maintenanceDueStreams = data.filter(source => source.type === 'Stream' && source.status === 'Maintenance Due').length;
+      const functionalHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Functional').length;
+      const nonFunctionalHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Non Functional').length;
+      const maintenanceDueHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Maintenance Due').length;
+      const functionalMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Functional').length;
+      const nonFunctionalMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Non Functional').length;
+      const maintenanceDueMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Maintenance Due').length;
+      const functionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Functional').length;
+      const nonFunctionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Non Functional').length;
+      const maintenanceDueNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Maintenance Due').length;
 
       console.log("watersource", {data});
 
@@ -258,13 +232,25 @@ const WaterSourcesDashboard: React.FC = () => {
         handpumpBoreholes,
         motorizedBoreholes,
         nonMotorizedBoreholes,
+        functionalWells,
+        nonFunctionalWells,
+        maintenanceDueWells,
+        functionalStreams,
+        nonFunctionalStreams,
+        maintenanceDueStreams,
+        functionalHandpumpBoreholes,
+        nonFunctionalHandpumpBoreholes,
+        maintenanceDueHandpumpBoreholes,
+        functionalMotorizedBoreholes,
+        nonFunctionalMotorizedBoreholes,
+        maintenanceDueMotorizedBoreholes,
+        functionalNonMotorizedBoreholes,
+        nonFunctionalNonMotorizedBoreholes,
+        maintenanceDueNonMotorizedBoreholes,
       });
     }
   }, [data]);
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -312,43 +298,6 @@ const WaterSourcesDashboard: React.FC = () => {
         icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
         bgColor: '#FFF3E0'
           },
-          {
-        title: 'Well',
-        value: analytics.wells,
-        icon: <GiWell style={{ color: '#16A34A', fontSize: '2rem' }} />,
-        bgColor: '#DCFCE7'
-          },
-          {
-        title: 'Handpump Boreholes',
-        value: analytics.handpumpBoreholes,
-        icon: <FaFaucet style={{ color: '#2563EB', fontSize: '2rem' }} />,
-        bgColor: '#DBEAFE'
-          },
-          {
-        title: 'Motorized Boreholes',
-        value: analytics.motorizedBoreholes,
-        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
-        bgColor: '#E8F5E9'
-          },
-          {
-        title: 'Non-Motorized Boreholes',
-        value: analytics.nonMotorizedBoreholes,
-        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
-        bgColor: '#FFEBEE'
-          },
-          {
-        title: 'Streams',
-        value: analytics.streams,
-        icon: <FaWater style={{ color: '#25306B', fontSize: '2rem' }} />,
-        bgColor: '#DBEAFE'
-          },
-          {
-        title: 'Non Streams',
-        value: analytics.streams,
-        icon: <FaWater style={{ color: '#25306B', fontSize: '2rem' }} />,
-        bgColor: '#DBEAFE'
-          },
-
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
         <StatCard {...stat} />
@@ -356,88 +305,179 @@ const WaterSourcesDashboard: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Water Quality Tabs */}
-      <Paper sx={{ p: 3, borderRadius: 2, mb: 3, boxShadow: 5 }}>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            '& .MuiTab-root': { minWidth: 'unset', px: 3 },
-            '& .Mui-selected': { color: '#0EA5E9' },
-            '& .MuiTabs-indicator': { backgroundColor: '#0EA5E9' },
-          }}
-        >
-          <Tab label="Physical" />
-          <Tab label="Chemical" />
-          <Tab label="Microbiological" />
-        </Tabs>
+      {/* well */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+            Wells
+          </Typography>
+        </Box>
+        
+      </Box>
 
-        <TabPanel value={tabValue} index={0}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              overflowX: 'auto',
-              gap: 2,
-              pt: 3,
-            }}
-          >
-            {metrics.map((metric, index) => (
-              <MetricItem key={index} value={metric.value} label={metric.label} color={metric.color} />
-            ))}
-          </Box>
-        </TabPanel>
+      {/* Well Stats */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {[
+          {
+        title: 'Total Wells',
+        value: analytics.wells,
+        icon: <GiWell style={{ color: '#16A34A', fontSize: '2rem' }} />,
+        bgColor: '#DCFCE7'
+          },
+          {
+        title: 'Functional Wells',
+        value: analytics.functionalWells,
+        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+        bgColor: '#E8F5E9'
+          },
+          {
+        title: 'Non-Functional Wells',
+        value: analytics.nonFunctionalWells,
+        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+        bgColor: '#FFEBEE'
+          },
+          {
+        title: ' Due for Maintenance',
+        value: analytics.maintenanceDueWells,
+        icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
+        bgColor: '#FFF3E0'
+          },
+        ].map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+        <StatCard {...stat} />
+          </Grid>
+        ))}
+      </Grid>
 
-        <TabPanel value={tabValue} index={1}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              overflowX: 'auto',
-              gap: 2,
-              pt: 3,
-            }}
-          >
-            {metrics.map((metric, index) => (
-              <MetricItem
-                key={index}
-                value={metric.value}
-                label={`${metric.label} (Chemical)`}
-                color={metric.color}
-              />
-            ))}
-          </Box>
-        </TabPanel>
+            {/* handborehole */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+          Hand Pump Boreholes
+          </Typography>
+        </Box>
+        
+      </Box>
 
-        <TabPanel value={tabValue} index={2}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              overflowX: 'auto',
-              gap: 2,
-              pt: 3,
-            }}
-          >
-            {metrics.map((metric, index) => (
-              <MetricItem
-                key={index}
-                value={metric.value}
-                label={`${metric.label} (Microbiological)`}
-                color={metric.color}
-              />
-            ))}
-          </Box>
-        </TabPanel>
-      </Paper>
+      {/* Handpump Boreholes Stats */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {[
+          {
+        title: 'Total Handpump Boreholes',
+        value: analytics.handpumpBoreholes,
+        icon: <FaFaucetDrip style={{ color: '#2563EB', fontSize: '2rem' }} />,
+        bgColor: '#DBEAFE'
+          },
+          {
+        title: 'Functional Handpump Boreholes',
+        value: analytics.functionalHandpumpBoreholes,
+        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+        bgColor: '#E8F5E9'
+          },
+          {
+        title: 'Non-Functional Handpump Boreholes',
+        value: analytics.nonFunctionalHandpumpBoreholes,
+        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+        bgColor: '#FFEBEE'
+          },
+          {
+        title: ' Due for Maintenance',
+        value: analytics.maintenanceDueHandpumpBoreholes,
+        icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
+        bgColor: '#FFF3E0'
+          },
+        ].map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+        <StatCard {...stat} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* motorized boreholes */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+            Motorized Boreholes
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Motorized Boreholes Stats */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {[
+          {
+            title: 'Total Motorized Boreholes',
+            value: analytics.motorizedBoreholes,
+            icon: <FaFaucet style={{ color: '#DBEAFE', fontSize: '2rem' }} />,
+            bgColor: '#2563EB'
+          },
+          {
+            title: 'Functional Motorized Boreholes',
+            value: analytics.functionalMotorizedBoreholes,
+            icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+            bgColor: '#E8F5E9'
+          },
+          {
+            title: 'Non-Functional Motorized Boreholes',
+            value: analytics.nonFunctionalMotorizedBoreholes,
+            icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+            bgColor: '#FFEBEE'
+          },
+          {
+            title: 'Due for Maintenance',
+            value: analytics.maintenanceDueMotorizedBoreholes,
+            icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
+            bgColor: '#FFF3E0'
+          },
+        ].map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <StatCard {...stat} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* non-motorized boreholes */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+            Non-Motorized Boreholes
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Non-Motorized Boreholes Stats */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {[
+          {
+            title: 'Total Non-Motorized Boreholes',
+            value: analytics.nonMotorizedBoreholes,
+            icon: <FaFaucetDrip style={{ color: '#DCFCE7', fontSize: '2rem' }} />,
+            bgColor: '#16A34A'
+          },
+          {
+            title: 'Functional Non-Motorized Boreholes',
+            value: analytics.functionalNonMotorizedBoreholes,
+            icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
+            bgColor: '#E8F5E9'
+          },
+          {
+            title: 'Non-Functional Non-Motorized Boreholes',
+            value: analytics.nonFunctionalNonMotorizedBoreholes,
+            icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
+            bgColor: '#FFEBEE'
+          },
+          {
+            title: ' Due for Maintenance',
+            value: analytics.maintenanceDueNonMotorizedBoreholes,
+            icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
+            bgColor: '#FFF3E0'
+          },
+        ].map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <StatCard {...stat} />
+          </Grid>
+        ))}
+      </Grid>
 
       {/* Table Section */}
       <Card sx={{ mt: 3, boxShadow: 5 }}>
