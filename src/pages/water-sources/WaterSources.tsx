@@ -108,12 +108,12 @@ const columnHelper = createColumnHelper<WaterSource>()
 
 // Make some columns!
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'S/N',
-    cell: info => info.getValue(),
-    size: 50,
-  }),
+  // columnHelper.accessor((_, index) => index + 1, {
+  //   id: 'index',
+  //   header: 'S/N',
+  //   cell: info => info.getValue(),
+  //   size: 50,
+  // }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -123,7 +123,7 @@ const columns = [
         sx={{ 
           width: 40, 
           height: 40,
-          borderRadius: '50%', // Make avatar round
+          borderRadius: '20%', // Make avatar round
           border: '2px solid #e5e7eb', // Add subtle border
         }}
       />
@@ -480,23 +480,9 @@ const WaterSourcesDashboard: React.FC = () => {
       </Grid>
 
       {/* Table Section */}
-      <Card sx={{ mt: 3, boxShadow: 5 }}>
+      <Card sx={{ mt: 3, boxShadow: 1 }}>
         <Box sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, }}>Water Sources Overview</Typography>
-            <Box sx={{ display: 'flex', gap: 2, }}>
-              <TextField
-                size="small"
-                placeholder="Search sources..."
-                InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-              />
-              <Button startIcon={<FaFilter style={{ color: "#1F2937" }} />}>
-                <Typography variant="body1" color="#1F2937">
-                  Filter
-                </Typography>
-              </Button>
-            </Box>
-          </Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, }}>Water Sources Overview</Typography>
             <DataTable  setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
         </Box>
       </Card>
