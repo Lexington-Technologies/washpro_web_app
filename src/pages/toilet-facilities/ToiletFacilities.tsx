@@ -11,6 +11,7 @@ import {
   Card,
   TextField,
   Avatar,
+  Chip,
 } from '@mui/material';
 import {
   Warning,
@@ -31,38 +32,32 @@ interface StatCardProps {
   bgColor?: string;
 }
 
-
 interface ToiletFacility {
+  geolocation: {
+    type: string;
+    coordinates: [number, number, number];
+  };
+  publicSpace: string;
   _id: string;
   picture: string;
   ward: string;
   village: string;
   hamlet: string;
-  geolocation: {
-    type: string;
-    coordinates: number[];
-  };
-  quality: string;
+  space: string;
+  compactments: number;
+  dependent: number;
+  condition: string;
   status: string;
   type: string;
+  safetyRisk: string[];
+  handWashingFacility: string;
+  daysSinceLastEvacuation: number;
+  evacuationFrequency: string;
   createdBy: string;
   capturedAt: string;
+  __v: number;
   createdAt: string;
   updatedAt: string;
-  publicSpace: string;
-  dependent: number;
-  space: string;
-  qualityTest: {
-    clearness: number;
-    odor: number;
-    ph: number;
-    salinity: number;
-    conductivity: number;
-    capturedAt: string;
-    createdBy: string;
-    updatedAt: string;
-    _id: string;
-  }[];
 }
 
 const StyledPaper = styled(Paper)`
@@ -81,7 +76,7 @@ const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
 // Not Found Component
 const NotFoundAlert: React.FC = () => (
   <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="info">No water source found</Alert>
+    <Alert severity="info">No toilet facility found</Alert>
   </Container>
 );
 
@@ -124,12 +119,6 @@ const ActionButton = styled(Button)(({ theme }) => ({
 const columnHelper = createColumnHelper<ToiletFacility>();
 
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'S/N',
-    cell: info => info.getValue(),
-    size: 50,
-  }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -158,33 +147,27 @@ const columns = [
     header: 'Hamlet',
     cell: info => info.getValue(),
   }),
+  columnHelper.accessor('publicSpace', {
+    header: 'publicSpace',
+    cell: info => info.getValue(),
+  }),
   columnHelper.accessor('status', {
     header: 'Status',
     cell: info => {
       const status = info.getValue();
-      let color = '';
+      let color;
       switch (status) {
-        case 'Operational':
-          color = '#4CAF50'; // Green
+        case 'Improved':
+          color = 'success';
           break;
-        case 'Maintenance':
-          color = '#FF9800'; // Orange
+        case 'Unimproved':
+          color = 'error';
           break;
         default:
-          color = '#EF5350'; // Red
+          color = 'default';
       }
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              bgcolor: color,
-            }}
-          />
-          <Typography>{status}</Typography>
-        </Box>
+        <Chip label={status} color={color} />
       );
     },
   }),
@@ -345,18 +328,6 @@ const ToiletFacilities: React.FC = () => {
         <Box sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, }}>Toilet Facilities Overview</Typography>
-            <Box sx={{ display: 'flex', gap: 2, }}>
-              <TextField
-                size="small"
-                placeholder="Search facilities..."
-                InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-              />
-              <Button startIcon={<FaFilter style={{ color: "#1F2937" }} />}>
-                <Typography variant="body1" color="#1F2937">
-                  Filter
-                </Typography>
-              </Button>
-            </Box>
           </Box>
           <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
         </Box>

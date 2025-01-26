@@ -9,6 +9,7 @@ import {
   Card,
   TextField,
   Avatar,
+  Chip,
 } from '@mui/material';
 import {
   Search,
@@ -59,6 +60,7 @@ interface WaterSource {
     conductivity: number;
     capturedAt: string;
     createdBy: string;
+    publicSpace: string;
     updatedAt: string;
     _id: string;
   }[];
@@ -142,9 +144,52 @@ const columns = [
     header: 'Hamlet',
     cell: info => info.getValue(),
   }),
+  columnHelper.accessor('publicSpace', {
+    header: 'publicSpace',
+    cell: info => info.getValue(),
+  }),
   columnHelper.accessor('status', {
     header: 'Status',
-    cell: info => info.getValue(),
+    cell: info => {
+      const status = info.getValue();
+      let color;
+      switch (status) {
+        case 'Functional':
+          color = 'success';
+          break;
+        case 'Non Functional':
+          color = 'error';
+          break;
+        case 'Maintenance Due':
+          color = 'warning';
+          break;
+        default:
+          color = 'default';
+      }
+      return (
+        <Chip label={status} color={color} />
+      );
+    },
+  }),
+  columnHelper.accessor('quality', {
+    header: 'Quality',
+    cell: info => {
+      const quality = info.getValue();
+      let color;
+      switch (quality) {
+        case 'Drinkable':
+          color = 'success';
+          break;
+        case 'Non Drinkable':
+          color = 'error';
+          break;
+        default:
+          color = 'default';
+      }
+      return (
+        <Chip label={quality} color={color} />
+      );
+    },
   }),
   columnHelper.accessor('type', {
     header: 'Type',
@@ -191,7 +236,7 @@ const WaterSourcesDashboard: React.FC = () => {
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("card", {data});
+  console.log("water", {data});
 
   useEffect(() => {
     if (data) {

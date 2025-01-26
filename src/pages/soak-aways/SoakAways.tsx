@@ -62,11 +62,6 @@ interface SoakAway {
 const columnHelper = createColumnHelper<SoakAway>();
 
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'S/N',
-    cell: info => info.getValue(),
-  }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -87,6 +82,10 @@ const columns = [
   }),
   columnHelper.accessor('hamlet', {
     header: 'Hamlet',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('publicSpace', {
+    header: 'publicSpace',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('status', {

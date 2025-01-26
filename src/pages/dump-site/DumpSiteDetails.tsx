@@ -1,353 +1,302 @@
-import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Box,
-  Card,
-  CardMedia,
-  CardContent,
+import React, { useState } from 'react';
+import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { format } from 'date-fns';
+import { 
+  Box, 
   Typography,
   Grid,
-  Alert,
-  Button,
   Container,
-  Divider,
+  IconButton,
+  Stack,
+  Modal,
+  Tabs,
+  Tab,
+  Alert,
   Chip,
-  Paper,
-  Tooltip,
+  Divider
 } from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Download as DownloadIcon,
-  Share as ShareIcon,
-  Chat as ChatIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  LocationOn as LocationIcon,
-  Build as BuildIcon,
-  Timeline as TimelineIcon,
-} from '@mui/icons-material';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
+import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
-interface Geolocation {
-  type: string;
-  coordinates: number[];
-}
-
+// Define types for the dump site
 interface DumpSite {
+  geolocation: {
+    type: string;
+    coordinates: [number, number, number];
+  };
+  publicSpace: string;
+  _id: string;
   picture: string;
   ward: string;
   village: string;
   hamlet: string;
-  geolocation: Geolocation;
-  type: string;
-  status: string;
   condition: string;
-  createdBy: string;
-  capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
+  type: string;
   safetyRisk: string;
   evacuationSchedule: string;
   lastEvacuationDate: string;
   nextScheduledEvacuation: string;
+  createdBy: string;
+  capturedAt: string;
+  __v: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Utility to format dates
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
-// Map Icon
-const dumpSiteIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Red color icon URL
-  iconSize: [30, 30],
-  iconAnchor: [15, 30], // Adjust the anchor point to the center bottom of the icon
-  popupAnchor: [0, -30], // Adjust the popup anchor to the top of the icon
-});
-
-// Error Alert Component
-const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
-  <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="error">{message}</Alert>
-  </Container>
-);
-
-// Not Found Component
-const NotFoundAlert: React.FC = () => (
-  <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="info">No dump site found</Alert>
-  </Container>
-);
-
-// Map Component
-const DumpSiteMap: React.FC<{ coordinates: number[] }> = ({ coordinates }) => (
-  <MapContainer
-    center={[coordinates[1], coordinates[0]]}
-    zoom={15}
-    scrollWheelZoom={true} // Enable zooming in and out using mouse pad
-    style={{ height: '100%', width: '100%' }}
-  >
-    <TileLayer
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      attribution="&copy; OpenStreetMap contributors"
-    />
-    <Marker position={[coordinates[1], coordinates[0]]} icon={dumpSiteIcon}>
-      <Popup>Dump Site Location</Popup>
-    </Marker>
-  </MapContainer>
-);
-
-// Add theme colors
-const themeColors = {
-  primary: '#1976d2',
-  secondary: '#dc004e',
-  success: '#4caf50',
-  warning: '#ff9800',
-  error: '#f44336',
-  background: '#f5f5f5',
-  paper: '#ffffff',
-};
-
-// Add status utilities
-const getStatusColor = (status: string): 'success' | 'warning' | 'error' => {
-  switch (status.toLowerCase()) {
-    case 'improved':
-    case 'maintained':
-      return 'success';
-    case 'needs_maintenance':
-    case 'periodic':
-      return 'warning';
-    case 'unimproved':
-    case 'unmaintained':
-    default:
-      return 'error';
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (getStatusColor(status)) {
-    case 'success':
-      return <CheckCircleIcon color="success" />;
-    case 'warning':
-      return <WarningIcon color="warning" />;
-    case 'error':
-      return <ErrorIcon color="error" />;
-  }
-};
-
-// Add Section Header component
-const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-    {icon}
-    <Typography variant="h6" component="h2" color="primary">
-      {title}
-    </Typography>
-  </Box>
-);
-
-// Main Component
 const DumpSiteDetails: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [isImageOpen, setIsImageOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: dumpSite, isLoading, error } = useQuery({
+  const { data: dumpSite, isLoading, error } = useQuery<DumpSite>({
     queryKey: ['dumpSite', id],
-    queryFn: () => apiController.get<DumpSite>(`/dump-sites/${id}`),
+    queryFn: () => apiController.get<DumpSite>(`/dump-sites/${id}`).then(res => res),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Dump Site at ${dumpSite?.village}`,
-          text: `Dump site details for ${dumpSite?.village}, ${dumpSite?.ward}`,
-          url: window.location.href,
-        });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
   if (isLoading) return <LoadingAnimation />;
-  if (error instanceof Error) return <ErrorAlert message={error.message} />;
-  if (!dumpSite) return <NotFoundAlert />;
+  if (error || !dumpSite) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity={error ? "error" : "info"}>
+          {error ? error.message : "No dump site found"}
+        </Alert>
+      </Container>
+    );
+  }
+
+  const position: [number, number] = [dumpSite.geolocation.coordinates[1], dumpSite.geolocation.coordinates[0]];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: themeColors.background, py: 4 }}>
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </Button>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Tooltip title="Chat about this dump site">
-              <Button variant="contained" startIcon={<ChatIcon />}>
-                Chat
-              </Button>
-            </Tooltip>
-            <Tooltip title="Share dump site details">
-              <Button variant="contained" startIcon={<ShareIcon />} onClick={handleShare}>
-                Share
-              </Button>
-            </Tooltip>
-            <Tooltip title="Download detailed report">
-              <Button variant="contained" startIcon={<DownloadIcon />}>
-                Download Report
-              </Button>
-            </Tooltip>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Header */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <IconButton onClick={() => navigate(-1)}>
+              <ArrowLeft />
+            </IconButton>
+            <Box>
+            <Typography variant="h4" fontWeight="500">
+              {"Dump Site"}
+            </Typography>
+            <Typography color="text.secondary">
+              {dumpSite.ward}, {dumpSite.village}
+            </Typography>
           </Box>
-        </Box>
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Chip 
+              label={dumpSite.status} 
+              color={dumpSite.status === 'Improved' ? 'success' : 'error'}
+            />
+            <Chip 
+              label={dumpSite.condition} 
+              color={dumpSite.condition === 'Maintained' ? 'success' : 'warning'}
+            />
+          </Stack>
+        </Stack>
 
-        <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
-            {/* Image Section */}
-            <Box sx={{ flex: 1, height: { xs: '300px', md: '400px' } }}>
-              <CardMedia
-                component="img"
-                height="100%"
-                image={dumpSite?.picture || '/api/placeholder/800/400'}
-                alt={`Dump site at ${dumpSite?.village}`}
-              />
-            </Box>
+        {/* Tabs */}
+        <Tabs 
+          value={activeTab} 
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="Overview" />
+          <Tab label="Safety Risks" />
+        </Tabs>
 
-            {/* Map Section */}
-            <Box sx={{ flex: 1, height: { xs: '300px', md: '400px' } }}>
-              <DumpSiteMap coordinates={dumpSite?.geolocation.coordinates} />
-            </Box>
+        {/* Tab Panels */}
+        {activeTab === 0 ? (
+          <OverviewTab dumpSite={dumpSite} position={position} onImageClick={() => setIsImageOpen(true)} />
+        ) : (
+          <SafetyRisksTab safetyRisks={dumpSite.safetyRisk} />
+        )}
+
+        {/* Image Modal */}
+        <Modal 
+          open={isImageOpen} 
+          onClose={() => setIsImageOpen(false)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+            <IconButton
+              onClick={() => setIsImageOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+              }}
+            >
+              <X />
+            </IconButton>
+            <Box
+              component="img"
+              src={dumpSite.picture}
+              alt="Dump Site"
+              sx={{
+                maxWidth: '100%',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                borderRadius: 2,
+              }}
+            />
           </Box>
-
-          <CardContent sx={{ p: 4 }}>
-            <Grid container spacing={4}>
-              {/* Location Details */}
-              <Grid item xs={12} md={6}>
-                <SectionHeader icon={<LocationIcon color="primary" />} title="Location Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Ward:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.ward}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Village:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.village}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Hamlet:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.hamlet}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Public Space:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.space}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-
-              {/* Technical Details */}
-              <Grid item xs={12} md={6}>
-                <SectionHeader icon={<BuildIcon color="primary" />} title="Technical Details" />
-                <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Status:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Chip
-                        icon={getStatusIcon(dumpSite?.status)}
-                        label={dumpSite?.status}
-                        color={getStatusColor(dumpSite?.status)}
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Condition:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Chip
-                        icon={getStatusIcon(dumpSite?.condition)}
-                        label={dumpSite?.condition}
-                        color={getStatusColor(dumpSite?.condition)}
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Safety Risk:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.safetyRisk}</Typography>
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography color="text.secondary">Evacuation Schedule:</Typography>
-                    </Grid>
-                    <Grid item xs={8}>
-                      <Typography>{dumpSite?.evacuationSchedule}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-            </Grid>
-
-            <Divider sx={{ my: 4 }} />
-
-            {/* Timeline Section */}
-            <SectionHeader icon={<TimelineIcon color="primary" />} title="Timeline" />
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2, bgcolor: themeColors.paper }}>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Captured At:</Typography>
-                  <Typography>{formatDate(dumpSite?.capturedAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Created At:</Typography>
-                  <Typography>{formatDate(dumpSite?.createdAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Last Updated:</Typography>
-                  <Typography>{formatDate(dumpSite?.updatedAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Last Evacuation Date:</Typography>
-                  <Typography>{formatDate(dumpSite?.lastEvacuationDate)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography color="text.secondary">Next Scheduled Evacuation:</Typography>
-                  <Typography>{formatDate(dumpSite?.nextScheduledEvacuation)}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          </CardContent>
-        </Card>
+        </Modal>
       </Container>
     </Box>
   );
 };
+
+const OverviewTab = ({ dumpSite, position, onImageClick }: { 
+  dumpSite: DumpSite; 
+  position: [number, number];
+  onImageClick: () => void;
+}) => (
+  <Grid container spacing={4}>
+    <Grid item xs={12}>
+      <Box sx={{ 
+        height: 500, 
+        borderRadius: 2, 
+        overflow: 'hidden',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        mb: 4
+      }}>
+        <MapContainer 
+          center={position} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{dumpSite.type} at {dumpSite.ward}</Popup>
+          </Marker>
+        </MapContainer>
+      </Box>
+    </Grid>
+
+    <Grid item xs={12} md={4}>
+      <Box 
+        sx={{ 
+          position: 'relative',
+          '&:hover .zoom-icon': { opacity: 1 }
+        }}
+      >
+        <Box
+          component="img"
+          src={dumpSite.picture}
+          alt="Dump Site"
+          onClick={onImageClick}
+          sx={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: 2,
+            cursor: 'pointer',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
+          }}
+        />
+        <IconButton
+          className="zoom-icon"
+          onClick={onImageClick}
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            opacity: 0,
+            transition: 'opacity 0.2s',
+            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+            color: 'white'
+          }}
+        >
+          <ZoomIn />
+        </IconButton>
+      </Box>
+    </Grid>
+
+    <Grid item xs={12} md={8}>
+      <Box sx={{ 
+        p: 3, 
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        height: '100%'
+      }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Location Details
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MapPin} label="Location" value={`${dumpSite.hamlet}, ${dumpSite.village}`} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Condition" value={dumpSite.condition || 'Not specified'} />
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Public Space" value={dumpSite.publicSpace} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Maintained By" value={dumpSite.createdBy} />
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <DetailItem 
+              icon={Calendar} 
+              label="Last Updated" 
+              value={format(new Date(dumpSite.updatedAt), 'PPP')} 
+            />
+          </Grid>
+        </Grid>
+      </Box>
+    </Grid>
+  </Grid>
+);
+
+const SafetyRisksTab = ({ safetyRisks }: { safetyRisks: string }) => (
+  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
+    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+      Safety Risks
+    </Typography>
+    <Typography variant="body1">{safetyRisks}</Typography>
+  </Box>
+);
+
+const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
+  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+    <Icon size={20} style={{ color: '#666', marginTop: 4 }} />
+    <Box>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        {label}
+      </Typography>
+      <Typography variant="body1">
+        {value}
+      </Typography>
+    </Box>
+  </Box>
+);
 
 export default DumpSiteDetails;

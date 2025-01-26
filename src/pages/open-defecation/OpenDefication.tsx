@@ -48,11 +48,6 @@ interface OpenDefecation {
 const columnHelper = createColumnHelper<OpenDefecation>();
 
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'S/N',
-    cell: info => info.getValue(),
-  }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -75,6 +70,10 @@ const columns = [
     header: 'Hamlet',
     cell: info => info.getValue(),
   }),
+  columnHelper.accessor('publicSpace', {
+    header: 'publicSpace',
+    cell: info => info.getValue(),
+  }),  
   columnHelper.accessor('peakTime', {
     header: 'Peak Time',
     cell: info => info.getValue().join(', '),
@@ -180,34 +179,6 @@ const OpenDefication = () => {
       <Paper sx={{ p: 2, borderRadius: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Recent Observations</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search observations..."
-              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Button
-              startIcon={<FaFilter />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Filter
-            </Button>
-            <Button
-              startIcon={<FaDownload />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Export
-            </Button>
-          </Box>
         </Box>
 
         <DataTable 
@@ -218,30 +189,6 @@ const OpenDefication = () => {
           columns={columns}
           data={openDefecations || []}
         />
-
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 3,
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Showing 1 to {limit} of {openDefecations?.length || 0} entries
-          </Typography>
-          <Pagination
-            count={Math.ceil((openDefecations?.length || 0) / limit)}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            sx={{
-              '& .Mui-selected': {
-                bgcolor: '#0EA5E9',
-                color: '#FFFFFF',
-              },
-            }}
-          />
-        </Box>
       </Paper>
     </Box>
   );

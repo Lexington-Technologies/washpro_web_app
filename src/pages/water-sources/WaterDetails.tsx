@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Droplets, Calendar, User, Home, MapIcon, TestTube2, Layers, Users, ArrowLeft, MessageCircle, Download, ZoomIn, X } from 'lucide-react';
+import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { format } from 'date-fns';
 import { 
@@ -9,7 +9,6 @@ import {
   Container,
   IconButton,
   Stack,
-  Tooltip,
   Modal,
   Tabs,
   Tab,
@@ -37,7 +36,6 @@ import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
-import { alpha } from '@mui/material/styles';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -198,7 +196,31 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12} md={7}>
+    <Grid item xs={12}>
+      <Box sx={{ 
+        height: 500, 
+        borderRadius: 2, 
+        overflow: 'hidden',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        mb: 4
+      }}>
+        <MapContainer 
+          center={position} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{waterSource.type} at {waterSource.ward}</Popup>
+          </Marker>
+        </MapContainer>
+      </Box>
+    </Grid>
+
+    <Grid item xs={12} md={4}>
       <Box 
         sx={{ 
           position: 'relative',
@@ -212,11 +234,10 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 400,
+            height: '100%',
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
-            mb: 4,
             boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
           }}
         />
@@ -237,12 +258,15 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
           <ZoomIn />
         </IconButton>
       </Box>
+    </Grid>
 
+    <Grid item xs={12} md={8}>
       <Box sx={{ 
         p: 3, 
         borderRadius: 2,
         bgcolor: 'background.paper',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        height: '100%'
       }}>
         <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
           Location Details
@@ -274,29 +298,6 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             />
           </Grid>
         </Grid>
-      </Box>
-    </Grid>
-
-    <Grid item xs={12} md={5}>
-      <Box sx={{ 
-        height: 400, 
-        borderRadius: 2, 
-        overflow: 'hidden',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
-      }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{waterSource.type} at {waterSource.ward}</Popup>
-          </Marker>
-        </MapContainer>
       </Box>
     </Grid>
   </Grid>

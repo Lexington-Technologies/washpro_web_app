@@ -44,6 +44,7 @@ interface Gutter {
   status: string;
   dischargePoint: string;
   createdBy: string;
+  publicSpace: string;
   capturedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -53,11 +54,6 @@ interface Gutter {
 const columnHelper = createColumnHelper<Gutter>();
 
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'S/N',
-    cell: info => info.getValue(),
-  }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -80,6 +76,11 @@ const columns = [
     header: 'Hamlet',
     cell: info => info.getValue(),
   }),
+  columnHelper.accessor('publicSpace', {
+    header: 'publicSpace',
+    cell: info => info.getValue(),
+  }),
+
   columnHelper.accessor('status', {
     header: 'Status',
     cell: info => (
@@ -326,34 +327,6 @@ const GutterDashboard = () => {
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6">Maintenance Status</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search gutters..."
-              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Button
-              startIcon={<FaFilter />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Filter
-            </Button>
-            <Button
-              startIcon={<FaDownload />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Export
-            </Button>
-          </Box>
         </Box>
 
         <DataTable 
@@ -364,30 +337,6 @@ const GutterDashboard = () => {
           columns={columns}
           data={gutters || []}
         />
-
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 3,
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Showing 1 to {limit} of {gutters?.length || 0} entries
-          </Typography>
-          <Pagination
-            count={Math.ceil((gutters?.length || 0) / limit)}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            sx={{
-              '& .Mui-selected': {
-                bgcolor: '#0EA5E9',
-                color: '#FFFFFF',
-              },
-            }}
-          />
-        </Box>
       </Paper>
 
     </Box>

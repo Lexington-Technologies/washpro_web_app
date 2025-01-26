@@ -9,6 +9,7 @@ import {
   TextField,
   Pagination,
   Avatar, // Add this import at the top
+  Chip,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -43,6 +44,7 @@ interface DumpSite {
   evacuationSchedule: string;
   lastEvacuationDate: string;
   nextScheduledEvacuation: string;
+  publicSpace: string;
   capturedAt: string;
 }
 
@@ -94,12 +96,6 @@ const notificationCards = [
 const columnHelper = createColumnHelper<DumpSite>();
 
 const columns = [
-  columnHelper.accessor((_, index) => index + 1, {
-    id: 'index',
-    header: 'No.',
-    cell: info => info.getValue(),
-    size: 50,
-  }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -125,9 +121,30 @@ const columns = [
   columnHelper.accessor('hamlet', {
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('publicSpace', {
     cell: info => info.getValue(),
   }),
+
+  columnHelper.accessor('status', {
+    header: 'Status',
+    cell: info => {
+      const status = info.getValue();
+      let color;
+      switch (status) {
+        case 'Improved':
+          color = 'success';
+          break;
+        case 'Unimproved':
+          color = 'error';
+          break;
+        default:
+          color = 'default';
+      }
+      return (
+        <Chip label={status} color={color} />
+      );
+    },
+  }),  
   columnHelper.accessor('capturedAt', {
     cell: info => new Date(info.getValue()).toLocaleString(),
   }),
@@ -262,48 +279,6 @@ const DumpSites = () => {
             <Typography variant="h6" sx={{ fontWeight: "bold" }}>
               Dump Site Overview
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                size="small"
-                placeholder="Search sites..."
-                InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Button
-                variant="outlined"
-                sx={{
-                  textTransform: "none",
-                  height: 48,
-                  color: "#1F2937",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src="/svg/filter.svg"
-                  alt="Filter"
-                  style={{ width: 20, height: 20, marginRight: 8 }}
-                />
-                Filter
-              </Button>
-              <Button
-                variant="outlined"
-                sx={{
-                  textTransform: "none",
-                  height: 48,
-                  color: "#1F2937",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src="/svg/dload.svg"
-                  alt="Export"
-                  style={{ width: 20, height: 20, marginRight: 8 }}
-                />
-                Export
-              </Button>
-            </Box>
           </Box>
           <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
           <Box
