@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
+import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X, Toilet } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { format } from 'date-fns';
 import { 
@@ -88,7 +88,7 @@ const ToiletFacilitiesDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {toiletFacility.type}
+                {"Toilet Facility Details"}
               </Typography>
               <Typography color="text.secondary">
                 {toiletFacility.ward}, {toiletFacility.village}
@@ -210,7 +210,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 300,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -261,17 +261,20 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
             <DetailItem icon={Home} label="Space" value={toiletFacility.space} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={toiletFacility.createdBy} />
+            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={6}>
             <DetailItem 
               icon={Calendar} 
               label="Last Updated" 
               value={format(new Date(toiletFacility.updatedAt), 'PPP')} 
             />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
           </Grid>
         </Grid>
       </Box>

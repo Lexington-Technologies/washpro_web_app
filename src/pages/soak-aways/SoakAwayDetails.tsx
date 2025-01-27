@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
+import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X, Waves } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { format } from 'date-fns';
 import { 
@@ -98,7 +98,7 @@ const SoakAwayDetails: React.FC = () => {
             />
             <Chip 
               label={soakAway.condition} 
-              color={soakAway.condition === 'Good' ? 'success' : 'warning'}
+              color={soakAway.condition === 'Maintained' ? 'success' : 'warning'}
             />
           </Stack>
         </Stack>
@@ -110,15 +110,12 @@ const SoakAwayDetails: React.FC = () => {
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
-          <Tab label="Safety Risks" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
           <OverviewTab soakAway={soakAway} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (
-          <SafetyRisksTab safetyRisks={soakAway.safetyRisk} />
-        )}
+        ) : ( null )}
 
         {/* Image Modal */}
         <Modal 
@@ -206,7 +203,7 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 300,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -257,31 +254,25 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
             <DetailItem icon={Home} label="Public Space" value={soakAway.publicSpace} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={soakAway.createdBy} />
+            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={6}>
             <DetailItem 
               icon={Calendar} 
               label="Last Updated" 
               value={format(new Date(soakAway.updatedAt), 'PPP')} 
             />
           </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Waves} label="Safety Risk" value={soakAway.safetyRisk} />
+          </Grid>
         </Grid>
       </Box>
     </Grid>
   </Grid>
-);
-
-const SafetyRisksTab = ({ safetyRisks }: { safetyRisks: string }) => (
-  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
-    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-      Safety Risks
-    </Typography>
-    <Typography variant="body1">{safetyRisks}</Typography>
-  </Box>
 );
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (

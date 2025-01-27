@@ -36,6 +36,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
+import { GiWell } from 'react-icons/gi';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -112,7 +113,7 @@ const WaterSourceDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {waterSource.type}
+                {"Water Source Details"}
               </Typography>
               <Typography color="text.secondary">
                 {waterSource.ward}, {waterSource.village}
@@ -126,7 +127,7 @@ const WaterSourceDetails: React.FC = () => {
             />
             <Chip 
               label={waterSource.quality} 
-              color={waterSource.quality === 'Drinkable' ? 'success' : 'warning'}
+              color={waterSource.quality === 'Drinkable' ? 'success' : 'error'}
             />
           </Stack>
         </Stack>
@@ -218,7 +219,10 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
           </Marker>
         </MapContainer>
       </Box>
-    </Grid>
+{/* <Typography variant="h6" line sx={{ color: '#25306B', fontWeight: 300 }}>
+            General Details
+          </Typography>     */}
+          </Grid>
 
     <Grid item xs={12} md={4}>
       <Box 
@@ -234,7 +238,7 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 300,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -285,23 +289,28 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             <DetailItem icon={Home} label="Space" value={waterSource.space} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={waterSource.createdBy} />
+            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+        <Grid item xs={6}>
             <DetailItem 
               icon={Calendar} 
               label="Last Updated" 
               value={format(new Date(waterSource.updatedAt), 'PPP')} 
             />
           </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource.type} />
+          </Grid>
+
         </Grid>
       </Box>
     </Grid>
   </Grid>
 );
+
 
 const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   const barData = [

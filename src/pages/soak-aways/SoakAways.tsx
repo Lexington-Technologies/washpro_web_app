@@ -12,10 +12,8 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  TextField,
   Chip,
   Avatar,
-  Pagination,
 } from '@mui/material';
 import {
   FilterAlt as FilterAltIcon,
@@ -23,7 +21,6 @@ import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Waves,
-  Search,
 } from '@mui/icons-material';
 import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
@@ -93,7 +90,8 @@ const columns = [
     cell: info => (
       <Chip
         label={info.getValue()}
-        color={info.getValue() === 'Maintained' ? 'success' : 'warning'}
+        color={info.getValue() === 'Improved' ? 'success' : 'error'}
+
         size="small"
       />
     ),
@@ -336,34 +334,6 @@ const SoakAways = () => {
       <Paper sx={{ mt: 3, p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Typography variant="h6">Soakaway Overview</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search soakaways..."
-              InputProps={{ startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} /> }}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Button
-              startIcon={<FaFilter />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Filter
-            </Button>
-            <Button
-              startIcon={<FaDownload />}
-              sx={{
-                color: '#1F2937',
-                borderColor: '#E5E7EB',
-                '&:hover': { bgcolor: '#F9FAFB' },
-              }}
-            >
-              Export
-            </Button>
-          </Box>
         </Box>
 
         <DataTable 
@@ -375,29 +345,6 @@ const SoakAways = () => {
           data={soakAways || []}
         />
 
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mt: 3,
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Showing 1 to {limit} of {soakAways?.length || 0} entries
-          </Typography>
-          <Pagination
-            count={Math.ceil((soakAways?.length || 0) / limit)}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            sx={{
-              '& .Mui-selected': {
-                bgcolor: '#0EA5E9',
-                color: '#FFFFFF',
-              },
-            }}
-          />
-        </Box>
       </Paper>
     </Box>
   );

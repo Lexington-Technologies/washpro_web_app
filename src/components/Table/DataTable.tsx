@@ -115,7 +115,7 @@ export function DataTable<T extends object>({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <TextField
                     select
-                    label="Ward"
+                    // label="Ward"
                     variant="outlined"
                     size="small"
                     value={selectedWard}
@@ -137,7 +137,7 @@ export function DataTable<T extends object>({
                 </TextField>
                 <TextField
                     select
-                    label="Village"
+                    // label="Village"
                     variant="outlined"
                     size="small"
                     value={selectedVillage}
@@ -159,7 +159,7 @@ export function DataTable<T extends object>({
                 </TextField>
                 <TextField
                     select
-                    label="Hamlet"
+                    // label="Hamlet"
                     variant="outlined"
                     size="small"
                     value={selectedHamlet}
@@ -186,6 +186,8 @@ export function DataTable<T extends object>({
                         onChange={e => setGlobalFilter(e.target.value)}
                         placeholder={searchPlaceholder}
                         sx={{
+                            width: '50%',
+                            marginLeft: 'auto',
                             '& .MuiOutlinedInput-root': {
                                 borderRadius: '8px',
                                 backgroundColor: '#ffffff',

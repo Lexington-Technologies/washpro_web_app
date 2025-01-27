@@ -281,36 +281,6 @@ const DumpSites = () => {
             </Typography>
           </Box>
           <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 2,
-            }}
-          >
-            <Typography variant="body2" sx={{ color: "#25306B" }}>
-              Showing 1 to {limit} of {data?.length || 0} entries
-            </Typography>
-            <Pagination
-              count={Math.ceil((data?.length || 0) / limit)}
-              variant="outlined"
-              shape="rounded"
-              sx={{
-                "& .MuiPaginationItem-root": {
-                  color: "#25306B", // Default color
-                },
-                "& .Mui-selected": {
-                  backgroundColor: "#2563EB", // Active page background color
-                  color: "#ffffff", // Active page text color
-                  "&:hover": {
-                    backgroundColor: "#1D4ED8", // Darker shade on hover
-                  },
-                },
-              }}
-              onChange={(_, value) => setPage(value)}
-            />
-          </Box>
         </CardContent>
       </Card>
 

@@ -88,16 +88,16 @@ const GutterDetails: React.FC = () => {
               </Typography>
             </Box>
           </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center">
             <Chip 
               label={gutter.status} 
-              color={gutter.status === 'Maintained' ? 'success' : 'error'}
+              color={gutter.status === 'Maintained' ? 'success' : gutter.status === 'Error' ? 'error' : 'warning'}
             />
             <Chip 
               label={gutter.condition} 
-              color={gutter.condition === 'Good' ? 'success' : 'warning'}
+              color={gutter.condition === 'Good' ? 'success' : gutter.condition === 'Error' ? 'error' : 'warning'}
             />
-          </Stack>
+            </Stack>
         </Stack>
 
         {/* Tabs */}
@@ -107,15 +107,12 @@ const GutterDetails: React.FC = () => {
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
-          <Tab label="Discharge Point" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
           <OverviewTab gutter={gutter} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (
-          <DischargePointTab dischargePoint={gutter.dischargePoint} />
-        )}
+        ) : ( null )}
 
         {/* Image Modal */}
         <Modal 
@@ -203,7 +200,7 @@ const OverviewTab = ({ gutter, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 300,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -254,31 +251,25 @@ const OverviewTab = ({ gutter, position, onImageClick }: {
             <DetailItem icon={Home} label="Public Space" value={gutter.publicSpace} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={gutter.createdBy} />
+            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={6}>
             <DetailItem 
               icon={Calendar} 
               label="Last Updated" 
               value={format(new Date(gutter.updatedAt), 'PPP')} 
             />
           </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Discharge Point" value={gutter.dischargePoint} />
+          </Grid>
         </Grid>
       </Box>
     </Grid>
   </Grid>
-);
-
-const DischargePointTab = ({ dischargePoint }: { dischargePoint: string }) => (
-  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
-    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-      Discharge Point
-    </Typography>
-    <Typography variant="body1">{dischargePoint}</Typography>
-  </Box>
 );
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (

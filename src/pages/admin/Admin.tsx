@@ -272,8 +272,8 @@ const UserPage: React.FC = () => {
             <TableRow>
               <TableCell sx={{ color: 'white' }}>Full Name</TableCell>
               <TableCell sx={{ color: 'white' }}>Email</TableCell>
-              <TableCell sx={{ color: 'white' }}>Phone</TableCell>
               <TableCell sx={{ color: 'white' }}>Role</TableCell>
+              <TableCell sx={{ color: 'white' }}>Phone</TableCell>
               <TableCell sx={{ color: 'white' }}>Status</TableCell>
               <TableCell sx={{ color: 'white' }}>Last Login</TableCell>
               <TableCell sx={{ color: 'white' }}>Action</TableCell>

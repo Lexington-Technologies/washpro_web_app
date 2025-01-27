@@ -99,15 +99,12 @@ const OpenDeficationDetails: React.FC = () => {
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
-          <Tab label="Environmental Characteristics" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
           <OverviewTab openDefication={openDefication} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (
-          <EnvironmentalCharacteristicsTab environmentalCharacteristics={openDefication.environmentalCharacteristics} />
-        )}
+        ) : (null)}
 
         {/* Image Modal */}
         <Modal 
@@ -195,7 +192,7 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: '100%',
+            height: 300,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -246,37 +243,25 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
             <DetailItem icon={Home} label="Public Space" value={openDefication.publicSpace} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={openDefication.createdBy} />
+            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={6}>
             <DetailItem 
               icon={Calendar} 
               label="Last Updated" 
               value={format(new Date(openDefication.updatedAt), 'PPP')} 
             />
           </Grid>
+            <Grid item xs={6}>
+            <DetailItem icon={User} label="Environmental Characteristics" value={openDefication.environmentalCharacteristics} />
+          </Grid>
         </Grid>
       </Box>
     </Grid>
   </Grid>
-);
-
-const EnvironmentalCharacteristicsTab = ({ environmentalCharacteristics }: { environmentalCharacteristics: string[] }) => (
-  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
-    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-      Environmental Characteristics
-    </Typography>
-    <ul>
-      {environmentalCharacteristics.map((characteristic, index) => (
-        <li key={index}>
-          <Typography variant="body1">{characteristic}</Typography>
-        </li>
-      ))}
-    </ul>
-  </Box>
 );
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (

@@ -152,7 +152,7 @@ const columns = [
     header: 'Status',
     cell: info => {
       const status = info.getValue();
-      let color;
+      let color: 'default' | 'success' | 'error' | 'warning' | 'primary' | 'secondary' | 'info';
       switch (status) {
         case 'Functional':
           color = 'success';
@@ -164,7 +164,7 @@ const columns = [
           color = 'warning';
           break;
         default:
-          color = 'default';
+          color = 'warning';
       }
       return (
         <Chip label={status} color={color} />
