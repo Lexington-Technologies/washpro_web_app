@@ -1,32 +1,23 @@
-import { useState } from 'react';
-import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  TextField,
-  Pagination,
-  Avatar, // Add this import at the top
-  Chip,
-} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import AddIcon from "@mui/icons-material/Add";
-import { Search } from '@mui/icons-material';
-import { DataTable } from '../../components/Table/DataTable';
-import { createColumnHelper } from '@tanstack/react-table';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent, // Add this import at the top
+  Chip,
+  Grid,
+  Typography
+} from "@mui/material";
 import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import { FaDumpster } from "react-icons/fa";
+import { IoWarning } from "react-icons/io5";
 import { apiController } from '../../axios';
-
-const metricCards = [
-  { title: "Total Site", value: "24", icon: "/svg/pie.svg", bgColor: "#e3f2fd" },
-  { title: "Maintained", value: "14", icon: <CheckCircleIcon sx={{ fontSize: 15, color: "#16A34A" }} />, bgColor: "#e8f5e9" },
-  { title: "Overfilled", value: "3", icon: <ErrorIcon sx={{ fontSize: 15, color: "#D32F2F" }} />, bgColor: "#ffebee" },
-  { title: "Unmaintained", value: "7", icon: <WarningAmberIcon sx={{ fontSize: 15, color: "#EAB308" }} />, bgColor: "#fffde7" },
-];
+import { DataTable } from '../../components/Table/DataTable';
 
 interface DumpSite {
   _id: string;
@@ -52,7 +43,7 @@ const notificationCards = [
   {
     title: "Critical Sites",
     count: "3 sites",
-    countColor: "#D32F2F", 
+    countColor: "#D32F2F",
     items: [
       {
         label: "East End Facility",
@@ -102,8 +93,8 @@ const columns = [
       <Avatar
         src={props.getValue()}
         alt="Dump Site"
-        sx={{ 
-          width: 40, 
+        sx={{
+          width: 40,
           height: 40,
           borderRadius: '50%',
           border: '2px solid #e5e7eb',
@@ -144,13 +135,14 @@ const columns = [
         <Chip label={status} color={color} />
       );
     },
-  }),  
+  }),
   columnHelper.accessor('capturedAt', {
     cell: info => new Date(info.getValue()).toLocaleString(),
   }),
 ];
 
 const DumpSites = () => {
+  const [dumpSites, setDumpSites] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -159,7 +151,44 @@ const DumpSites = () => {
     queryKey: ['dump-sites', { limit, page, search }],
     queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("dumpdata",data)
+
+  useEffect(() => {
+    if (data) {
+      setDumpSites(data)
+    }
+  }, [data]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
+  const metricCards = [
+    {
+      title: "Total Dump Site",
+      value: data?.length,
+      icon: <FaDumpster style={{ fontSize: '1.8rem', color: '#00B4D8' }}/>,
+      bgColor: "#e3f2fd"
+    },
+    {
+      title: "Maintained",
+      value: countByProperty(data, 'condition', 'Maintained'),
+      icon: <CheckCircleIcon sx={{ fontSize: '1.8rem', color: "#16A34A" }} />,
+      bgColor: "#e8f5e9"
+    },
+    {
+      title: "Unmaintained", value: countByProperty(data, 'condition', 'Unmaintained'),
+      icon: <IoWarning style={{ fontSize: '1.8rem', color: "#EAB308" }} />, bgColor: "#ffebee"
+    },
+    {
+      title: "Overfilled", value: countByProperty(data, 'condition', 'Overfilled'),
+      icon: <ErrorIcon sx={{ fontSize: '1.8rem', color: "#D32F2F" }} />, bgColor: "#fffde7"
+    },
+  ];
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header Section */}
@@ -247,18 +276,7 @@ const DumpSites = () => {
                   overflow: "hidden",
                 }}
               >
-                {typeof card.icon === "string" ? (
-                  <img
-                    src={card.icon}
-                    alt={card.title}
-                    style={{
-                      width: "30%",
-                      height: "auto",
-                    }}
-                  />
-                ) : (
-                  card.icon
-                )}
+                {card.icon}
               </Box>
             </Card>
           </Grid>

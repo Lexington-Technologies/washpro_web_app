@@ -1,17 +1,17 @@
-import React from 'react';
-import {
-  Box,
-  Typography,
-  Card,
-  Button,
-  Paper,
-} from '@mui/material';
+import { Waves } from '@mui/icons-material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import {
+  Box,
+  Button,
+  Card,
+  Paper,
+  Typography,
+} from '@mui/material';
+import React from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
-import { Waves } from '@mui/icons-material';
 
 const WaterSourceRisk = () => {
   return (
@@ -97,7 +97,7 @@ const WaterSourceRisk = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#f44336' }} />
-                <Typography>Critical Risk (&lt;5m)</Typography>
+                <Typography>Critical Risk (&lt;10m)</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />

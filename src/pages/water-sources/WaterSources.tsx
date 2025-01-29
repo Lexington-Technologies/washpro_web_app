@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  Button,
-  styled,
-  Card,
-  TextField,
   Avatar,
+  Box,
+  Button,
+  Card,
   Chip,
+  Grid,
+  Paper,
+  styled,
+  Typography
 } from '@mui/material';
-import {
-  Search,
-} from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import React, { useEffect, useState } from 'react';
 import { FaCheck, FaFilter, FaTimes } from 'react-icons/fa';
 import { FaFaucet, FaFaucetDrip, FaWrench } from 'react-icons/fa6';
 import { GiWell } from 'react-icons/gi';
+import { RiWaterFlashFill } from 'react-icons/ri';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
-import { createColumnHelper } from '@tanstack/react-table';
-import { useQuery } from '@tanstack/react-query';
-import { RiWaterFlashFill } from 'react-icons/ri';
 
 // Interfaces
 interface StatCardProps {
@@ -122,8 +118,8 @@ const columns = [
       <Avatar
         src={props.row.original.picture}
         alt="water source"
-        sx={{ 
-          width: 40, 
+        sx={{
+          width: 40,
           height: 40,
           borderRadius: '20%', // Make avatar round
           border: '2px solid #e5e7eb', // Add subtle border
@@ -145,7 +141,7 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
-    header: 'publicSpace',
+    header: 'Category',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('status', {
@@ -236,7 +232,6 @@ const WaterSourcesDashboard: React.FC = () => {
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("water", {data});
 
   useEffect(() => {
     if (data) {
@@ -264,8 +259,6 @@ const WaterSourcesDashboard: React.FC = () => {
       const functionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Functional').length;
       const nonFunctionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Non Functional').length;
       const maintenanceDueNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Maintenance Due').length;
-
-      console.log("watersource", {data});
 
       setAnalytics({
         totalSources,
@@ -357,7 +350,7 @@ const WaterSourcesDashboard: React.FC = () => {
             Wells
           </Typography>
         </Box>
-        
+
       </Box>
 
       {/* Well Stats */}
@@ -401,7 +394,7 @@ const WaterSourcesDashboard: React.FC = () => {
           Hand Pump Boreholes
           </Typography>
         </Box>
-        
+
       </Box>
 
       {/* Handpump Boreholes Stats */}

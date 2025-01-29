@@ -1,39 +1,39 @@
 import {
-  Box,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
-  Divider,
-  Collapse,
-  IconButton,
-} from "@mui/material";
-import { Link, NavLink } from "react-router-dom";
-import { useMediaQuery, useTheme, Drawer } from "@mui/material";
-import {
+  Book,
+  Close,
   Dashboard,
   Delete,
-  Waves,
-  Logout,
   ExpandLess,
   ExpandMore,
+  Logout,
   People,
-  SmartToy,
-  Book,
-  Schedule,
-  WavesOutlined,
   Report,
-  Close,
+  Schedule,
+  SmartToy,
+  Waves,
+  WavesOutlined,
 } from "@mui/icons-material";
+import {
+  Box,
+  Collapse,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery, useTheme,
+} from "@mui/material";
 import { useState } from "react";
-import { RiWaterFlashFill } from "react-icons/ri";
-import { FaToilet, FaPoop, FaUserCog, FaCog } from "react-icons/fa";
-import { MdSanitizer } from "react-icons/md";
-import { useAuthStore } from "../store";
-import { useNavigate } from "react-router-dom";
-import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { BsShieldFillPlus } from "react-icons/bs";
+import { FaCog, FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
+import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
+import { MdSanitizer } from "react-icons/md";
+import { RiWaterFlashFill } from "react-icons/ri";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -325,8 +325,8 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
             },
           }}
         >
-          <ListItemIcon sx={{ 
-            minWidth: 40, 
+          <ListItemIcon sx={{
+            minWidth: 40,
             color: "inherit",
             justifyContent: "center",
             "& svg": {

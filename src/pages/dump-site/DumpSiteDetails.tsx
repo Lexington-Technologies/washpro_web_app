@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';
-import { 
-  Box, 
-  Typography,
-  Grid,
-  Container,
-  IconButton,
-  Stack,
-  Modal,
-  Tabs,
-  Tab,
+import {
   Alert,
+  Box,
   Chip,
-  Divider
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Modal,
+  Stack,
+  Typography
 } from '@mui/material';
-import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Calendar, Home, MapPin, X, ZoomIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { FaRegCircleUser } from 'react-icons/fa6';
+import { MdOutlineCleaningServices } from 'react-icons/md';
+import { PiRecycleFill } from 'react-icons/pi';
+import { RiAlarmWarningLine, RiDeleteBin6Line } from 'react-icons/ri';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the dump site
@@ -93,34 +95,23 @@ const DumpSiteDetails: React.FC = () => {
           </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Chip 
-              label={dumpSite.status} 
+            <Chip
+              label={dumpSite.status}
               color={dumpSite.status === 'Improved' ? 'success' : 'error'}
             />
-            <Chip 
-              label={dumpSite.condition} 
+            <Chip
+              label={dumpSite.condition}
               color={dumpSite.condition === 'Maintained' ? 'success' : 'error'}
             />
           </Stack>
         </Stack>
 
-        {/* Tabs */}
-        <Tabs 
-          value={activeTab} 
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab label="Overview" />
-        </Tabs>
 
-        {/* Tab Panels */}
-        {activeTab === 0 ? (
-          <OverviewTab dumpSite={dumpSite} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : null}
+        <OverviewTab dumpSite={dumpSite} position={position} onImageClick={() => setIsImageOpen(true)} />
 
         {/* Image Modal */}
-        <Modal 
-          open={isImageOpen} 
+        <Modal
+          open={isImageOpen}
           onClose={() => setIsImageOpen(false)}
           sx={{
             display: 'flex',
@@ -160,39 +151,71 @@ const DumpSiteDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ dumpSite, position, onImageClick }: { 
-  dumpSite: DumpSite; 
+const OverviewTab = ({ dumpSite, position, onImageClick }: {
+  dumpSite: DumpSite;
   position: [number, number];
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12}>
-      <Box sx={{ 
-        height: 500, 
-        borderRadius: 2, 
-        overflow: 'hidden',
+    <Grid item xs={12} md={8}>
+      <Box sx={{
+        p: 3,
+        borderRadius: 2,
+        bgcolor: 'background.paper',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
+        height: '100%'
       }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{dumpSite.type} at {dumpSite.ward}</Popup>
-          </Marker>
-        </MapContainer>
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Location Details
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MapPin} label="Location" value={`${dumpSite.hamlet}, ${dumpSite.village}`} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Public Space" value={dumpSite.publicSpace} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={RiDeleteBin6Line} label="Status" value={dumpSite.status} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={MdOutlineCleaningServices} label="Condition" value={dumpSite.condition} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={RiAlarmWarningLine} label="Safety Risk Level" value={dumpSite.safetyRisk} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={PiRecycleFill} label="Evacuation Shedule" value={dumpSite.evacuationSchedule} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(dumpSite.updatedAt), 'PPP')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={FaRegCircleUser} label="Captured By" value={'AbdulUbaid'} />
+          </Grid>
+        </Grid>
       </Box>
     </Grid>
 
     <Grid item xs={12} md={4}>
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 }
         }}
@@ -204,7 +227,7 @@ const OverviewTab = ({ dumpSite, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 300,
+            height: 400,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -230,47 +253,27 @@ const OverviewTab = ({ dumpSite, position, onImageClick }: {
       </Box>
     </Grid>
 
-    <Grid item xs={12} md={8}>
-      <Box sx={{ 
-        p: 3, 
+    <Grid item xs={12}>
+      <Box sx={{
+        height: 500,
         borderRadius: 2,
-        bgcolor: 'background.paper',
+        overflow: 'hidden',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        height: '100%'
+        mb: 4
       }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-          Location Details
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={MapPin} label="Location" value={`${dumpSite.hamlet}, ${dumpSite.village}`} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Users} label="Condition" value={dumpSite.condition || 'Not specified'} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={dumpSite.publicSpace} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem 
-              icon={Calendar} 
-              label="Last Updated" 
-              value={format(new Date(dumpSite.updatedAt), 'PPP')} 
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={dumpSite.safetyRisk} />
-          </Grid>
-        </Grid>
+        <MapContainer
+          center={position}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{dumpSite.type} at {dumpSite.ward}</Popup>
+          </Marker>
+        </MapContainer>
       </Box>
     </Grid>
   </Grid>

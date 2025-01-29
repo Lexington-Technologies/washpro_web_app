@@ -1,25 +1,29 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X, Toilet } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';
-import { 
-  Box, 
-  Typography,
-  Grid,
-  Container,
-  IconButton,
-  Stack,
-  Modal,
-  Tabs,
-  Tab,
+import {
   Alert,
+  Box,
+  capitalize,
   Chip,
-  Divider
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Modal,
+  Stack,
+  Typography
 } from '@mui/material';
-import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Calendar, Home, MapPin, Toilet, User, Users, X, ZoomIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { FaChartSimple } from 'react-icons/fa6';
+import { FiAlertOctagon } from "react-icons/fi";
+import { GiSpill } from "react-icons/gi";
+import { MdCleaningServices, MdOutlineWash } from 'react-icons/md';
+import { RiDoorLine } from 'react-icons/ri';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the toilet facility
@@ -96,37 +100,35 @@ const ToiletFacilitiesDetails: React.FC = () => {
             </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Chip 
-              label={toiletFacility.status} 
+            <Chip
+              label={toiletFacility.status}
               color={toiletFacility.status === 'Improved' ? 'success' : 'error'}
             />
-            <Chip 
-              label={toiletFacility.condition} 
+            <Chip
+              label={toiletFacility.condition}
               color={toiletFacility.condition === 'Maintained' ? 'success' : 'warning'}
             />
           </Stack>
         </Stack>
 
         {/* Tabs */}
-        <Tabs 
-          value={activeTab} 
+        {/* <Tabs
+          value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
           <Tab label="Safety Risks" />
-        </Tabs>
+        </Tabs> */}
 
         {/* Tab Panels */}
-        {activeTab === 0 ? (
+        {/* {activeTab === 0 ? ( */}
           <OverviewTab toiletFacility={toiletFacility} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (
-          <SafetyRisksTab safetyRisks={toiletFacility.safetyRisk} />
-        )}
+
 
         {/* Image Modal */}
-        <Modal 
-          open={isImageOpen} 
+        <Modal
+          open={isImageOpen}
           onClose={() => setIsImageOpen(false)}
           sx={{
             display: 'flex',
@@ -166,39 +168,17 @@ const ToiletFacilitiesDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ toiletFacility, position, onImageClick }: { 
-  toiletFacility: ToiletFacility; 
+const OverviewTab = ({ toiletFacility, position, onImageClick }: {
+  toiletFacility: ToiletFacility;
   position: [number, number];
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12}>
-      <Box sx={{ 
-        height: 500, 
-        borderRadius: 2, 
-        overflow: 'hidden',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
-      }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{toiletFacility.type} at {toiletFacility.ward}</Popup>
-          </Marker>
-        </MapContainer>
-      </Box>
-    </Grid>
+
 
     <Grid item xs={12} md={4}>
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 }
         }}
@@ -210,7 +190,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 300,
+            height: 600,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -237,8 +217,8 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
     </Grid>
 
     <Grid item xs={12} md={8}>
-      <Box sx={{ 
-        p: 3, 
+      <Box sx={{
+        p: 3,
         borderRadius: 2,
         bgcolor: 'background.paper',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
@@ -247,36 +227,93 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
         <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
           Location Details
         </Typography>
+
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem icon={MapPin} label="Location" value={`${toiletFacility.hamlet}, ${toiletFacility.village}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependents" value={toiletFacility.dependent || 'Not specified'} />
+            <DetailItem icon={Home} label="Category" value={toiletFacility.space} />
           </Grid>
         </Grid>
+
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Space" value={toiletFacility.space} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem 
-              icon={Calendar} 
-              label="Last Updated" 
-              value={format(new Date(toiletFacility.updatedAt), 'PPP')} 
-            />
-          </Grid>
           <Grid item xs={6}>
             <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
           </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Dependents" value={toiletFacility.dependent || 'Not specified'} />
+          </Grid>
         </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={FaChartSimple} label="Toilet Status" value={toiletFacility.status} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MdOutlineWash} label="Hand Washing" value={capitalize(toiletFacility.handWashingFacility)} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={RiDoorLine} label="Compactments" value={toiletFacility.compactments || 'Not specified'} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk.join(', ')} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={GiSpill} label="Evacuation Status" value={toiletFacility.daysSinceLastEvacuation || 'Not specified'} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Captured By" value={`Abdul Ubaid,\n(09118140594)`} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(toiletFacility.updatedAt), 'PPP')}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+    </Grid>
+
+    <Grid item xs={12}>
+      <Box sx={{
+        height: 500,
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        mb: 4
+      }}>
+        <MapContainer
+          center={position}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{toiletFacility.type} at {toiletFacility.ward}</Popup>
+          </Marker>
+        </MapContainer>
       </Box>
     </Grid>
   </Grid>

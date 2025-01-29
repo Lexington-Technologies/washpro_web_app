@@ -1,33 +1,30 @@
-import React, { useState } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Grid,
-  styled,
   Alert,
-  Container,
-  Card,
-  TextField,
   Avatar,
+  Box,
+  Button,
+  Card,
   Chip,
+  Container,
+  Grid,
+  Paper,
+  styled,
+  Typography
 } from '@mui/material';
-import {
-  Warning,
-  Search,
-} from '@mui/icons-material';
-import { FaDownload, FaFilter, FaHandSparkles, FaSink, FaWrench, FaCalendar, FaCalendarCheck } from 'react-icons/fa';
-import { FaArrowTrendDown } from 'react-icons/fa6';
 import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
+import React, { useEffect, useState } from 'react';
+import { FaDownload, FaFilter, FaToilet } from 'react-icons/fa';
+import { GiHole } from "react-icons/gi";
+import { LuToilet } from "react-icons/lu";
+import { PiToiletFill } from "react-icons/pi";
 import { apiController } from '../../axios';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import { DataTable } from '../../components/Table/DataTable';
-import { createColumnHelper } from '@tanstack/react-table';
 
 interface StatCardProps {
   title: string;
-  value: number;
+  value: number| void;
   icon?: React.ReactNode;
   bgColor?: string;
 }
@@ -92,13 +89,13 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
         </Typography>
       </Box>
       {icon && (
-        <Box sx={{ 
-          bgcolor: bgColor, 
-          p: 1, 
+        <Box sx={{
+          bgcolor: bgColor,
+          p: 1,
           borderRadius: 1,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center' 
+          justifyContent: 'center'
         }}>
           {icon}
         </Box>
@@ -106,15 +103,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
     </Box>
   </StyledPaper>
 );
-
-const ActionButton = styled(Button)(({ theme }) => ({
-  width: '100%',
-  justifyContent: 'flex-start',
-  padding: theme.spacing(2),
-  borderRadius: theme.spacing(1),
-  textTransform: 'none',
-  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-}));
 
 const columnHelper = createColumnHelper<ToiletFacility>();
 
@@ -125,8 +113,8 @@ const columns = [
       <Avatar
         src={props.row.original.picture}
         alt="toilet facility"
-        sx={{ 
-          width: 40, 
+        sx={{
+          width: 40,
           height: 40,
           borderRadius: '50%', // Make avatar round
           border: '2px solid #e5e7eb', // Add subtle border
@@ -178,6 +166,7 @@ const columns = [
 ];
 
 const ToiletFacilities: React.FC = () => {
+  const [toilets, setToilets] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -186,7 +175,21 @@ const ToiletFacilities: React.FC = () => {
     queryKey: ['toilet-facilities', { limit, page, search }],
     queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("toilet",data)
+
+  useEffect(() => {
+    if (data) {
+      setToilets(data)
+    }
+  }, [data]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
 
   if (isLoading) return <LoadingAnimation />;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
@@ -222,106 +225,43 @@ const ToiletFacilities: React.FC = () => {
       </Box>
 
       <Typography variant="h6" color='#1F2937' sx={{ mb: 2  }}>
-        Handwashing Facilities
+        Overview
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <StatCard
-            title="Total Units"
-            value={85}
-            icon={<FaSink style={{ color: '#0EA5E9' }} />}
+            title="Total Toilet Facility"
+            value={data?.length}
+            icon={<LuToilet style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <StatCard
-            title="Functional"
-            value={77}
-            icon={<FaHandSparkles style={{ color: '#4CAF50' }} />}
+            title="Pit Latrine"
+            value={countByProperty(data, 'type', 'Pit Latrine')}
+            icon={<GiHole style={{ color: '#4CAF50', fontSize: '1.8rem' }} />}
             bgColor="#E8F5E9"
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <StatCard
-            title="Under Repair"
-            value={7}
-            icon={<FaWrench style={{ color: '#FF9800' }} />}
+            title="WC Sitting"
+            value={countByProperty(data, 'type', 'WC Sitting')}
+            icon={<FaToilet style={{ color: '#FF9800', fontSize: '2rem' }} />}
             bgColor="#FFF3E0"
           />
         </Grid>
-      </Grid>
-
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <StatCard
-            title="Latrines"
-            value={34}
-            icon={<FaSink style={{ color: '#0EA5E9' }} />}
-            bgColor="#E3F2FD"
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard
-            title="Squatting"
-            value={18}
-            icon={<FaSink style={{ color: '#0EA5E9' }} />}
-            bgColor="#E3F2FD"
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard
-            title="WC"
-            value={20}
-            icon={<FaSink style={{ color: '#0EA5E9' }} />}
+            title="WC Squatting"
+            value={countByProperty(data, 'type', 'WC Squatting')}
+            icon={<PiToiletFill style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
         </Grid>
       </Grid>
-
-      <StyledPaper sx={{ mt: 3 }}>
-        <Typography variant="h6" sx={{ mb: 3 }}>
-          Quick Actions
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <ActionButton
-              variant="outlined"
-              sx={{ backgroundColor: "#EFF6FF", color: "#1E3A8A" }}
-              startIcon={<Warning />}
-            >
-              Report Issue
-            </ActionButton>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ActionButton
-              variant="outlined"
-              sx={{ backgroundColor: "#FAF5FF", color: "#7E22CE" }}
-              startIcon={<FaCalendar />}
-            >
-              Schedule Cleaning
-            </ActionButton>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ActionButton
-              variant="outlined"
-              sx={{ backgroundColor: "#F0FDF4", color: "#15803D" }}
-              startIcon={<FaCalendarCheck />}
-            >
-              Maintenance Log
-            </ActionButton>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ActionButton
-              variant="outlined"
-              sx={{ backgroundColor: "#FFF7ED", color:"#C2410C" }}
-              startIcon={<FaArrowTrendDown />}
-            >
-              View Analytics
-            </ActionButton>
-          </Grid>
-        </Grid>
-      </StyledPaper>
 
       {/* Table Section */}
       <Card sx={{ mt: 3, boxShadow: 5 }}>

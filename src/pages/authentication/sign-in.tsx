@@ -1,7 +1,7 @@
-import { FC, useState } from "react";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
+  Box,
   Button,
   Checkbox,
   CircularProgress,
@@ -11,8 +11,8 @@ import {
   TextField,
   Typography,
   useMediaQuery,
-  Box,
 } from "@mui/material";
+import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useAuthStore, useSnackStore } from "../../store";
@@ -44,19 +44,19 @@ const SignInPage: FC = function () {
     e.preventDefault();
     setLoading(true);
     setIsSubmitting(true);
-  
+
     // Trim whitespace from the email before submission
     const sanitizedFormData = {
       ...formData,
       email: formData.email.trim(),
     };
-  
+
     try {
       const response = await apiController.post<LoginResponse>(
         "/user/login",
         sanitizedFormData
       );
-  
+
       logIn(response.user, response.token, response.refreshToken);
       // setAlert({ variant: "success", message: "Login successful" });
       navigate("/");
@@ -70,7 +70,7 @@ const SignInPage: FC = function () {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Box
       sx={{
@@ -153,7 +153,7 @@ const SignInPage: FC = function () {
             <img
               src="/logo.png"
               alt="Logo"
-              style={{ width: 350, }}
+              style={{ width: 300, }}
             />
             <Typography variant="h6" sx={{ mt: 2 }}>
               Enter your details to access your account.
