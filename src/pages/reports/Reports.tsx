@@ -42,16 +42,16 @@ import React, { useState } from 'react';
 const recentReports = [
   {
     id: 1,
-    title: 'Monthly Water Quality Assessment',
+    title: 'Baseline Public sanitation, hygiene and water status ',
     description: 'Comprehensive analysis of water quality metrics across all sources for June 2023',
     date: '2023-06-15',
     type: 'Water Quality',
     icon: <WaterDrop />,
-    downloads: 45,
-    views: 128,
+    downloads: 25,
+    views: 48,
     color: '#2196f3',
-    downloadUrl: 'https://example.com/reports/water-quality-june-2023.pdf',
-    viewUrl: 'https://example.com/view/water-quality-june-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1B9sX9SCF8oS6DAzfaLigjz_nXhXW9u_hKVJKMrZtbII/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/1B9sX9SCF8oS6DAzfaLigjz_nXhXW9u_hKVJKMrZtbII/edit?usp=sharing',
   },
   {
     id: 2,
@@ -64,11 +64,11 @@ const recentReports = [
     views: 95,
     color: '#4caf50',
     downloadUrl: 'https://docs.google.com/spreadsheets/d/1AtpMFgVrsgtBF0r-Z7xYGzIXIe55S2b8Sd7Jdx-mukw/edit?usp=sharing',
-    viewUrl: 'https://example.com/view/sanitation-status-june-2023',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/1AtpMFgVrsgtBF0r-Z7xYGzIXIe55S2b8Sd7Jdx-mukw/edit?usp=sharing',
   },
   {
     id: 3,
-    title: 'Waste Management Overview',
+    title: 'Community sanitation facilities',
     description: 'Analysis of waste management practices and dump site conditions',
     date: '2023-06-05',
     type: 'Waste',
@@ -76,15 +76,15 @@ const recentReports = [
     downloads: 28,
     views: 82,
     color: '#ff9800',
-    downloadUrl: 'https://example.com/reports/waste-management-june-2023.pdf',
-    viewUrl: 'https://example.com/view/waste-management-june-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/16UwhRBvago1avJYqbXXjK6Z-i-uxT458lbvPW0wTC7g/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/16UwhRBvago1avJYqbXXjK6Z-i-uxT458lbvPW0wTC7g/edit?usp=sharing',
   }
 ];
 
 const generalReports = [
   {
     id: 4,
-    title: 'Annual Infrastructure Assessment',
+    title: 'General community information',
     description: 'Yearly evaluation of water and sanitation infrastructure condition',
     date: '2023-05-20',
     type: 'Infrastructure',
@@ -92,12 +92,12 @@ const generalReports = [
     downloads: 156,
     views: 423,
     color: '#9c27b0',
-    downloadUrl: 'https://example.com/reports/infrastructure-2023.pdf',
-    viewUrl: 'https://example.com/view/infrastructure-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1dYopJDOqO5k4BoUovanorv2b3Zq4oKa32CiYHQ9gCEk/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/1dYopJDOqO5k4BoUovanorv2b3Zq4oKa32CiYHQ9gCEk/edit?usp=sharing',
   },
   {
     id: 5,
-    title: 'Quarterly Performance Metrics',
+    title: 'Baseland Household sanitation & hygiene status',
     description: 'Key performance indicators and metrics for Q2 2023',
     date: '2023-05-15',
     type: 'Performance',
@@ -105,15 +105,15 @@ const generalReports = [
     downloads: 89,
     views: 245,
     color: '#e91e63',
-    downloadUrl: 'https://example.com/reports/performance-q2-2023.pdf',
-    viewUrl: 'https://example.com/view/performance-q2-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1-LXFwXxCclnSZPW0CkBWJMvP34048JpomUSzG4LLt2I/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/1-LXFwXxCclnSZPW0CkBWJMvP34048JpomUSzG4LLt2I/edit?usp=sharing',
   },
 ];
 
 const stakeholderReports = [
   {
     id: 6,
-    title: 'Stakeholder Engagement Summary',
+    title: 'Post intervention public sanitation ,hygiene and water status',
     description: 'Overview of community engagement and stakeholder feedback',
     date: '2023-05-10',
     type: 'Engagement',
@@ -121,21 +121,21 @@ const stakeholderReports = [
     downloads: 67,
     views: 189,
     color: '#673ab7',
-    downloadUrl: 'https://example.com/reports/stakeholder-engagement-2023.pdf',
-    viewUrl: 'https://example.com/view/stakeholder-engagement-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1B9sX9SCF8oS6DAzfaLigjz_nXhXW9u_hKVJKMrZtbII/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/1B9sX9SCF8oS6DAzfaLigjz_nXhXW9u_hKVJKMrZtbII/edit?usp=sharing',
   },
   {
     id: 7,
-    title: 'Community Impact Assessment',
+    title: 'Community sanitation facilities',
     description: 'Analysis of project impact on local communities and beneficiaries',
     date: '2023-05-05',
     type: 'Impact',
     icon: <Assessment />,
     downloads: 92,
-    views: 276,
+    views: 176,
     color: '#3f51b5',
-    downloadUrl: 'https://example.com/reports/community-impact-2023.pdf',
-    viewUrl: 'https://example.com/view/community-impact-2023',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/16UwhRBvago1avJYqbXXjK6Z-i-uxT458lbvPW0wTC7g/edit?usp=sharing',
+    viewUrl: 'https://docs.google.com/spreadsheets/d/16UwhRBvago1avJYqbXXjK6Z-i-uxT458lbvPW0wTC7g/edit?usp=sharing',
   },
 ];
 
