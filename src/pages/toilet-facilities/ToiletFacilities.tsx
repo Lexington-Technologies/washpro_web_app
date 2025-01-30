@@ -136,7 +136,7 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
-    header: 'publicSpace',
+    header: 'Categories',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('status', {

@@ -3,18 +3,18 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   Grid,
   Paper,
   styled,
   Typography
 } from '@mui/material';
+import { BarChart } from '@mui/x-charts/BarChart';
+import { PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useEffect, useState } from 'react';
 import { FaCheck, FaFilter, FaTimes } from 'react-icons/fa';
-import { FaFaucet, FaFaucetDrip, FaWrench } from 'react-icons/fa6';
-import { GiWell } from 'react-icons/gi';
+import { FaWrench } from 'react-icons/fa6';
 import { RiWaterFlashFill } from 'react-icons/ri';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
@@ -144,57 +144,14 @@ const columns = [
     header: 'Category',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: info => {
-      const status = info.getValue();
-      let color: 'default' | 'success' | 'error' | 'warning' | 'primary' | 'secondary' | 'info';
-      switch (status) {
-        case 'Functional':
-          color = 'success';
-          break;
-        case 'Non Functional':
-          color = 'error';
-          break;
-        case 'Maintenance Due':
-          color = 'warning';
-          break;
-        default:
-          color = 'warning';
-      }
-      return (
-        <Chip label={status} color={color} />
-      );
-    },
-  }),
-  columnHelper.accessor('quality', {
-    header: 'Quality',
-    cell: info => {
-      const quality = info.getValue();
-      let color;
-      switch (quality) {
-        case 'Drinkable':
-          color = 'success';
-          break;
-        case 'Non Drinkable':
-          color = 'error';
-          break;
-        default:
-          color = 'default';
-      }
-      return (
-        <Chip label={quality} color={color} />
-      );
-    },
-  }),
   columnHelper.accessor('type', {
     header: 'Type',
-    cell: info => info.getValue(),
+    cell: info => {
+      return (
+        <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+      )
+    },
   }),
-  // columnHelper.accessor('actions', {
-  //   id: 'actions',
-  //   cell: props => <Button>{props.row.original._id}</Button>
-  // }),
 ]
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
@@ -224,6 +181,7 @@ const WaterSourcesDashboard: React.FC = () => {
     nonFunctionalNonMotorizedBoreholes: 0,
     maintenanceDueNonMotorizedBoreholes: 0,
   });
+  const [waterSource, setWaterSource] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -235,6 +193,7 @@ const WaterSourcesDashboard: React.FC = () => {
 
   useEffect(() => {
     if (data) {
+      setWaterSource(data);
       const totalSources = data.length;
       const functional = data.filter(source => source.status === 'Functional').length;
       const nonFunctional = data.filter(source => source.status === 'Non Functional').length;
@@ -288,6 +247,80 @@ const WaterSourcesDashboard: React.FC = () => {
       });
     }
   }, [data]);
+
+  const countByProperties = <T extends object>(
+    data: T[] | undefined,
+    filters: Array<{ property: keyof T; value: T[keyof T] }>
+  ): number => {
+    if (!data) return 0;
+
+    return data.filter(item =>
+      filters.every(filter => item[filter.property] === filter.value)
+    ).length;
+  };
+
+  const counts = {
+    functionalHPB: countByProperties(data, [
+      { property: 'type', value: 'Hand Pump Boreholes' },
+      { property: 'status', value: 'Functional' },
+    ]),
+    nonFunctionalHPB: countByProperties(data, [
+      { property: 'type', value: 'Hand Pump Boreholes' },
+      { property: 'status', value: 'Non Functional' },
+    ]),
+    functionalMB: countByProperties(data, [
+      { property: 'type', value: 'Motorized Boreholes' },
+      { property: 'status', value: 'Functional' },
+    ]),
+    nonFunctionalMB: countByProperties(data, [
+      { property: 'type', value: 'Motorized Boreholes' },
+      { property: 'status', value: 'Non Functional' },
+    ]),
+    functionalPDW: countByProperties(data, [
+      { property: 'type', value: 'Protected Dug Wells' },
+      { property: 'status', value: 'Functional' },
+    ]),
+    nonFunctionalPDW: countByProperties(data, [
+      { property: 'type', value: 'Protected Dug Wells' },
+      { property: 'status', value: 'Non Functional' },
+    ]),
+
+    functionalUPDW: countByProperties(data, [
+      { property: 'type', value: 'Unprotected Dug Wells' },
+      { property: 'status', value: 'Functional' },
+    ]),
+    nonFunctionalUPDW: countByProperties(data, [
+      { property: 'type', value: 'Unprotected Dug Wells' },
+      { property: 'status', value: 'Non Functional' },
+    ]),
+  };
+
+  const functionalW = counts.functionalPDW + counts.functionalUPDW;
+  const nonFunctionalW = counts.nonFunctionalPDW + counts.nonFunctionalUPDW;
+
+  // Dataset for the BarChart
+  const dataset = {
+    functional: [functionalW, counts.functionalHPB, counts.functionalMB],
+    nonFunctional: [nonFunctionalW, counts.nonFunctionalHPB, counts.nonFunctionalMB],
+  };
+
+  // Labels for the xAxis
+  const labels = ['Dug wells', 'Hand pump BH', 'Motorized BH'];
+
+  const safeWater = {
+    drinkable: countByProperties(data, [
+      { property: 'quality', value: 'Drinkable' }
+    ]),
+    nonDrinkable: countByProperties(data, [
+      { property: 'quality', value: 'Non Drinkable' }
+    ]),
+  }
+
+  // Format data for PieChart
+  const pieChartData = [
+    { id: 'Drinkable', label: 'Drinkable', value: safeWater.drinkable },
+    { id: 'Non Drinkable', label: 'Non Drinkable', value: safeWater.nonDrinkable },
+  ];
 
 
   return (
@@ -344,17 +377,17 @@ const WaterSourcesDashboard: React.FC = () => {
       </Grid>
 
       {/* well */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Wells
           </Typography>
         </Box>
 
-      </Box>
+      </Box> */}
 
       {/* Well Stats */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      {/* <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
           {
         title: 'Total Wells',
@@ -385,20 +418,20 @@ const WaterSourcesDashboard: React.FC = () => {
         <StatCard {...stat} />
           </Grid>
         ))}
-      </Grid>
+      </Grid> */}
 
-            {/* handborehole */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+      {/* handborehole */}
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
           Hand Pump Boreholes
           </Typography>
         </Box>
 
-      </Box>
+      </Box> */}
 
       {/* Handpump Boreholes Stats */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      {/* <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
           {
         title: 'Total Handpump Boreholes',
@@ -429,19 +462,19 @@ const WaterSourcesDashboard: React.FC = () => {
         <StatCard {...stat} />
           </Grid>
         ))}
-      </Grid>
+      </Grid> */}
 
       {/* motorized boreholes */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Motorized Boreholes
           </Typography>
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Motorized Boreholes Stats */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      {/* <Grid container spacing={2} sx={{ mb: 2 }}>
         {[
           {
             title: 'Total Motorized Boreholes',
@@ -472,49 +505,45 @@ const WaterSourcesDashboard: React.FC = () => {
             <StatCard {...stat} />
           </Grid>
         ))}
-      </Grid>
+      </Grid> */}
 
-      {/* non-motorized boreholes */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-            Non-Motorized Boreholes
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* Non-Motorized Boreholes Stats */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {[
-          {
-            title: 'Total Non-Motorized Boreholes',
-            value: analytics.nonMotorizedBoreholes,
-            icon: <FaFaucetDrip style={{ color: '#DCFCE7', fontSize: '2rem' }} />,
-            bgColor: '#16A34A'
-          },
-          {
-            title: 'Functional Non-Motorized Boreholes',
-            value: analytics.functionalNonMotorizedBoreholes,
-            icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
-            bgColor: '#E8F5E9'
-          },
-          {
-            title: 'Non-Functional Non-Motorized Boreholes',
-            value: analytics.nonFunctionalNonMotorizedBoreholes,
-            icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
-            bgColor: '#FFEBEE'
-          },
-          {
-            title: ' Due for Maintenance',
-            value: analytics.maintenanceDueNonMotorizedBoreholes,
-            icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
-            bgColor: '#FFF3E0'
-          },
-        ].map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatCard {...stat} />
-          </Grid>
-        ))}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Water source functionality</Typography>
+            <BarChart
+              series={[
+                { data: dataset.functional, label: 'Functional' },
+                { data: dataset.nonFunctional, label: 'Non Functional' },
+              ]}
+              height={350}
+              xAxis={[{ data: labels, scaleType: 'band' }]}
+              margin={{ top: 50, bottom: 30, left: 40, right: 10 }}
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Safe Water</Typography>
+            <PieChart
+              colors={['#007bff', '#dc3545']} // Use palette
+              series={[
+                {
+                  data: pieChartData,
+                  arcLabel: (item) => `${item.value}`,
+                  arcLabelMinAngle: 50,
+                  arcLabelRadius: '60%',
+                  arcLabelStyle: {
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                  },
+                },
+              ]}
+              width={400}
+              height={350}
+            />
+          </Paper>
+        </Grid>
       </Grid>
 
       {/* Table Section */}

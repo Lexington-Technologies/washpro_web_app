@@ -27,8 +27,7 @@ import {
   useMediaQuery, useTheme,
 } from "@mui/material";
 import { useState } from "react";
-import { BsShieldFillPlus } from "react-icons/bs";
-import { FaCog, FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
+import { FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
 import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -74,8 +73,8 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
-    { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
-    { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
+    // { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
+    // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
     { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
@@ -96,7 +95,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   const bottomMenuItems = [
     { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
-    { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
+    // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
     { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
     { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" }

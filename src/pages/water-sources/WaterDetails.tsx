@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, User, Users, X, ZoomIn } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -88,6 +88,34 @@ const WaterSourceDetails: React.FC = () => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
+
+  const fetchReport = async () => {
+    try {
+      const data = await fetch('../../api/analytics.json', {
+        headers: {
+          "Content-Type" : "application/json"
+        }
+      });
+      console.log({data});
+      const response = await data.json()
+      console.log('res', response);
+
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const { data: analytics } = useQuery<WaterSource>({
+    queryKey: ['reports'],
+    queryFn: () => fetchReport(),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    console.log({analytics});
+  }, [analytics])
 
   if (isLoading) return <LoadingAnimation />;
   if (error || !waterSource) {

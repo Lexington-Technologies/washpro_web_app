@@ -261,7 +261,7 @@ const DumpSites = () => {
                   {card.title}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
-                  {card.value}
+                  {card.value || 0}
                 </Typography>
               </Box>
               <Box

@@ -1,26 +1,23 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Card,
-  Button,
-  Paper,
-  IconButton,
-  Pagination,
-  TextField,
-} from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import WarningIcon from '@mui/icons-material/Warning';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import InfoIcon from '@mui/icons-material/Info';
-import { FaChartLine, FaDownload, FaFilter } from 'react-icons/fa';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import WarningIcon from '@mui/icons-material/Warning';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  IconButton,
+  Paper,
+  Typography
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
+import React, { useEffect, useState } from 'react';
+import { FaChartLine } from 'react-icons/fa';
 import { apiController } from '../../axios';
-import { Avatar } from '@mui/material';
-import Search from '@mui/icons-material/Search';
+import { DataTable } from '../../components/Table/DataTable';
 
 interface OpenDefecation {
   _id: string;
@@ -73,7 +70,7 @@ const columns = [
   columnHelper.accessor('publicSpace', {
     header: 'publicSpace',
     cell: info => info.getValue(),
-  }),  
+  }),
   columnHelper.accessor('peakTime', {
     header: 'Peak Time',
     cell: info => info.getValue().join(', '),
@@ -85,15 +82,30 @@ const columns = [
 ];
 
 const OpenDefication = () => {
+  const [openDefications, setOpenDefications] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data: openDefecations, isLoading } = useQuery<OpenDefecation[], Error>({
+  const { data, isLoading } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecations', { limit, page, search }],
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("openDefecations", openDefecations);
+
+  useEffect(() => {
+    if (data) {
+      setOpenDefications(data)
+    }
+  }, [data]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
   return (
     <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       {/* Header */}
@@ -125,7 +137,7 @@ const OpenDefication = () => {
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
           title="Total Observations"
-          value="1,234"
+          value={data?.length}
           icon={<VisibilityIcon />}
           iconColor="#2196f3"
         />
@@ -181,13 +193,13 @@ const OpenDefication = () => {
           <Typography variant="h6">Recent Observations</Typography>
         </Box>
 
-        <DataTable 
+        <DataTable
           setSearch={setSearch}
           setPage={setPage}
           setLimit={setLimit}
           isLoading={isLoading}
           columns={columns}
-          data={openDefecations || []}
+          data={data || []}
         />
       </Paper>
     </Box>
@@ -197,7 +209,7 @@ const OpenDefication = () => {
 // Stats Card Component
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string | number | undefined;
   icon: React.ReactElement;
   iconColor: string;
 }

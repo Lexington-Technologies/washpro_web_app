@@ -10,10 +10,34 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
+import { apiController } from '../../axios';
 
 const WaterSourceRisk = () => {
+  const [waterRisk, setWaterRisk] = useState({});
+
+  const { data, error, isLoading } = useQuery<unknown>({
+    queryKey: ['distance'], // Or any other meaningful key
+    queryFn: () => apiController.get('/analysis/distance'),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setWaterRisk(data)
+      console.log(data);
+    }
+  }, [data]);
+
+  // const countByProperty = <T extends object>(
+  //   data: T[] | undefined,
+  //   property: keyof T,
+  //   value: T[keyof T]
+  // ): number => {
+  //   return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  // };
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
