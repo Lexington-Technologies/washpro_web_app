@@ -1,23 +1,79 @@
-import React from 'react';
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
-  Typography,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Button,
-  Alert,
-  Stack,
+  Typography,
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 import { FaExclamationTriangle, FaFileDownload, FaFilter, FaHandsWash, FaPlus, FaToilet } from 'react-icons/fa';
 import { FaScrewdriverWrench } from 'react-icons/fa6';
+import { apiController } from '../../axios';
+
+interface ToiletFacility {
+  geolocation: {
+    type: string;
+    coordinates: [number, number, number];
+  };
+  publicSpace: string;
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  space: string;
+  compactments: number;
+  dependent: number;
+  condition: string;
+  status: string;
+  type: string;
+  safetyRisk: string[];
+  handWashingFacility: string;
+  daysSinceLastEvacuation: number;
+  evacuationFrequency: string;
+  createdBy: string;
+  capturedAt: string;
+  __v: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const Sanitation: React.FC = () => {
+  const [toilets, setToilets] = useState({});
+
+  const { data } = useQuery<ToiletFacility[], Error>({
+    queryKey: ['toilet-facilities'],
+    queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities`),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setToilets(data)
+    }
+  }, [data]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
+  const maitained = countByProperty(data, 'handWashingFacility', 'yes');
+  const unMaintained = countByProperty(data, 'handWashingFacility', 'no');
+
+  const totalStatus = maitained + unMaintained;
+
   const locationData = [
     {
       location: 'North Ward',
@@ -60,17 +116,17 @@ const Sanitation: React.FC = () => {
         <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
           <StatsCard
             title="Total Toilets"
-            value="2,456"
+            value={data?.length}
             icon={<FaToilet style={{ color: '#2196F3', fontSize: "20px" }} />}
           />
           <StatsCard
             title="Maintained Toilets"
-            value="1,890"
+            value={countByProperty(data, 'condition', 'Maintained')}
             icon={<FaScrewdriverWrench style={{ color: '#4CAF50',fontSize: "20px" }} />}
           />
           <StatsCard
             title="Handwashing Facilities"
-            value="78%"
+            value={`${((maitained / totalStatus) * 100).toFixed(2)}%`}
             icon={<FaHandsWash style={{ color: '#9C27B0', fontSize: "20px" }} />}
           />
           <StatsCard
@@ -173,7 +229,7 @@ const Sanitation: React.FC = () => {
 
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string| number | undefined;
   icon: React.ReactNode;
 }
 
