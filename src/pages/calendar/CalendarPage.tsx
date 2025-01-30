@@ -54,8 +54,57 @@ const eventColors = {
   other: '#ff9800'       // Orange
 };
 
+// Mock data for initial calendar events
+const mockEvents: CalendarEvent[] = [
+  {
+    id: '1',
+    title: 'Water Quality Inspection',
+    start: new Date(new Date().setDate(new Date().getDate() - 2)),
+    end: new Date(new Date().setDate(new Date().getDate() - 2)),
+    type: 'sanitation',
+    description: 'Regular water quality check at main facility',
+    location: 'Main Water Treatment Plant'
+  },
+  {
+    id: '2',
+    title: 'Community Hygiene Workshop',
+    start: new Date(new Date().setDate(new Date().getDate() + 3)),
+    end: new Date(new Date().setDate(new Date().getDate() + 3)),
+    type: 'program',
+    description: 'Educational workshop for community members',
+    location: 'Community Center'
+  },
+  {
+    id: '3',
+    title: 'Equipment Maintenance',
+    start: new Date(new Date().setDate(new Date().getDate() + 1)),
+    end: new Date(new Date().setDate(new Date().getDate() + 1)),
+    type: 'sanitation',
+    description: 'Regular maintenance of filtration systems',
+    location: 'Treatment Facility B'
+  },
+  {
+    id: '4',
+    title: 'Staff Training',
+    start: new Date(new Date().setDate(new Date().getDate() + 5)),
+    end: new Date(new Date().setDate(new Date().getDate() + 5)),
+    type: 'program',
+    description: 'New staff orientation and training session',
+    location: 'Training Room'
+  },
+  {
+    id: '5',
+    title: 'Stakeholder Meeting',
+    start: new Date(new Date().setDate(new Date().getDate() + 7)),
+    end: new Date(new Date().setDate(new Date().getDate() + 7)),
+    type: 'other',
+    description: 'Quarterly meeting with stakeholders',
+    location: 'Conference Room A'
+  }
+];
+
 const CalendarPage: React.FC = () => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [newEvent, setNewEvent] = useState<NewEventState>({
@@ -119,6 +168,33 @@ const CalendarPage: React.FC = () => {
   };
 
   const filteredEvents = events.filter(event => selectedTypes.includes(event.type));
+
+  // Add event handler for event updates
+  const handleEventDrop = (info: any) => {
+    const updatedEvents = events.map(event => {
+      if (event.id === info.event.id) {
+        return {
+          ...event,
+          start: info.event.start,
+          end: info.event.end || info.event.start,
+        };
+      }
+      return event;
+    });
+    setEvents(updatedEvents);
+  };
+
+  // Add event handler for event deletion
+  const handleEventDelete = (eventId: string) => {
+    setEvents(events.filter(event => event.id !== eventId));
+  };
+
+  // Add event handler for event click
+  const handleEventClick = (info: any) => {
+    if (window.confirm(`Do you want to delete the event '${info.event.title}'?`)) {
+      handleEventDelete(info.event.id);
+    }
+  };
 
   return (
     <Box sx={{ 
@@ -195,6 +271,8 @@ const CalendarPage: React.FC = () => {
           selectable={true}
           selectMirror={true}
           dayMaxEvents={true}
+          eventDrop={handleEventDrop}
+          eventClick={handleEventClick}
         />
       </Paper>
 
