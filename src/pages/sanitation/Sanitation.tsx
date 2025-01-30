@@ -69,6 +69,11 @@ const Sanitation: React.FC = () => {
     return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
   };
 
+  const maitained = countByProperty(data, 'handWashingFacility', 'yes');
+  const unMaintained = countByProperty(data, 'handWashingFacility', 'no');
+
+  const totalStatus = maitained + unMaintained;
+
   const locationData = [
     {
       location: 'North Ward',
@@ -121,7 +126,7 @@ const Sanitation: React.FC = () => {
           />
           <StatsCard
             title="Handwashing Facilities"
-            value="78%"
+            value={`${((maitained / totalStatus) * 100).toFixed(2)}%`}
             icon={<FaHandsWash style={{ color: '#9C27B0', fontSize: "20px" }} />}
           />
           <StatsCard
@@ -224,7 +229,7 @@ const Sanitation: React.FC = () => {
 
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string| number | undefined;
   icon: React.ReactNode;
 }
 
