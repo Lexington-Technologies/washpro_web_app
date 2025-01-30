@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -11,13 +10,36 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
+  Typography
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { FaExclamationTriangle, FaFileDownload, FaFilter, FaHandsWash, FaPlus, FaToilet } from 'react-icons/fa';
+import { FaExclamationTriangle, FaFilter, FaHandsWash, FaToilet } from 'react-icons/fa';
 import { FaScrewdriverWrench } from 'react-icons/fa6';
 import { apiController } from '../../axios';
+
+interface OpenDefecation {
+  _id: string;
+  picture: string;
+  ward: string;
+  village: string;
+  hamlet: string;
+  publicSpace: string;
+  space: string;
+  footTraffic: string;
+  peakTime: string[];
+  demographics: string[];
+  environmentalCharacteristics: string[];
+  dailyAverage: string;
+  createdBy: string;
+  capturedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  geolocation: {
+    type: string;
+    coordinates: number[];
+  };
+}
 
 interface ToiletFacility {
   geolocation: {
@@ -49,17 +71,29 @@ interface ToiletFacility {
 
 const Sanitation: React.FC = () => {
   const [toilets, setToilets] = useState({});
+  const [openDefications, setOpenDefications] = useState({});
 
   const { data } = useQuery<ToiletFacility[], Error>({
     queryKey: ['toilet-facilities'],
     queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities`),
   });
 
+  const { data: openDefData } = useQuery({
+    queryKey: ['open-defecations'],
+    queryFn: () => apiController.get(`/open-defecations`),
+  });
+
   useEffect(() => {
     if (data) {
-      setToilets(data)
+      setToilets(data);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (openDefData) {
+      setOpenDefications(openDefData);
+    }
+  }, [openDefData]);
 
   const countByProperty = <T extends object>(
     data: T[] | undefined,
@@ -69,6 +103,17 @@ const Sanitation: React.FC = () => {
     return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
   };
 
+  const countByProperties = <T extends object>(
+    data: T[] | undefined,
+    filters: Array<{ property: keyof T; value: T[keyof T] }>
+  ): number => {
+    if (!data) return 0;
+
+    return data.filter(item =>
+      filters.every(filter => item[filter.property] === filter.value)
+    ).length;
+  };
+
   const maitained = countByProperty(data, 'handWashingFacility', 'yes');
   const unMaintained = countByProperty(data, 'handWashingFacility', 'no');
 
@@ -76,17 +121,13 @@ const Sanitation: React.FC = () => {
 
   const locationData = [
     {
-      location: 'North Ward',
-      totalFacilities: 245,
-      functional: 198,
-      status: 'Good',
+      ward: 'S/GARI',
+      status: 'Functional',
     },
     {
-      location: 'South Ward',
-      totalFacilities: 189,
-      functional: 145,
-      status: 'Needs Attention',
-    },
+      ward: 'LIKORO',
+      status: 'Functional',
+    }
   ];
 
   return (
@@ -116,7 +157,7 @@ const Sanitation: React.FC = () => {
         <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
           <StatsCard
             title="Total Toilets"
-            value={data?.length}
+            value={data?.length || 0}
             icon={<FaToilet style={{ color: '#2196F3', fontSize: "20px" }} />}
           />
           <StatsCard
@@ -130,8 +171,8 @@ const Sanitation: React.FC = () => {
             icon={<FaHandsWash style={{ color: '#9C27B0', fontSize: "20px" }} />}
           />
           <StatsCard
-            title="Open Defecation Status"
-            value="12%"
+            title="Total Open Defecation"
+            value={openDefications?.length}
             icon={<FaExclamationTriangle style={{ color: '#f44336',fontSize: "20px" }} />}
           />
         </Stack>
@@ -147,29 +188,28 @@ const Sanitation: React.FC = () => {
                   <TableRow>
                     <TableCell>Location</TableCell>
                     <TableCell>Total Facilities</TableCell>
-                    <TableCell>Functional</TableCell>
-                    <TableCell>Status</TableCell>
+                    <TableCell>Unimproved</TableCell>
+                    <TableCell>Unmaitained</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {locationData.map((row) => (
-                    <TableRow key={row.location}>
-                      <TableCell>{row.location}</TableCell>
-                      <TableCell>{row.totalFacilities}</TableCell>
-                      <TableCell>{row.functional}</TableCell>
+                    <TableRow key={row.ward}>
+                      <TableCell>{row.ward}</TableCell>
+                      <TableCell>{countByProperty(data, 'ward', row.ward)}</TableCell>
+                      <TableCell>{
+                        countByProperties(data, [
+                          { property: 'ward', value: row.ward },
+                          { property: 'status', value: 'Unimproved' },
+                        ])
+                      }</TableCell>
                       <TableCell>
-                        <Box
-                          sx={{
-                            display: 'inline-block',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            bgcolor: row.status === 'Good' ? '#DCFCE7' : '#FEF9C3',
-                            color: row.status === 'Good' ? '#166534' : '#854D0E',
-                          }}
-                        >
-                          {row.status}
-                        </Box>
+                        {
+                          countByProperties(data, [
+                            { property: 'ward', value: row.ward },
+                            { property: 'condition', value: 'Unmaintained' },
+                          ])
+                        }
                       </TableCell>
                     </TableRow>
                   ))}
@@ -180,7 +220,7 @@ const Sanitation: React.FC = () => {
         </Card>
 
         {/* Critical Alerts */}
-        <Card>
+        {/* <Card>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">Critical Alerts</Typography>
@@ -221,7 +261,7 @@ const Sanitation: React.FC = () => {
               </Box>
             </Alert>
           </CardContent>
-        </Card>
+        </Card> */}
       </Box>
     </Box>
   );
