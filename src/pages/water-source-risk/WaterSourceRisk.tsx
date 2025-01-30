@@ -1,19 +1,43 @@
-import React from 'react';
-import {
-  Box,
-  Typography,
-  Card,
-  Button,
-  Paper,
-} from '@mui/material';
+import { Waves } from '@mui/icons-material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import {
+  Box,
+  Button,
+  Card,
+  Paper,
+  Typography,
+} from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
-import { Waves } from '@mui/icons-material';
+import { apiController } from '../../axios';
 
 const WaterSourceRisk = () => {
+  const [waterRisk, setWaterRisk] = useState({});
+
+  const { data, error, isLoading } = useQuery<unknown>({
+    queryKey: ['distance'], // Or any other meaningful key
+    queryFn: () => apiController.get('/analysis/distance'),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setWaterRisk(data)
+      console.log(data);
+    }
+  }, [data]);
+
+  // const countByProperty = <T extends object>(
+  //   data: T[] | undefined,
+  //   property: keyof T,
+  //   value: T[keyof T]
+  // ): number => {
+  //   return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  // };
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -97,7 +121,7 @@ const WaterSourceRisk = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#f44336' }} />
-                <Typography>Critical Risk (&lt;5m)</Typography>
+                <Typography>Critical Risk (&lt;10m)</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />

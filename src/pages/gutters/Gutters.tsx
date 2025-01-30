@@ -1,33 +1,26 @@
 import {
-  Box,
-  Card,
-  Typography,
-  Paper,
-  Button,
-  IconButton,
-  ToggleButton,
-  ToggleButtonGroup,
-  Pagination,
-  Avatar,
-  TextField,
-  Chip,
-} from '@mui/material';
-import {
-  CheckCircle,
-  Error,
-  Warning,
   FilterAlt,
   Fullscreen,
-  MoreHoriz,
-  Search,
+  MoreHoriz
 } from '@mui/icons-material';
-import { FaChartPie, FaFilter } from 'react-icons/fa6';
-import { FaDownload } from 'react-icons/fa';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  Chip,
+  IconButton,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
+import { useEffect, useState } from 'react';
+import { GiBrickWall, GiRiver, GiSpill, GiSplashyStream } from 'react-icons/gi';
 import { apiController } from '../../axios';
-import { useState } from 'react';
+import { DataTable } from '../../components/Table/DataTable';
 
 // Add Gutter interface
 interface Gutter {
@@ -40,6 +33,7 @@ interface Gutter {
     type: string;
     coordinates: number[];
   };
+  type: string;
   condition: string;
   status: string;
   dischargePoint: string;
@@ -99,6 +93,7 @@ const columns = [
 
 const GutterDashboard = () => {
   // Add state management
+  const [dgutters, setDGutters ] = useState({})
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -109,12 +104,28 @@ const GutterDashboard = () => {
     queryFn: () => apiController.get<Gutter[]>(`/gutters?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  console.log("gutter data",gutters)
+  useEffect(() => {
+    if (gutters) {
+      setDGutters(gutters)
+    }
+  }, [gutters]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
+  const maitained = countByProperty(gutters, 'status', 'Maintained');
+  const unMaintained = countByProperty(gutters, 'status', 'Poorly Maintained');
+
+  const totalStatus = maitained + unMaintained;
 
   const gutterTypes = [
-    { type: 'Constructed', value: 245, color: '#00B4D8' },
-    { type: 'Surface', value: 180, color: '#4CAF50' },
-    { type: 'Dug', value: 120, color: '#FFC107' }
+    { type: 'Maintained', value: maitained, color: '#00B4D8' },
+    { type: 'Unmaintained', value: unMaintained, color: '#4CAF50' },
   ];
 
   return (
@@ -143,8 +154,8 @@ const GutterDashboard = () => {
   {/* Total Site Card */}
   <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
-      <Typography color="text.secondary">Total Site</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>24</Typography>
+      <Typography color="text.secondary">Total Gutters</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>{gutters?.length}</Typography>
     </Box>
     <Box
       sx={{
@@ -156,15 +167,17 @@ const GutterDashboard = () => {
         justifyContent: 'center',
       }}
     >
-      <FaChartPie style={{ color: '#3B82F6' }} />
+      <GiRiver style={{ color: '#3B82F6', fontSize: '2rem' }}/>
     </Box>
   </Card>
 
   {/* Maintained Card */}
   <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
-      <Typography color="text.secondary">Maintained</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>14</Typography>
+      <Typography color="text.secondary">Constructed with Block</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>
+          {countByProperty(gutters, 'type', 'Constructed with Block')}
+        </Typography>
     </Box>
     <Box
       sx={{
@@ -174,17 +187,18 @@ const GutterDashboard = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-      }}
-    >
-      <CheckCircle sx={{ color: '#4CAF50' }} />
+      }}>
+      <GiBrickWall style={{color: '#4CAF50', fontSize: '2rem'}} />
     </Box>
   </Card>
 
   {/* Overfilled Card */}
   <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
-      <Typography color="text.secondary">Overfilled</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>3</Typography>
+      <Typography color="text.secondary">Locally Dug</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>
+        {countByProperty(gutters, 'type', 'Locally Dug')}
+        </Typography>
     </Box>
     <Box
       sx={{
@@ -195,16 +209,18 @@ const GutterDashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
       }}
-    >
-      <Error sx={{ color: '#EF4444' }} />
+          >
+      <GiSplashyStream style={{ color: '#EF4444', fontSize: '2rem'}} />
     </Box>
   </Card>
 
   {/* Unmaintained Card */}
   <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
-      <Typography color="text.secondary">Unmaintained</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>7</Typography>
+      <Typography color="text.secondary">Surfaced Gutter</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
+      {countByProperty(gutters, 'type', 'Surface Gutter')}
+      </Typography>
     </Box>
     <Box
       sx={{
@@ -216,7 +232,7 @@ const GutterDashboard = () => {
         justifyContent: 'center',
       }}
     >
-      <Warning sx={{ color: '#F59E0B' }} />
+      <GiSpill style={{color: '#F59E0B', fontSize: '2rem'}}/>
     </Box>
   </Card>
 </Box>
@@ -269,7 +285,7 @@ const GutterDashboard = () => {
                   {item.type}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 500, color: item.color }}>
-                  {item.value}
+                  {`${item.value}  - ${((item.value / totalStatus) * 100).toFixed(2)}%`}
                 </Typography>
               </Box>
               <Box
@@ -282,7 +298,7 @@ const GutterDashboard = () => {
               >
                 <Box
                   sx={{
-                    width: `${(item.value / 245) * 100}%`,
+                    width: `${(item.value / totalStatus) * 100}%`,
                     height: '100%',
                     bgcolor: item.color,
                     borderRadius: 4,
@@ -329,7 +345,7 @@ const GutterDashboard = () => {
           <Typography variant="h6">Maintenance Status</Typography>
         </Box>
 
-        <DataTable 
+        <DataTable
           setSearch={setSearch}
           setPage={setPage}
           setLimit={setLimit}

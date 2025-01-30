@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';
-import { 
-  Box, 
-  Typography,
-  Grid,
-  Container,
-  IconButton,
-  Stack,
-  Modal,
-  Tabs,
-  Tab,
+import {
   Alert,
-  Chip,
-  Divider
+  Box,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Modal,
+  Stack,
+  Tab,
+  Tabs,
+  Typography
 } from '@mui/material';
-import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Calendar, Home, MapPin, X, ZoomIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { IoCameraOutline, IoFootstepsOutline, IoMapOutline, IoTimeOutline, IoTodayOutline } from 'react-icons/io5';
+import { PiUsersFour } from 'react-icons/pi';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the open defecation site
@@ -35,9 +36,9 @@ interface OpenDefication {
   village: string;
   hamlet: string;
   footTraffic: string;
-  peakTime: string[];
-  demographics: string[];
-  environmentalCharacteristics: string[];
+  peakTime: string;
+  demographics: string;
+  environmentalCharacteristics: string;
   dailyAverage: string;
   createdBy: string;
   capturedAt: string;
@@ -93,8 +94,8 @@ const OpenDeficationDetails: React.FC = () => {
         </Stack>
 
         {/* Tabs */}
-        <Tabs 
-          value={activeTab} 
+        <Tabs
+          value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
@@ -107,8 +108,8 @@ const OpenDeficationDetails: React.FC = () => {
         ) : (null)}
 
         {/* Image Modal */}
-        <Modal 
-          open={isImageOpen} 
+        <Modal
+          open={isImageOpen}
           onClose={() => setIsImageOpen(false)}
           sx={{
             display: 'flex',
@@ -148,39 +149,80 @@ const OpenDeficationDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ openDefication, position, onImageClick }: { 
-  openDefication: OpenDefication; 
+const OverviewTab = ({ openDefication, position, onImageClick }: {
+  openDefication: OpenDefication;
   position: [number, number];
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12}>
-      <Box sx={{ 
-        height: 500, 
-        borderRadius: 2, 
-        overflow: 'hidden',
+
+<Grid item xs={12} md={8}>
+      <Box sx={{
+        p: 3,
+        borderRadius: 2,
+        bgcolor: 'background.paper',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
+        height: '100%'
       }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{openDefication.publicSpace} at {openDefication.ward}</Popup>
-          </Marker>
-        </MapContainer>
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Location Details
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MapPin} label="Location" value={`${openDefication.hamlet}, ${openDefication.village}`} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Public Space" value={openDefication.publicSpace} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={IoMapOutline} label="Environmental Characteristic" value={openDefication.environmentalCharacteristics} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={IoFootstepsOutline} label="Foot Traffics" value={openDefication.footTraffic} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={IoTimeOutline} label="Peak Time" value={openDefication.peakTime} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={PiUsersFour} label="Demographics" value={openDefication.demographics} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={IoTodayOutline} label="Daily Average" value={openDefication.dailyAverage} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={IoCameraOutline} label="Captured By" value={'AbdulUbaid'} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(openDefication.updatedAt), 'PPP')}
+            />
+          </Grid>
+
+        </Grid>
       </Box>
     </Grid>
 
     <Grid item xs={12} md={4}>
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 }
         }}
@@ -192,7 +234,7 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 300,
+            height: 450,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -218,47 +260,27 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
       </Box>
     </Grid>
 
-    <Grid item xs={12} md={8}>
-      <Box sx={{ 
-        p: 3, 
+    <Grid item xs={12}>
+      <Box sx={{
+        height: 500,
         borderRadius: 2,
-        bgcolor: 'background.paper',
+        overflow: 'hidden',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        height: '100%'
+        mb: 4
       }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-          Location Details
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={MapPin} label="Location" value={`${openDefication.hamlet}, ${openDefication.village}`} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Users} label="Foot Traffic" value={openDefication.footTraffic || 'Not specified'} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={openDefication.publicSpace} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem 
-              icon={Calendar} 
-              label="Last Updated" 
-              value={format(new Date(openDefication.updatedAt), 'PPP')} 
-            />
-          </Grid>
-            <Grid item xs={6}>
-            <DetailItem icon={User} label="Environmental Characteristics" value={openDefication.environmentalCharacteristics} />
-          </Grid>
-        </Grid>
+        <MapContainer
+          center={position}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{openDefication.publicSpace} at {openDefication.ward}</Popup>
+          </Marker>
+        </MapContainer>
       </Box>
     </Grid>
   </Grid>

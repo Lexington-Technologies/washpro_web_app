@@ -1,40 +1,37 @@
 import {
-  Box,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
-  Divider,
-  Collapse,
-  IconButton,
-} from "@mui/material";
-import { Link, NavLink } from "react-router-dom";
-import { useMediaQuery, useTheme, Drawer } from "@mui/material";
-import {
+  Book,
+  Close,
   Dashboard,
   Delete,
-  Waves,
-  Logout,
   ExpandLess,
   ExpandMore,
+  Logout,
   People,
-  SmartToy,
-  Book,
-  Schedule,
-  WavesOutlined,
   Report,
-  Close,
-  Analytics,
+  Schedule,
+  SmartToy,
+  Waves,
+  WavesOutlined
 } from "@mui/icons-material";
+import {
+  Box,
+  Collapse,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery, useTheme,
+} from "@mui/material";
 import { useState } from "react";
-import { RiWaterFlashFill } from "react-icons/ri";
-import { FaToilet, FaPoop, FaUserCog, FaCog } from "react-icons/fa";
-import { MdSanitizer } from "react-icons/md";
-import { useAuthStore } from "../store";
-import { useNavigate } from "react-router-dom";
+import { FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
 import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
-import { BsShieldFillPlus } from "react-icons/bs";
+import { MdSanitizer } from "react-icons/md";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -75,9 +72,8 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
-    { text: "Analytics", icon: <Analytics />, path: "/analytics", title: "Analytics" },
-    { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
-    { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
+    // { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
+    // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
     { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
     { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
@@ -99,7 +95,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   const bottomMenuItems = [
     { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
-    { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
+    // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
     { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
     { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" }
@@ -328,8 +324,8 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
             },
           }}
         >
-          <ListItemIcon sx={{ 
-            minWidth: 40, 
+          <ListItemIcon sx={{
+            minWidth: 40,
             color: "inherit",
             justifyContent: "center",
             "& svg": {

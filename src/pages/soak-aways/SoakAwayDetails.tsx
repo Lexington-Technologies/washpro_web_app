@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X, Waves } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';
-import { 
-  Box, 
-  Typography,
-  Grid,
-  Container,
-  IconButton,
-  Stack,
-  Modal,
-  Tabs,
-  Tab,
+import {
   Alert,
+  Box,
   Chip,
-  Divider
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Modal,
+  Stack,
+  Typography
 } from '@mui/material';
-import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Calendar, Home, MapPin, Waves, X, ZoomIn } from 'lucide-react';
+import React, { useState } from 'react';
+import { AiOutlineAlert } from "react-icons/ai";
+import { BsBricks } from 'react-icons/bs';
+import { GiSplashyStream } from 'react-icons/gi';
+import { MdOutlinePropaneTank } from 'react-icons/md';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the soakaway
@@ -37,6 +39,7 @@ interface SoakAway {
   space: string;
   condition: string;
   status: string;
+  evacuationStatus: string,
   daysSinceLastEvacuation: number;
   evacuationFrequency: string;
   safetyRisk: string;
@@ -48,7 +51,6 @@ interface SoakAway {
 }
 
 const SoakAwayDetails: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
   const [isImageOpen, setIsImageOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,6 +61,7 @@ const SoakAwayDetails: React.FC = () => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
+
 
   if (isLoading) return <LoadingAnimation />;
   if (error || !soakAway) {
@@ -92,34 +95,23 @@ const SoakAwayDetails: React.FC = () => {
             </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Chip 
-              label={soakAway.status} 
+            <Chip
+              label={soakAway.status}
               color={soakAway.status === 'Maintained' ? 'success' : 'error'}
             />
-            <Chip 
-              label={soakAway.condition} 
+            <Chip
+              label={soakAway.condition}
               color={soakAway.condition === 'Maintained' ? 'success' : 'warning'}
             />
           </Stack>
         </Stack>
 
-        {/* Tabs */}
-        <Tabs 
-          value={activeTab} 
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab label="Overview" />
-        </Tabs>
 
-        {/* Tab Panels */}
-        {activeTab === 0 ? (
-          <OverviewTab soakAway={soakAway} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : ( null )}
+        <OverviewTab soakAway={soakAway} position={position} onImageClick={() => setIsImageOpen(true)} />
 
         {/* Image Modal */}
-        <Modal 
-          open={isImageOpen} 
+        <Modal
+          open={isImageOpen}
           onClose={() => setIsImageOpen(false)}
           sx={{
             display: 'flex',
@@ -159,39 +151,73 @@ const SoakAwayDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ soakAway, position, onImageClick }: { 
-  soakAway: SoakAway; 
+const OverviewTab = ({ soakAway, position, onImageClick }: {
+  soakAway: SoakAway;
   position: [number, number];
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12}>
-      <Box sx={{ 
-        height: 500, 
-        borderRadius: 2, 
-        overflow: 'hidden',
+
+<Grid item xs={12} md={8}>
+      <Box sx={{
+        p: 3,
+        borderRadius: 2,
+        bgcolor: 'background.paper',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
+        height: '100%'
       }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{soakAway.type} at {soakAway.ward}</Popup>
-          </Marker>
-        </MapContainer>
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Location Details
+        </Typography>
+
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MapPin} label="Location" value={`${soakAway.hamlet}, ${soakAway.village}`} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Category" value={soakAway.publicSpace} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={MdOutlinePropaneTank} label="Condition" value={soakAway.condition} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={BsBricks} label="Status" value={soakAway.status} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={GiSplashyStream} label="Evacuation Status" value={soakAway.evacuationStatus || 'N/A'} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={AiOutlineAlert} label="Safety Risk" value={soakAway.safetyRisk} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(soakAway.updatedAt), 'PPP')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Waves} label="Captured By" value={'AbdulUbaid'} />
+          </Grid>
+        </Grid>
       </Box>
     </Grid>
 
     <Grid item xs={12} md={4}>
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 }
         }}
@@ -203,7 +229,7 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 300,
+            height: 400,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -229,47 +255,27 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
       </Box>
     </Grid>
 
-    <Grid item xs={12} md={8}>
-      <Box sx={{ 
-        p: 3, 
+    <Grid item xs={12}>
+      <Box sx={{
+        height: 500,
         borderRadius: 2,
-        bgcolor: 'background.paper',
+        overflow: 'hidden',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        height: '100%'
+        mb: 4
       }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-          Location Details
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={MapPin} label="Location" value={`${soakAway.hamlet}, ${soakAway.village}`} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Users} label="Condition" value={soakAway.condition || 'Not specified'} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={soakAway.publicSpace} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem 
-              icon={Calendar} 
-              label="Last Updated" 
-              value={format(new Date(soakAway.updatedAt), 'PPP')} 
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Waves} label="Safety Risk" value={soakAway.safetyRisk} />
-          </Grid>
-        </Grid>
+        <MapContainer
+          center={position}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{soakAway.type} at {soakAway.ward}</Popup>
+          </Marker>
+        </MapContainer>
       </Box>
     </Grid>
   </Grid>

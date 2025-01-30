@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
 import {
+  Add as AddIcon,
+  FiberManualRecord as FiberManualRecordIcon,
+  FilterAlt as FilterAltIcon,
+  Remove as RemoveIcon,
+  Waves,
+} from '@mui/icons-material';
+import {
+  Avatar,
   Box,
-  Typography,
-  Card,
   Button,
+  Card,
+  Chip,
+  IconButton,
   Paper,
   Table,
   TableBody,
@@ -11,22 +19,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Chip,
-  Avatar,
+  Typography,
 } from '@mui/material';
-import {
-  FilterAlt as FilterAltIcon,
-  FiberManualRecord as FiberManualRecordIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  Waves,
-} from '@mui/icons-material';
-import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
+import React, { useEffect, useState } from 'react';
+import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
+import { DataTable } from '../../components/Table/DataTable';
 
 // Add SoakAway interface
 interface SoakAway {
@@ -82,7 +82,7 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
-    header: 'publicSpace',
+    header: 'Category',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('status', {
@@ -103,16 +103,39 @@ const columns = [
 ];
 
 const SoakAways = () => {
+  const [soakAways, setSoakAways] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data: soakAways, isLoading } = useQuery<SoakAway[], Error>({
+  const { data , isLoading } = useQuery<SoakAway[], Error>({
     queryKey: ['soak-aways', { limit, page, search }],
     queryFn: () => apiController.get<SoakAway[]>(`/soak-aways?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  console.log("soakaway", soakAways);
+  useEffect(() => {
+    if (data) {
+      setSoakAways(data)
+    }
+  }, [data]);
+
+  const countByProperty = <T extends object>(
+    data: T[] | undefined,
+    property: keyof T,
+    value: T[keyof T]
+  ): number => {
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  };
+
+  const improved = countByProperty(data, 'status', 'Improved');
+  const unimproved = countByProperty(data, 'status', 'Unimproved');
+
+  const totalStatus = improved + unimproved;
+
+  const fairSafety = countByProperty(data, 'safetyRisk', 'Fair');
+  const badSafety = countByProperty(data, 'safetyRisk', 'Bad/Fail');
+
+  const totalSafety = fairSafety + badSafety;
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -145,27 +168,27 @@ const SoakAways = () => {
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
           title="Total Soakaways"
-          value="1,247"
+          value={data?.length}
           icon={<Waves />}
           iconColor="#2196f3"
         />
         <StatsCard
-          title="Inspected This Month"
-          value="342"
+          title="Maintained"
+          value={countByProperty(data, 'condition', 'Maintained')}
           icon={<FaClipboardCheck style={{color: "#16A34A"}}/>}
           iconColor="#4caf50"
           valueColor="#16A34A"
         />
         <StatsCard
-          title="Critical Condition"
-          value="89"
+          title="Unmaitained"
+          value={countByProperty(data, 'condition', 'Unmaintained')}
           icon={<FaExclamationTriangle style={{color: "#DC2626"}}/>}
           iconColor="#f44336"
           valueColor="#f44336"
         />
         <StatsCard
-          title="Maintenance Due"
-          value="156"
+          title="Dilapated"
+          value={countByProperty(data, 'condition', 'Dilapidated')}
           icon={<FaWrench color="#CA8A04" />}
           iconColor="#ff9800"
           valueColor="#ff9800"
@@ -213,45 +236,25 @@ const SoakAways = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>WATER SOURCE TYPE</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>COUNT</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>PERCENTAGE</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>RISK LEVEL</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>Status</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>Total</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', fontWeight: 500 }}>Percentage</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>Maintained</TableCell>
-                  <TableCell>847</TableCell>
-                  <TableCell>68%</TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#4caf50', fontSize: 12, mr: 1 }} />
-                      Low
-                    </Box>
-                  </TableCell>
+                  <FiberManualRecordIcon sx={{ color: '#4caf50', fontSize: 12, mr: 1 }} />
+                    Improved</TableCell>
+                  <TableCell>{improved}</TableCell>
+                  <TableCell>{`${((improved / totalStatus) * 100).toFixed(2)}%`}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>Unmaintained</TableCell>
-                  <TableCell>311</TableCell>
-                  <TableCell>25%</TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#ff9800', fontSize: 12, mr: 1 }} />
-                      Medium
-                    </Box>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Dilapidated</TableCell>
-                  <TableCell>89</TableCell>
-                  <TableCell>7%</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <FiberManualRecordIcon sx={{ color: '#f44336', fontSize: 12, mr: 1 }} />
-                      High
-                    </Box>
-                  </TableCell>
+                  <FiberManualRecordIcon sx={{ color: '#f44336', fontSize: 12, mr: 1 }} />
+                    Unimproved</TableCell>
+                  <TableCell>{unimproved}</TableCell>
+                  <TableCell>{`${((unimproved / totalStatus) * 100).toFixed(2)}%`}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -265,16 +268,16 @@ const SoakAways = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', bgcolor: '#f5f5f5', p: 1.5, borderRadius: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <FiberManualRecordIcon sx={{ color: '#4caf50', fontSize: 12, mr: 1 }} />
-                <Typography>Fair Condition (75%)</Typography>
+                <Typography>Fair Condition {`(${((fairSafety / totalSafety) * 100).toFixed(2)}%)`}</Typography>
               </Box>
-              <Typography>936</Typography>
+              <Typography>{fairSafety}</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', bgcolor: '#f5f5f5', p: 1.5, borderRadius: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <FiberManualRecordIcon sx={{ color: '#f44336', fontSize: 12, mr: 1 }} />
-                <Typography>Bad/Fail (25%)</Typography>
+                <Typography>Bad/Fail {`(${((badSafety / totalSafety) * 100).toFixed(2)}%)`}</Typography>
               </Box>
-              <Typography>311</Typography>
+              <Typography>{badSafety}</Typography>
             </Box>
           </Box>
         </Paper>
@@ -336,13 +339,13 @@ const SoakAways = () => {
           <Typography variant="h6">Soakaway Overview</Typography>
         </Box>
 
-        <DataTable 
+        <DataTable
           setSearch={setSearch}
           setPage={setPage}
           setLimit={setLimit}
           isLoading={isLoading}
           columns={columns}
-          data={soakAways || []}
+          data={data || []}
         />
 
       </Paper>
@@ -353,7 +356,7 @@ const SoakAways = () => {
 // Stats Card Component
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string | number | undefined;
   icon: React.ReactElement;
   iconColor?: string;
   valueColor?: string;

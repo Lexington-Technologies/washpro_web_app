@@ -1,42 +1,42 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, User, Home, Users, ArrowLeft, ZoomIn, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { format } from 'date-fns';
-import { 
-  Box, 
-  Typography,
-  Grid,
-  Container,
-  IconButton,
-  Stack,
-  Modal,
-  Tabs,
-  Tab,
-  Alert,
-  Chip,
-  Divider
-} from '@mui/material';
 import {
-  BarChart,
+  Alert,
+  Box,
+  Chip,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Modal,
+  Stack,
+  Tab,
+  Tabs,
+  Typography
+} from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, User, Users, X, ZoomIn } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { GiWell } from 'react-icons/gi';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
+  Legend,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
   Radar,
-  Legend,
-  Tooltip as RechartsTooltip
+  RadarChart,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis
 } from 'recharts';
-import 'leaflet/dist/leaflet.css';
-import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
-import { useParams, useNavigate } from 'react-router-dom';
 import LoadingAnimation from '../../components/LoadingAnimation';
-import { GiWell } from 'react-icons/gi';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -89,6 +89,34 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const fetchReport = async () => {
+    try {
+      const data = await fetch('../../api/analytics.json', {
+        headers: {
+          "Content-Type" : "application/json"
+        }
+      });
+      console.log({data});
+      const response = await data.json()
+      console.log('res', response);
+
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const { data: analytics } = useQuery<WaterSource>({
+    queryKey: ['reports'],
+    queryFn: () => fetchReport(),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    console.log({analytics});
+  }, [analytics])
+
   if (isLoading) return <LoadingAnimation />;
   if (error || !waterSource) {
     return (
@@ -121,20 +149,22 @@ const WaterSourceDetails: React.FC = () => {
             </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Chip 
-              label={waterSource.status} 
+            <Chip
+              variant='outlined'
+              label={waterSource.status}
               color={waterSource.status === 'Functional' ? 'success' : 'error'}
             />
-            <Chip 
-              label={waterSource.quality} 
+            <Chip
+              variant='outlined'
+              label={waterSource.quality}
               color={waterSource.quality === 'Drinkable' ? 'success' : 'error'}
             />
           </Stack>
         </Stack>
 
         {/* Tabs */}
-        <Tabs 
-          value={activeTab} 
+        <Tabs
+          value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
@@ -150,8 +180,8 @@ const WaterSourceDetails: React.FC = () => {
         )}
 
         {/* Image Modal */}
-        <Modal 
-          open={isImageOpen} 
+        <Modal
+          open={isImageOpen}
           onClose={() => setIsImageOpen(false)}
           sx={{
             display: 'flex',
@@ -191,42 +221,16 @@ const WaterSourceDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ waterSource, position, onImageClick }: { 
-  waterSource: WaterSource; 
+const OverviewTab = ({ waterSource, position, onImageClick }: {
+  waterSource: WaterSource;
   position: [number, number];
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-    <Grid item xs={12}>
-      <Box sx={{ 
-        height: 500, 
-        borderRadius: 2, 
-        overflow: 'hidden',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
-      }}>
-        <MapContainer 
-          center={position} 
-          zoom={13} 
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{waterSource.type} at {waterSource.ward}</Popup>
-          </Marker>
-        </MapContainer>
-      </Box>
-{/* <Typography variant="h6" line sx={{ color: '#25306B', fontWeight: 300 }}>
-            General Details
-          </Typography>     */}
-          </Grid>
 
     <Grid item xs={12} md={4}>
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 }
         }}
@@ -238,7 +242,7 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
           onClick={onImageClick}
           sx={{
             width: '100%',
-            height: 300,
+            height: 400,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
@@ -265,8 +269,8 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
     </Grid>
 
     <Grid item xs={12} md={8}>
-      <Box sx={{ 
-        p: 3, 
+      <Box sx={{
+        p: 3,
         borderRadius: 2,
         bgcolor: 'background.paper',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
@@ -280,33 +284,75 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             <DetailItem icon={MapPin} label="Location" value={`${waterSource.hamlet}, ${waterSource.village}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependents" value={waterSource.dependent || 'Not specified'} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Space" value={waterSource.space} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Maintained By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-        <Grid item xs={6}>
-            <DetailItem 
-              icon={Calendar} 
-              label="Last Updated" 
-              value={format(new Date(waterSource.updatedAt), 'PPP')} 
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource.type} />
+            <DetailItem icon={Home} label="Category" value={waterSource.space} />
           </Grid>
 
         </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource.type} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Dependents" value={waterSource.dependent || 'Not specified'} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+        <Grid item xs={6}>
+            <DetailItem
+              icon={HeartPulse}
+              label="Water Source Status"
+              value={waterSource.quality}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Cog} label="Water Source Status" value={waterSource.status} />
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(waterSource.updatedAt), 'PPP')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Captured By" value={`Abdul Ubaid,\n(09118140594)`} />
+          </Grid>
+        </Grid>
+
       </Box>
+    </Grid>
+    <Grid item xs={12}>
+      <Box sx={{
+        height: 500,
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        mb: 4
+      }}>
+        <MapContainer
+          center={position}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          <Marker position={position}>
+            <Popup>{waterSource.type} at {waterSource.ward}</Popup>
+          </Marker>
+        </MapContainer>
+      </Box>
+{/* <Typography variant="h6" line sx={{ color: '#25306B', fontWeight: 300 }}>
+            General Details
+          </Typography>     */}
     </Grid>
   </Grid>
 );
@@ -386,26 +432,26 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
         </Box>
       </Grid>
       <Grid item xs={12}>
-        <Box sx={{ 
-          p: 3, 
-          borderRadius: 2, 
+        <Box sx={{
+          p: 3,
+          borderRadius: 2,
           bgcolor: 'background.paper',
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
         }}>
           <Typography variant="subtitle1" gutterBottom>Test Information</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <DetailItem 
-                icon={Calendar} 
-                label="Test Date" 
-                value={format(new Date(qualityTest.capturedAt), 'PPP')} 
+              <DetailItem
+                icon={Calendar}
+                label="Test Date"
+                value={format(new Date(qualityTest.capturedAt), 'PPP')}
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <DetailItem 
-                icon={User} 
-                label="Tested By" 
-                value={qualityTest.createdBy} 
+              <DetailItem
+                icon={User}
+                label="Tested By"
+                value={qualityTest.createdBy}
               />
             </Grid>
           </Grid>
