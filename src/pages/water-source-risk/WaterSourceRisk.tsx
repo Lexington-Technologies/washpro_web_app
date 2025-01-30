@@ -17,19 +17,65 @@ import 'leaflet/dist/leaflet.css';
 import React, { useEffect, useState } from 'react';
 import { FaCheckCircle, FaClipboardCheck, FaExclamationCircle, FaExclamationTriangle, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
+import { AxiosResponse } from 'axios';
+
+interface Location {
+  ward: string;
+  village: string;
+  hamlet: string;
+  coordinates: [number, number, number];
+}
+
+interface Facility {
+  facilityId: string;
+  distance: number;
+  riskLevel: 'critical' | 'moderate' | 'good';
+}
+
+interface Facilities {
+  toilets: Facility[];
+  soakAways: Facility[];
+  openDefecation: Facility[];
+  gutters: Facility[];
+}
+
+interface RiskSummary {
+  critical: number;
+  moderate: number;
+  good: number;
+  total: number;
+}
+
+interface Summary {
+  toilets: RiskSummary;
+  soakAways: RiskSummary;
+  openDefecation: RiskSummary;
+  gutters: RiskSummary;
+}
+
+interface WaterSourceRiskData {
+  waterSourceId: string;
+  waterSourceType: string;
+  location: Location;
+  facilities: Facilities;
+  summary: Summary;
+}
 
 const WaterSourceRisk = () => {
-  const [waterRisk, setWaterRisk] = useState({});
+  const [waterRisk, setWaterRisk] = useState<WaterSourceRiskData | null>(null);
 
-  const { data } = useQuery<unknown>({
-    queryKey: ['distance'], // Or any other meaningful key
-    queryFn: () => apiController.get('/analysis/distance'),
+  const { data, isLoading, error } = useQuery<WaterSourceRiskData>({
+    queryKey: ['waterSourceRisk'],
+    queryFn: async () => {
+      const response: AxiosResponse<WaterSourceRiskData> = await apiController.get('/analysis');
+      return response.data;
+    },
   });
 
   useEffect(() => {
     if (data) {
-      setWaterRisk(data)
-      console.log(data);
+      setWaterRisk(data);
+      console.log('Water source risk data:', data);
     }
   }, [data]);
 
