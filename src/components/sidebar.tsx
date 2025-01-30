@@ -11,7 +11,7 @@ import {
   Schedule,
   SmartToy,
   Waves,
-  WavesOutlined,
+  WavesOutlined
 } from "@mui/icons-material";
 import {
   Box,
@@ -30,7 +30,6 @@ import { useState } from "react";
 import { FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
 import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
-import { RiWaterFlashFill } from "react-icons/ri";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
 
@@ -77,6 +76,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
     { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
+    { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
     { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base", title: "Knowledge Base" },
   ];

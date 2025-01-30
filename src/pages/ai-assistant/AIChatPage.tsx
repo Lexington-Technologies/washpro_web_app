@@ -23,7 +23,18 @@ import {
   ListItemText,
   ListItemIcon,
 } from '@mui/material';
-import { Send as SendIcon, History, Settings, DeleteSweep, ContentCopy, Save, SmartToy, Add, Stop } from '@mui/icons-material';
+import {
+  Send as SendIcon,
+  History,
+  Settings,
+  DeleteSweep,
+  ContentCopy,
+  Save,
+  SmartToy,
+  Add,
+  Stop,
+  Share as ShareIcon,
+} from '@mui/icons-material';
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from '../../config';
 import { useAuthStore } from '../../store';
@@ -219,14 +230,14 @@ const AIChatPage: React.FC = () => {
         }
 
         // If no ID in env, create new assistant
-        const assistant = await openai.beta.assistants.create({
-          name: 'WashPro AI Assistant',
-          instructions: 'You are a helpful assistant that can help with water quality monitoring and maintenance tasks.',
-          model: 'gpt-4o-mini',
-        });
+        // const assistant = await openai.beta.assistants.create({
+        //   name: 'WashPro AI Assistant',
+        //   instructions: 'You are a helpful assistant that can help with water quality monitoring and maintenance tasks.',
+        //   model: 'gpt-4o-mini',
+        // });
         
-        setAssistantId(assistant.id);
-        console.log('Assistant created:', assistant.id);
+        // setAssistantId(assistant.id);
+        // console.log('Assistant created:', assistant.id);
       } catch (error) {
         console.error('Error creating assistant:', error);
       }
@@ -245,7 +256,7 @@ const AIChatPage: React.FC = () => {
         timestamp: new Date(),
         isStreaming: false
       }]);
-      setIsLoading(false); // Stop loading here for configuration errors
+      setIsLoading(false);
       return;
     }
 
@@ -279,7 +290,7 @@ const AIChatPage: React.FC = () => {
 
       // Create a run with the stored assistant ID
       const run = await openai.beta.threads.runs.create(threadId, {
-        assistant_id: assistantId,  // Use the stored assistant ID
+        assistant_id: assistantId,
       });
 
       // Update the streaming message content as responses come in
@@ -323,15 +334,19 @@ const AIChatPage: React.FC = () => {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Assistant API error:', error);
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        content: 'Sorry, I encountered an error. Please try again.'+ error?.message,
-        sender: 'ai',
-        timestamp: new Date(),
-        isStreaming: false
-      }]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === streamingMessageId 
+          ? {
+              id: msg.id,
+              content: 'Sorry, I encountered an error. Please try again. ' + error?.message,
+              sender: 'ai',
+              timestamp: new Date(),
+              isStreaming: false
+            }
+          : msg
+      ));
     } finally {
       setIsTyping(false);
       setIsLoading(false);
@@ -438,6 +453,16 @@ const AIChatPage: React.FC = () => {
     ? promptTemplates.filter(t => t.category === selectedCategory)
     : promptTemplates;
 
+  const handleShareMessage = async (content: string) => {
+    try {
+      await navigator.share({
+        text: content,
+      });
+    } catch (error) {
+      console.error('Error sharing message:', error);
+    }
+  };
+
   const MessageBubble: React.FC<{ message: StreamingMessage }> = ({ message }) => (
     <Box
       sx={{
@@ -489,40 +514,51 @@ const AIChatPage: React.FC = () => {
             my: 1,
             bgcolor: message.sender === 'user' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
           },
-          '& table': {
-            borderCollapse: 'collapse',
-            width: '100%',
-            my: 2,
-            '& th, & td': {
-              border: 1,
-              borderColor: message.sender === 'user' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-              p: 1,
-            },
-            '& th': {
-              bgcolor: message.sender === 'user' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              fontWeight: 'bold',
-            },
-          },
-          '& a': {
-            color: message.sender === 'user' ? 'primary.light' : 'primary.main',
-            textDecoration: 'none',
-            '&:hover': {
-              textDecoration: 'underline',
-            },
-          },
-          '& img': {
-            maxWidth: '100%',
-            borderRadius: 1,
-          },
-          '& hr': {
-            my: 2,
-            border: 'none',
-            borderTop: 1,
-            borderColor: message.sender === 'user' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-          },
         }
       }}
     >
+      {message.sender === 'ai' && !message.isStreaming && (
+        <Box 
+          className="message-actions"
+          sx={{ 
+            position: 'absolute',
+            top: 8,
+            right: -40,
+            opacity: 0,
+            transition: 'opacity 0.2s',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5
+          }}
+        >
+          <Tooltip title="Copy" TransitionComponent={Zoom} placement="left">
+            <IconButton 
+              size="small" 
+              onClick={() => handleCopyMessage(message.content)}
+              sx={{
+                bgcolor: 'white',
+                boxShadow: 1,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+              }}
+            >
+              <ContentCopy fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Share" TransitionComponent={Zoom} placement="left">
+            <IconButton 
+              size="small"
+              onClick={() => handleShareMessage(message.content)}
+              sx={{
+                bgcolor: 'white',
+                boxShadow: 1,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+              }}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
       <Box className="markdown-content">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -595,32 +631,6 @@ const AIChatPage: React.FC = () => {
           <TypingAnimation />
         </Box>
       )}
-      <Box 
-        className="message-actions"
-        sx={{ 
-          position: 'absolute',
-          top: -20,
-          right: 0,
-          opacity: 0,
-          transition: 'opacity 0.2s',
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          boxShadow: 1,
-          display: 'flex',
-          gap: 0.5
-        }}
-      >
-        <Tooltip title="Copy" TransitionComponent={Zoom}>
-          <IconButton size="small" onClick={() => handleCopyMessage(message.content)}>
-            <ContentCopy fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Save" TransitionComponent={Zoom}>
-          <IconButton size="small">
-            <Save fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
       <Typography 
         variant="caption" 
         sx={{ 
@@ -815,7 +825,7 @@ const AIChatPage: React.FC = () => {
           gap: 2,
           bgcolor: '#f8f9fa',
           transition: 'all 0.3s ease',
-          boxShadow: 2 // Added shadow
+          boxShadow: 2
         }}
       >
         {messages.length === 0 && !showPrompts && (
@@ -874,12 +884,6 @@ const AIChatPage: React.FC = () => {
             </Box>
           </Fade>
         ))}
-        {isLoading && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar src="/ai-avatar.png" sx={{ bgcolor: '#25306B' }} />
-            <CircularProgress size={20} />
-          </Box>
-        )}
         <div ref={messagesEndRef} />
       </Paper>
 
