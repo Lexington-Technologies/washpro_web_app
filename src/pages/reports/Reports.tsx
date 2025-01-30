@@ -225,147 +225,160 @@ const ReportCard: React.FC<{
         },
       }}
     >
-      <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Box
-            sx={{
-              backgroundColor: alpha(report.color, 0.1),
-              borderRadius: '8px',
-              p: 1,
-              mr: 2,
-              display: 'flex',
-            }}
-          >
-            {React.cloneElement(report.icon as React.ReactElement, {
-              sx: { color: report.color },
-            })}
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                backgroundColor: alpha(report.color, 0.1),
+                borderRadius: '6px',
+                p: 0.75,
+                display: 'flex',
+              }}
+            >
+              {React.cloneElement(report.icon as React.ReactElement, {
+                sx: { color: report.color, fontSize: '1.25rem' },
+              })}
+            </Box>
+            <Chip 
+              label={report.type} 
+              size="small" 
+              sx={{ 
+                backgroundColor: alpha(report.color, 0.1),
+                color: report.color,
+                fontWeight: 500,
+                height: 20,
+                fontSize: '0.75rem',
+              }} 
+            />
           </Box>
-          <Chip 
-            label={report.type} 
-            size="small" 
-            sx={{ 
-              backgroundColor: alpha(report.color, 0.1),
-              color: report.color,
-              fontWeight: 500,
-              height: 24,
-            }} 
-          />
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Tooltip title="View Report">
+              <IconButton 
+                size="small"
+                component={Link}
+                href={report.viewUrl}
+                target="_blank"
+                sx={{ 
+                  p: 0.5,
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: 'grey.100' },
+                }}
+              >
+                <Description sx={{ fontSize: '1.25rem' }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Download Report">
+              <IconButton 
+                size="small"
+                component={Link}
+                href={report.downloadUrl}
+                download
+                sx={{ 
+                  p: 0.5,
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: 'grey.100' },
+                }}
+              >
+                <Download sx={{ fontSize: '1.25rem' }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Share Report">
+              <IconButton 
+                size="small"
+                onClick={handleShareClick}
+                sx={{ 
+                  p: 0.5,
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: 'grey.100' },
+                }}
+              >
+                <Share sx={{ fontSize: '1.25rem' }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
-        <Typography variant="h6" gutterBottom>
+        <Typography 
+          variant="subtitle1" 
+          sx={{ 
+            fontWeight: 500,
+            mb: 0.5,
+            fontSize: '0.9rem',
+            lineHeight: 1.3,
+          }}
+        >
           {report.title}
         </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          sx={{ 
+            mb: 1.5,
+            fontSize: '0.8rem',
+            lineHeight: 1.4,
+          }}
+        >
           {report.description}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <AccessTime sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
-          <Typography variant="caption" color="text.secondary">
-            {new Date(report.date).toLocaleDateString()}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Download sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
+            <AccessTime sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
             <Typography variant="caption" color="text.secondary">
-              {report.downloads} downloads
+              {new Date(report.date).toLocaleDateString()}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Visibility sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
-            <Typography variant="caption" color="text.secondary">
-              {report.views} views
-            </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Download sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                {report.downloads}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Visibility sx={{ fontSize: '0.875rem', mr: 0.5, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                {report.views}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </CardContent>
-      <Divider />
-      <CardActions sx={{ p: 2, gap: 1 }}>
-        <Tooltip title="View Report">
-          <Button 
-            size="small" 
-            startIcon={<Description />}
-            component={Link}
-            href={report.viewUrl}
-            target="_blank"
-            sx={{ 
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'grey.100',
-              },
-            }}
-          >
-            View
-          </Button>
-        </Tooltip>
-        <Tooltip title="Download Report">
-          <Button 
-            size="small" 
-            startIcon={<Download />}
-            component={Link}
-            href={report.downloadUrl}
-            download
-            sx={{ 
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'grey.100',
-              },
-            }}
-          >
-            Download
-          </Button>
-        </Tooltip>
-        <Tooltip title="Share Report">
-          <IconButton 
-            size="small" 
-            sx={{ 
-              ml: 'auto',
-              color: 'text.secondary',
-              '&:hover': {
-                backgroundColor: 'grey.100',
-              },
-            }}
-            onClick={handleShareClick}
-          >
-            <Share fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={shareAnchorEl}
-          open={Boolean(shareAnchorEl)}
-          onClose={handleShareClose}
-          PaperProps={{
-            elevation: 2,
-            sx: {
-              borderRadius: 2,
-              minWidth: 200,
-            }
-          }}
-        >
-          <MenuItem onClick={() => handleShare('email')} dense>
-            <Email sx={{ mr: 1, color: '#ea4335' }} /> Email
-          </MenuItem>
-          <MenuItem onClick={() => handleShare('chat')} dense>
-            <Chat sx={{ mr: 1, color: '#00bcd4' }} /> Chat User
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={() => handleShare('facebook')} dense>
-            <Facebook sx={{ mr: 1, color: '#1877f2' }} /> Facebook
-          </MenuItem>
-          <MenuItem onClick={() => handleShare('twitter')} dense>
-            <Twitter sx={{ mr: 1, color: '#1da1f2' }} /> Twitter
-          </MenuItem>
-          <MenuItem onClick={() => handleShare('linkedin')} dense>
-            <LinkedIn sx={{ mr: 1, color: '#0a66c2' }} /> LinkedIn
-          </MenuItem>
-          <MenuItem onClick={() => handleShare('whatsapp')} dense>
-            <WhatsApp sx={{ mr: 1, color: '#25d366' }} /> WhatsApp
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={() => handleShare('copy')} dense>
-            <ContentCopy sx={{ mr: 1 }} /> Copy Link
-          </MenuItem>
-        </Menu>
-      </CardActions>
+      <Menu
+        anchorEl={shareAnchorEl}
+        open={Boolean(shareAnchorEl)}
+        onClose={handleShareClose}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            borderRadius: 2,
+            minWidth: 200,
+          }
+        }}
+      >
+        <MenuItem onClick={() => handleShare('email')} dense>
+          <Email sx={{ mr: 1, color: '#ea4335' }} /> Email
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('chat')} dense>
+          <Chat sx={{ mr: 1, color: '#00bcd4' }} /> Chat User
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={() => handleShare('facebook')} dense>
+          <Facebook sx={{ mr: 1, color: '#1877f2' }} /> Facebook
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('twitter')} dense>
+          <Twitter sx={{ mr: 1, color: '#1da1f2' }} /> Twitter
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('linkedin')} dense>
+          <LinkedIn sx={{ mr: 1, color: '#0a66c2' }} /> LinkedIn
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('whatsapp')} dense>
+          <WhatsApp sx={{ mr: 1, color: '#25d366' }} /> WhatsApp
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={() => handleShare('copy')} dense>
+          <ContentCopy sx={{ mr: 1 }} /> Copy Link
+        </MenuItem>
+      </Menu>
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

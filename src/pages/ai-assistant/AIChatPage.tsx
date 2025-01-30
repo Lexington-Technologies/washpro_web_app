@@ -469,9 +469,9 @@ const AIChatPage: React.FC = () => {
         maxWidth: '70%',
         p: 2,
         borderRadius: 2,
-        bgcolor: message.sender === 'user' ? '#25306B' : 'white',
+        bgcolor: message.sender === 'user' ? '#25306B' : '#f8f9fa',
         color: message.sender === 'user' ? 'white' : 'text.primary',
-        boxShadow: 1,
+        border: message.sender === 'user' ? 'none' : '1px solid #e0e0e0',
         position: 'relative',
         '&:hover .message-actions': {
           opacity: 1,
@@ -661,29 +661,29 @@ const AIChatPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: '100%',backgroundColor: '#f0f0f0',p: 3, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%', backgroundColor: '#f8f9fa', p: 3, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
+        <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
           AI Assistant
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="New Chat" TransitionComponent={Zoom}>
-            <IconButton onClick={handleNewChat}>
+            <IconButton onClick={handleNewChat} sx={{ color: '#25306B' }}>
               <Add />
             </IconButton>
           </Tooltip>
           <Tooltip title="Chat History" TransitionComponent={Zoom}>
-            <IconButton onClick={() => setShowDrawer(true)}>
+            <IconButton onClick={() => setShowDrawer(true)} sx={{ color: '#25306B' }}>
               <History />
             </IconButton>
           </Tooltip>
           <Tooltip title="Clear Chat" TransitionComponent={Zoom}>
-            <IconButton onClick={handleClearChat}>
+            <IconButton onClick={handleClearChat} sx={{ color: '#25306B' }}>
               <DeleteSweep />
             </IconButton>
           </Tooltip>
           <Tooltip title="Settings" TransitionComponent={Zoom}>
-            <IconButton>
+            <IconButton sx={{ color: '#25306B' }}>
               <Settings />
             </IconButton>
           </Tooltip>
@@ -698,7 +698,16 @@ const AIChatPage: React.FC = () => {
               label="All"
               onClick={() => setSelectedCategory(null)}
               variant={selectedCategory === null ? 'filled' : 'outlined'}
-              sx={{ '&.MuiChip-filled': { bgcolor: '#25306B', color: 'white' } }}
+              sx={{ 
+                '&.MuiChip-filled': { 
+                  bgcolor: '#25306B', 
+                  color: 'white' 
+                },
+                '&.MuiChip-outlined': {
+                  borderColor: '#25306B',
+                  color: '#25306B'
+                }
+              }}
             />
             {Object.keys(categories).map((category) => (
               <Chip
@@ -710,6 +719,10 @@ const AIChatPage: React.FC = () => {
                   '&.MuiChip-filled': { 
                     bgcolor: categories[category as keyof typeof categories],
                     color: 'white'
+                  },
+                  '&.MuiChip-outlined': {
+                    borderColor: categories[category as keyof typeof categories],
+                    color: categories[category as keyof typeof categories]
                   }
                 }}
               />
@@ -728,11 +741,12 @@ const AIChatPage: React.FC = () => {
                     <Card 
                       sx={{ 
                         height: '100%',
-                        transition: 'all 0.3s ease',
-                        boxShadow: 2, // Added default shadow
+                        transition: 'all 0.2s ease',
+                        border: '1px solid #e0e0e0',
+                        boxShadow: 'none',
                         '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 6, // Increased shadow on hover
+                          borderColor: categories[template.category as keyof typeof categories],
+                          bgcolor: 'rgba(0, 0, 0, 0.01)',
                           '& .hover-icon': {
                             opacity: 1,
                           }
@@ -814,7 +828,7 @@ const AIChatPage: React.FC = () => {
       )}
 
       {/* Messages Container */}
-      <Paper 
+      <Box 
         sx={{ 
           flex: 1, 
           mb: 2, 
@@ -823,9 +837,10 @@ const AIChatPage: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
-          bgcolor: '#f8f9fa',
-          transition: 'all 0.3s ease',
-          boxShadow: 2
+          bgcolor: 'white',
+          border: '1px solid #e0e0e0',
+          borderRadius: 1,
+          transition: 'all 0.2s ease'
         }}
       >
         {messages.length === 0 && !showPrompts && (
@@ -865,7 +880,7 @@ const AIChatPage: React.FC = () => {
                   sx={{ 
                     '& .MuiBadge-badge': { 
                       backgroundColor: '#44b700',
-                      boxShadow: '0 0 0 2px #fff'
+                      boxShadow: 'none'
                     }
                   }}
                 >
@@ -885,16 +900,18 @@ const AIChatPage: React.FC = () => {
           </Fade>
         ))}
         <div ref={messagesEndRef} />
-      </Paper>
+      </Box>
 
       {/* Input Area */}
-      <Paper 
+      <Box 
         sx={{ 
           p: 2,
           display: 'flex',
           gap: 1,
           alignItems: 'center',
-          boxShadow: 2 // Added shadow
+          bgcolor: 'white',
+          border: '1px solid #e0e0e0',
+          borderRadius: 1
         }}
       >
         <TextField
@@ -908,7 +925,16 @@ const AIChatPage: React.FC = () => {
           disabled={isLoading}
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
+              borderRadius: 1,
+              '& fieldset': {
+                borderColor: '#e0e0e0'
+              },
+              '&:hover fieldset': {
+                borderColor: '#25306B'
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#25306B'
+              }
             }
           }}
         />
@@ -922,7 +948,8 @@ const AIChatPage: React.FC = () => {
               bgcolor: '#1a1f4b'
             },
             '&.Mui-disabled': {
-              bgcolor: '#e0e0e0'
+              bgcolor: '#f5f5f5',
+              color: '#bdbdbd'
             }
           }}
         >
@@ -948,13 +975,19 @@ const AIChatPage: React.FC = () => {
             <SendIcon />
           )}
         </IconButton>
-      </Paper>
+      </Box>
 
       {/* History Drawer */}
       <Drawer
         anchor="right"
         open={showDrawer}
         onClose={() => setShowDrawer(false)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            borderLeft: '1px solid #e0e0e0',
+            boxShadow: 'none'
+          }
+        }}
       >
         <Box sx={{ width: 300, p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>Chat History</Typography>
