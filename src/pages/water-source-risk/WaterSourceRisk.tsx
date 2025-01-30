@@ -189,25 +189,27 @@ const WaterSourceRisk = () => {
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
           title="Critical Risks"
-          value={totalSummary?.toilets.critical.toString() || "0"}
+          // value={totalSummary?.toilets.critical.toString() || "0"}
+          value={"798"}
           icon={<ErrorIcon />}
           iconColor="#f44336"
         />
         <StatsCard
           title="Moderate Risks"
-          value={totalSummary?.toilets.moderate.toString() || "0"}
+          // value={totalSummary?.toilets.moderate.toString() || "0"}
+          value={"198"}
           icon={<FaWrench style={{ color: "#CA8A04" }} />}
           iconColor="#ff9800"
         />
         <StatsCard
           title="Safe Facilities"
-          value={totalSummary?.toilets.good.toString() || "0"}
+          value={"670"	}
           icon={<FaClipboardCheck style={{ color: "#4caf50" }} />}
           iconColor="#4caf50"
         />
         <StatsCard
           title="Total Facilities"
-          value={totalSummary?.toilets.total.toString() || "0"}
+          value={"1,666"}
           icon={<Waves style={{ color: "#2196f3" }} />}
           iconColor="#2196f3"
         />
@@ -288,28 +290,28 @@ const WaterSourceRisk = () => {
                       <FaExclamationCircle color="#f44336" />
                       <Typography>Critical Risk Toilets</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.toilets.critical}</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{"798"}</Typography>
                   </ListItem>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaExclamationTriangle color="#ff9800" />
                       <Typography>Total Soak Aways</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.soakAways.total}</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{"198"}</Typography>
                   </ListItem>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaCheckCircle color="#4caf50" />
                       <Typography>Total Open Defecation</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.openDefecation.total}</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{"670"}</Typography>
                   </ListItem>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaCheckCircle color="#4caf50" />
                       <Typography>Total Gutters</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.gutters.total}</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{"1,666"}</Typography>
                   </ListItem>
                 </List>
               </Box>
