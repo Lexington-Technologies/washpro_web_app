@@ -228,46 +228,6 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
 }) => (
   <Grid container spacing={4}>
 
-    <Grid item xs={12} md={4}>
-      <Box
-        sx={{
-          position: 'relative',
-          '&:hover .zoom-icon': { opacity: 1 }
-        }}
-      >
-        <Box
-          component="img"
-          src={waterSource.picture}
-          alt="Water Source"
-          onClick={onImageClick}
-          sx={{
-            width: '100%',
-            height: 400,
-            objectFit: 'cover',
-            borderRadius: 2,
-            cursor: 'pointer',
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
-          }}
-        />
-        <IconButton
-          className="zoom-icon"
-          onClick={onImageClick}
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
-            opacity: 0,
-            transition: 'opacity 0.2s',
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-            color: 'white'
-          }}
-        >
-          <ZoomIn />
-        </IconButton>
-      </Box>
-    </Grid>
-
     <Grid item xs={12} md={8}>
       <Box sx={{
         p: 3,
@@ -328,6 +288,47 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
 
       </Box>
     </Grid>
+
+    <Grid item xs={12} md={4}>
+      <Box
+        sx={{
+          position: 'relative',
+          '&:hover .zoom-icon': { opacity: 1 }
+        }}
+      >
+        <Box
+          component="img"
+          src={waterSource.picture}
+          alt="Water Source"
+          onClick={onImageClick}
+          sx={{
+            width: '100%',
+            height: 400,
+            objectFit: 'cover',
+            borderRadius: 2,
+            cursor: 'pointer',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
+          }}
+        />
+        <IconButton
+          className="zoom-icon"
+          onClick={onImageClick}
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            opacity: 0,
+            transition: 'opacity 0.2s',
+            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+            color: 'white'
+          }}
+        >
+          <ZoomIn />
+        </IconButton>
+      </Box>
+    </Grid>
+
     <Grid item xs={12}>
       <Box sx={{
         height: 500,
