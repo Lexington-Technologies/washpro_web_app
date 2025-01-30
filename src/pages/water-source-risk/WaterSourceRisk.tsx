@@ -10,74 +10,153 @@ import {
   ListItem,
   Paper,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FaCheckCircle, FaClipboardCheck, FaExclamationCircle, FaExclamationTriangle, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { AxiosResponse } from 'axios';
+
+interface Location {
+  ward: string;
+  village: string;
+  hamlet: string;
+  coordinates: [number, number, number];
+}
+
+interface Facility {
+  facilityId: string;
+  distance: number;
+  riskLevel: 'critical' | 'moderate' | 'good';
+}
+
+interface Facilities {
+  toilets: Facility[];
+  soakAways: Facility[];
+  openDefecation: Facility[];
+  gutters: Facility[];
+}
+
+interface RiskSummary {
+  critical: number;
+  moderate: number;
+  good: number;
+  total: number;
+}
+
+interface Summary {
+  toilets: RiskSummary;
+  soakAways: RiskSummary;
+  openDefecation: RiskSummary;
+  gutters: RiskSummary;
+}
+
+interface WaterSourceRiskData {
+  waterSourceId: string;
+  waterSourceType: string;
+  location: Location;
+  facilities: Facilities;
+  summary: Summary;
+}
 
 const WaterSourceRisk = () => {
-  const [waterRisk, setWaterRisk] = useState({});
-
-  const { data } = useQuery<unknown>({
-    queryKey: ['distance'], // Or any other meaningful key
-    queryFn: () => apiController.get('/analysis/distance'),
+  const { data: waterRisks, isLoading, error } = useQuery<WaterSourceRiskData[], Error>({
+    queryKey: ['waterSourceRisk'],
+    queryFn: async () => {
+      const response = await apiController.get<WaterSourceRiskData[]>('/analysis');
+      return response;
+    },
   });
 
-  useEffect(() => {
-    if (data) {
-      setWaterRisk(data)
-      console.log(data);
-    }
-  }, [data]);
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, color: 'error.main' }}>
+        <Typography variant="h6">Error loading data</Typography>
+      </Box>
+    );
+  }
+
+  // Calculate total summaries across all water sources
+  const totalSummary = waterRisks?.reduce((acc, curr) => ({
+    toilets: {
+      critical: acc.toilets.critical + curr.summary.toilets.critical,
+      moderate: acc.toilets.moderate + curr.summary.toilets.moderate,
+      good: acc.toilets.good + curr.summary.toilets.good,
+      total: acc.toilets.total + curr.summary.toilets.total,
+    },
+    soakAways: {
+      critical: acc.soakAways.critical + curr.summary.soakAways.critical,
+      moderate: acc.soakAways.moderate + curr.summary.soakAways.moderate,
+      good: acc.soakAways.good + curr.summary.soakAways.good,
+      total: acc.soakAways.total + curr.summary.soakAways.total,
+    },
+    openDefecation: {
+      critical: acc.openDefecation.critical + curr.summary.openDefecation.critical,
+      moderate: acc.openDefecation.moderate + curr.summary.openDefecation.moderate,
+      good: acc.openDefecation.good + curr.summary.openDefecation.good,
+      total: acc.openDefecation.total + curr.summary.openDefecation.total,
+    },
+    gutters: {
+      critical: acc.gutters.critical + curr.summary.gutters.critical,
+      moderate: acc.gutters.moderate + curr.summary.gutters.moderate,
+      good: acc.gutters.good + curr.summary.gutters.good,
+      total: acc.gutters.total + curr.summary.gutters.total,
+    },
+  }), {
+    toilets: { critical: 0, moderate: 0, good: 0, total: 0 },
+    soakAways: { critical: 0, moderate: 0, good: 0, total: 0 },
+    openDefecation: { critical: 0, moderate: 0, good: 0, total: 0 },
+    gutters: { critical: 0, moderate: 0, good: 0, total: 0 },
+  });
 
   // Define custom icons
-const criticalIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
+  const criticalIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
 
-const moderateIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
+  const moderateIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
 
-const safeIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
+  const safeIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
 
-const defaultPosition = [27.7172, 85.3240]; // Default map center
+  // Calculate the center position based on the first water source or use default
+  const defaultPosition: [number, number] = waterRisks && waterRisks.length > 0
+    ? [waterRisks[0].location.coordinates[1], waterRisks[0].location.coordinates[0]]
+    : [11.2832241, 7.6644755];
 
-// Sample data for markers
-const locations = [
-  {
-    position: [27.7172, 85.3240], // Latitude, Longitude
-    type: 'Critical Risk',
-    ward: 'Ward 1',
-    icon: criticalIcon,
-  },
-  {
-    position: [27.7000, 85.3000],
-    type: 'Moderate Risk',
-    ward: 'Ward 2',
-    icon: moderateIcon,
-  },
-  {
-    position: [27.7100, 85.3100],
-    type: 'Safe Zone',
-    ward: 'Ward 3',
-    icon: safeIcon,
-  },
-];
+  // Helper function to determine marker icon based on risk levels
+  const getMarkerIcon = (waterRisk: WaterSourceRiskData) => {
+    const hasCritical = waterRisk.facilities.toilets.some(t => t.riskLevel === 'critical');
+    const hasModerate = waterRisk.facilities.toilets.some(t => t.riskLevel === 'moderate');
+    
+    if (hasCritical) return criticalIcon;
+    if (hasModerate) return moderateIcon;
+    return safeIcon;
+  };
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
@@ -88,7 +167,7 @@ const locations = [
             Distance Monitoring for Risks
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Detailed insights about your selected location
+            {waterRisks?.length || 0} Water Sources Monitored
           </Typography>
         </Box>
         <Button
@@ -109,26 +188,26 @@ const locations = [
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
-          title="Critical Alerts"
-          value="24"
+          title="Critical Risks"
+          value={totalSummary?.toilets.critical.toString() || "0"}
           icon={<ErrorIcon />}
           iconColor="#f44336"
         />
         <StatsCard
           title="Moderate Risks"
-          value="67"
+          value={totalSummary?.toilets.moderate.toString() || "0"}
           icon={<FaWrench style={{ color: "#CA8A04" }} />}
           iconColor="#ff9800"
         />
         <StatsCard
-          title="Safe Zones"
-          value="143"
+          title="Safe Facilities"
+          value={totalSummary?.toilets.good.toString() || "0"}
           icon={<FaClipboardCheck style={{ color: "#4caf50" }} />}
           iconColor="#4caf50"
         />
         <StatsCard
-          title="Monitored Sites"
-          value="234"
+          title="Total Facilities"
+          value={totalSummary?.toilets.total.toString() || "0"}
           icon={<Waves style={{ color: "#2196f3" }} />}
           iconColor="#2196f3"
         />
@@ -136,7 +215,6 @@ const locations = [
 
       {/* Main Content */}
       <Box sx={{ display: 'flex', gap: 2, backgroundColor: '#f0f0f0', }}>
-        {/* Risk Heatmap */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={6} md={8}>
             <Paper sx={{ flex: 2, p: 2, borderRadius: 2 }}>
@@ -159,61 +237,85 @@ const locations = [
               </Box>
 
               <Box sx={{ height: 400, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
-              {/* <MapContainer
-                center={defaultPosition}
-                zoom={13}
-                style={{ height: '400px', width: '100%' }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; OpenStreetMap contributors'
-                />
-                {locations.map((location, index) => (
-                  <Marker key={index} position={location.position} icon={location.icon}>
-                    <Popup>
-                      {location.type} at {location.ward}
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer> */}
+                <MapContainer
+                  center={defaultPosition}
+                  zoom={15}
+                  style={{ height: '400px', width: '100%' }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                  />
+                  {waterRisks?.map((waterRisk) => (
+                    <Marker 
+                      key={waterRisk.waterSourceId}
+                      position={[waterRisk.location.coordinates[1], waterRisk.location.coordinates[0]]}
+                      icon={getMarkerIcon(waterRisk)}
+                    >
+                      <Popup>
+                        <div>
+                          <strong>{waterRisk.waterSourceType}</strong>
+                          <br />
+                          Ward: {waterRisk.location.ward}
+                          <br />
+                          Village: {waterRisk.location.village}
+                          <br />
+                          Hamlet: {waterRisk.location.hamlet}
+                          <br />
+                          <strong>Risk Summary:</strong>
+                          <br />
+                          Critical: {waterRisk.summary.toilets.critical}
+                          <br />
+                          Moderate: {waterRisk.summary.toilets.moderate}
+                          <br />
+                          Good: {waterRisk.summary.toilets.good}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
               </Box>
             </Paper>
           </Grid>
 
           <Grid item xs={12} sm={6} md={4}>
             <Paper sx={{ flex: 2, p: 2, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Details</Typography>
-              <Box sx={{ height: 400, borderRadius: 1, overflow: 'hidden' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Overall Facility Summary</Typography>
+              <Box sx={{ height: 400, borderRadius: 1, overflow: 'auto' }}>
                 <List>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaExclamationCircle color="#f44336" />
-                      <Typography>Location</Typography>
+                      <Typography>Critical Risk Toilets</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>12</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.toilets.critical}</Typography>
                   </ListItem>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaExclamationTriangle color="#ff9800" />
-                      <Typography>Space</Typography>
+                      <Typography>Total Soak Aways</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>Household</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.soakAways.total}</Typography>
                   </ListItem>
                   <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FaCheckCircle color="#4caf50" />
-                      <Typography>Toilet Type</Typography>
+                      <Typography>Total Open Defecation</Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 'bold' }}>Pit Latrine</Typography>
+                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.openDefecation.total}</Typography>
+                  </ListItem>
+                  <ListItem sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderBottom: '1px solid #E2E8F0' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FaCheckCircle color="#4caf50" />
+                      <Typography>Total Gutters</Typography>
+                    </Box>
+                    <Typography sx={{ fontWeight: 'bold' }}>{totalSummary?.gutters.total}</Typography>
                   </ListItem>
                 </List>
               </Box>
             </Paper>
           </Grid>
         </Grid>
-
-        {/* Right Column */}
-
       </Box>
     </Box>
   );
