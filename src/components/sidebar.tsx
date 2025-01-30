@@ -25,6 +25,7 @@ import {
   WavesOutlined,
   Report,
   Close,
+  Analytics,
 } from "@mui/icons-material";
 import { useState } from "react";
 import { RiWaterFlashFill } from "react-icons/ri";
@@ -74,10 +75,12 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
+    { text: "Analytics", icon: <Analytics />, path: "/analytics", title: "Analytics" },
     { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
     { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
     { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
+    { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
     { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base", title: "Knowledge Base" },
   ];

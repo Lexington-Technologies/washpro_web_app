@@ -1,230 +1,417 @@
 import React from 'react';
-import { 
+import {
   Box,
+  Grid,
+  Paper,
+  Typography,
   Card,
   CardContent,
-  Typography,
-  Grid,
-  Select,
-  MenuItem,
-  Button,
+  useTheme,
   IconButton,
-  Paper,
+  alpha,
 } from '@mui/material';
 import {
-  Icon as IconifyIcon
-} from '@iconify/react';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import {
   WaterDrop,
   Sanitizer,
-  People,
-  LocalHospital,
-  Assessment,
-  Groups,
-  PanTool} from '@mui/icons-material';
+  Delete,
+  Home,
+  MoreVert,
+} from '@mui/icons-material';
 
-interface KPICardProps {
-  icon: React.ReactNode;
+// Utility function to format large numbers
+const formatNumber = (num: number) => {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`;
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}k`;
+  }
+  return num.toLocaleString();
+};
+
+const StatCard: React.FC<{
   title: string;
   value: string | number;
-  unit?: string;
-}
-
-const KPICard: React.FC<KPICardProps> = ({ icon, title, value, unit }) => (
-  <Card sx={{ height: '100%', boxShadow: 5 }}>
-    <CardContent>
-      <Box display="flex" alignItems="center" mb={1}>
-        {icon}
+  icon: React.ReactNode;
+  subtitle?: string;
+  color?: string;
+}> = ({ title, value, icon, subtitle, color = 'primary.main' }) => (
+  <Card 
+    sx={{ 
+      height: '100%', 
+      background: 'white',
+      transition: 'box-shadow 0.2s',
+      '&:hover': {
+        boxShadow: (theme) => theme.shadows[4],
+      },
+    }}
+  >
+    <CardContent sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+        <Box
+          sx={{
+            backgroundColor: (theme) => alpha(color, 0.1),
+            borderRadius: '8px',
+            p: 1,
+            mr: 2,
+            display: 'flex',
+          }}
+        >
+          {React.cloneElement(icon as React.ReactElement, {
+            sx: { color: color, fontSize: '1.5rem' },
+          })}
+        </Box>
+        <Box>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+            {value}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {title}
+          </Typography>
+        </Box>
       </Box>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-      <Typography variant="h4" component="div">
-        {value}{unit}
-      </Typography>
+      {subtitle && (
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: 'text.secondary',
+            display: 'block'
+          }}
+        >
+          {subtitle}
+        </Typography>
+      )}
     </CardContent>
   </Card>
 );
 
-interface Report {
-  title: string;
-  timeAgo: string;
-  description: string;
-  author: string;
-}
-
-const ReportCard: React.FC<{ report: Report }> = ({ report }) => (
-  <Card sx={{ height: '100%', boxShadow: 5 }}>
-    <CardContent>
-      <Typography variant="subtitle2" color="text.secondary">
-        {report.timeAgo}
-      </Typography>
-      <Typography variant="h6" gutterBottom>
-        {report.title}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" paragraph>
-        {report.description}
-      </Typography>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2">
-          {report.author}
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <Paper
+        sx={{
+          p: 1.5,
+          boxShadow: 2,
+          bgcolor: 'rgba(255, 255, 255, 0.95)',
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          {label}
         </Typography>
-        <Box>
-          <IconButton size="small">
-            <IconifyIcon icon="mdi:eye-outline" />
-          </IconButton>
-          <IconButton size="small">
-            <IconifyIcon icon="mdi:download" />
-          </IconButton>
-          <IconButton size="small">
-            <IconifyIcon icon="mdi:share" />
-          </IconButton>
-        </Box>
+        {payload.map((entry: any, index: number) => (
+          <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: entry.color,
+              }}
+            />
+            <Typography variant="body2">
+              {entry.name}: {formatNumber(entry.value)}
+            </Typography>
+          </Box>
+        ))}
+      </Paper>
+    );
+  }
+  return null;
+};
+
+const ChartCard: React.FC<{
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}> = ({ title, subtitle, children }) => (
+  <Paper 
+    sx={{ 
+      p: 2, 
+      height: '100%',
+      background: 'white',
+      transition: 'box-shadow 0.2s',
+      '&:hover': {
+        boxShadow: (theme) => theme.shadows[4],
+      },
+    }}
+  >
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ mb: 0.5 }}>
+          {title}
+        </Typography>
+        {subtitle && (
+          <Typography variant="body2" color="text.secondary">
+            {subtitle}
+          </Typography>
+        )}
       </Box>
-    </CardContent>
-  </Card>
+      <IconButton size="small">
+        <MoreVert />
+      </IconButton>
+    </Box>
+    {children}
+  </Paper>
 );
 
 const Dashboard: React.FC = () => {
-  const kpis = [
-    {
-      icon: <WaterDrop color="primary" />,
-      title: "Water Quality Metrics",
-      value: "0-100"
-    },
-    {
-      icon: <Sanitizer color="primary" />,
-      title: "Hygiene Facility Conditions",
-      value: 70,
-      unit: "%"
-    },
-    {
-      icon: <Assessment color="primary" />,
-      title: "Program Progress",
-      value: 66,
-      unit: "%"
-    },
-    {
-      icon: <PanTool color="primary" />,
-      title: "Sanitation Activities",
-      value: 56
-    },
-    {
-      icon: <People color="primary" />,
-      title: "Community and Feedback",
-      value: 130
-    },
-    {
-      icon: <LocalHospital color="primary" />,
-      title: "Risk and Critical Areas",
-      value: 65
-    },
-    {
-      icon: <Assessment color="primary" />,
-      title: "Data Collection Status",
-      value: 48,
-      unit: "%"
-    },
-    {
-      icon: <Groups color="primary" />,
-      title: "User and Team Performance",
-      value: 36
-    }
+  const theme = useTheme();
+
+  const toiletFacilityData = [
+    { name: 'WC Squatting', value: 196 },
+    { name: 'Pit Latrine', value: 1800 },
+    { name: 'WC Sitting', value: 124 },
   ];
 
-  const reports: Report[] = [
+  const soakAwayData = [
+    { name: 'Maintained', value: 154, fill: '#4CAF50' },
+    { name: 'Dilapidated', value: 49, fill: '#f44336' },
+    { name: 'Unmaintained', value: 114, fill: '#ff9800' },
+  ];
+
+  const dumpSiteData = [
+    { name: 'Unimproved', value: 1193, fill: '#e57373' },
+    { name: 'Improved', value: 266, fill: '#81c784' },
+  ];
+
+  const wardData = [
     {
-      title: "Performance Analysis",
-      timeAgo: "2 hours ago",
-      description: "Comprehensive analysis of Q4 2024 performance metrics and KPIs.",
-      author: "Usman Hussaini Galadima"
+      name: 'LIKORO',
+      waterSources: 859,
+      toilets: 1148,
+      households: 1125,
     },
     {
-      title: "Water Sources",
-      timeAgo: "1 day ago",
-      description: "Detailed breakdown of market performance across different regions.",
-      author: "Muhammad Kabir"
+      name: 'S/GARI',
+      waterSources: 805,
+      toilets: 970,
+      households: 1047,
     },
-    {
-      title: "Toilet Facilities",
-      timeAgo: "2 hours ago",
-      description: "Analysis of customer feedback and satisfaction metrics for Q1 2025.",
-      author: "Basir Ibrahim"
-    }
   ];
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Key Performance Indicators (KPIs)
-      </Typography>
-
-      <Grid container spacing={3} mb={4}>
-        {kpis.map((kpi, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <KPICard {...kpi} />
-          </Grid>
-        ))}
-      </Grid>
-
-      <Paper sx={{ p: 2, mb: 4, shadow: 5 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Location Distribution</Typography>
-          <Box display="flex" gap={2}>
-            <Select size="small" defaultValue="LGA">
-              <MenuItem value="LGA">LGA</MenuItem>
-            </Select>
-            <Select size="small" defaultValue="Ward">
-              <MenuItem value="Ward">Ward</MenuItem>
-            </Select>
-            <Select size="small" defaultValue="Village">
-              <MenuItem value="Village">Village</MenuItem>
-            </Select>
-            <Select size="small" defaultValue="Hamlet">
-              <MenuItem value="Hamlet">Hamlet</MenuItem>
-            </Select>
-            <Button variant="contained" color="primary">
-              View Report
-            </Button>
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
-            height: '400px',
-            bgcolor: '#F8FAFC',
-            borderRadius: 1,
-            overflow: 'hidden',
-          }}
-        >
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d150598.46582809655!2d7.648291125907573!3d11.296615180519947!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x11b27fc3df7cf997%3A0x7f813ac2a29bec28!2sKudan%2C%20Kaduna!5e0!3m2!1sen!2sng!4v1735721268833!5m2!1sen!2sng"
-            style={{
-              border: 0,
-              width: '100%',
-              height: '100%',
-            }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </Box>
-      </Paper>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">Reports</Typography>
-        <Button color="primary">View All</Button>
+    <Box sx={{ p: 2, backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      {/* Header Section */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 0.5 }}>
+          Dashboard Overview
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Water and sanitation metrics summary
+        </Typography>
       </Box>
 
-      <Grid container spacing={3}>
-        {reports.map((report, index) => (
-          <Grid item xs={12} md={4} key={index}>
-            <ReportCard report={report} />
-          </Grid>
-        ))}
+      {/* Key Statistics */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Water Sources"
+            value={formatNumber(1666)}
+            icon={<WaterDrop />}
+            subtitle="76 avg. dependents per source"
+            color="#2196f3"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Households"
+            value={formatNumber(2173)}
+            icon={<Home />}
+            subtitle="17 avg. people per household"
+            color="#4caf50"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Toilet Facilities"
+            value={formatNumber(2120)}
+            icon={<Sanitizer />}
+            color="#ff9800"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Dump Sites"
+            value={formatNumber(1459)}
+            icon={<Delete />}
+            color="#f44336"
+          />
+        </Grid>
+      </Grid>
+
+      {/* Charts Section */}
+      <Grid container spacing={2}>
+        {/* Ward Statistics */}
+        <Grid item xs={12}>
+          <ChartCard 
+            title="Ward Statistics" 
+            subtitle="Comparison across wards"
+          >
+            <Box sx={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={wardData} barGap={8} barSize={20}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#666"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    stroke="#666"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar
+                    dataKey="waterSources"
+                    fill="#2196f3"
+                    radius={[4, 4, 0, 0]}
+                    name="Water Sources"
+                  />
+                  <Bar
+                    dataKey="toilets"
+                    fill="#4caf50"
+                    radius={[4, 4, 0, 0]}
+                    name="Toilets"
+                  />
+                  <Bar
+                    dataKey="households"
+                    fill="#ff9800"
+                    radius={[4, 4, 0, 0]}
+                    name="Households"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </ChartCard>
+        </Grid>
+
+        {/* Toilet Facilities Distribution */}
+        <Grid item xs={12} md={4}>
+          <ChartCard 
+            title="Toilet Facilities" 
+            subtitle="Distribution by type"
+          >
+            <Box sx={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={toiletFacilityData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {toiletFacilityData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`}
+                        fill={[theme.palette.primary.main, theme.palette.secondary.main, theme.palette.success.main][index]}
+                        stroke="none"
+                      />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend 
+                    verticalAlign="middle" 
+                    align="right"
+                    layout="vertical"
+                    iconType="circle"
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </ChartCard>
+        </Grid>
+
+        {/* Soak Away Status */}
+        <Grid item xs={12} md={4}>
+          <ChartCard 
+            title="Soak Away Status" 
+            subtitle="Maintenance distribution"
+          >
+            <Box sx={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={soakAwayData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {soakAwayData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend 
+                    verticalAlign="middle" 
+                    align="right"
+                    layout="vertical"
+                    iconType="circle"
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </ChartCard>
+        </Grid>
+
+        {/* Dump Site Status */}
+        <Grid item xs={12} md={4}>
+          <ChartCard 
+            title="Dump Site Status" 
+            subtitle="Quality assessment"
+          >
+            <Box sx={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={dumpSiteData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {dumpSiteData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} stroke="none" />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend 
+                    verticalAlign="middle" 
+                    align="right"
+                    layout="vertical"
+                    iconType="circle"
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </ChartCard>
+        </Grid>
       </Grid>
     </Box>
   );
 };
 
-export default Dashboard;
+export default Dashboard; 
