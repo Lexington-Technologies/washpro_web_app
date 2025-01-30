@@ -554,7 +554,7 @@ const WaterSourcesDashboard: React.FC = () => {
                   arcLabelRadius: '60%'
                 },
               ]}
-              width={400}
+              width={550}
               height={350}
             />
           </Paper>

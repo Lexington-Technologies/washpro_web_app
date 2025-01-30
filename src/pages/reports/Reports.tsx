@@ -1,44 +1,42 @@
-import React, { useState } from 'react';
 import {
+  AccessTime,
+  Assessment,
+  Chat,
+  ContentCopy,
+  Delete,
+  Description,
+  Download,
+  Email,
+  Facebook,
+  Group,
+  LinkedIn,
+  Sanitizer,
+  Share,
+  TrendingUp,
+  Twitter,
+  Visibility,
+  WaterDrop,
+  WhatsApp,
+} from '@mui/icons-material';
+import {
+  Alert,
+  alpha,
   Box,
-  Grid,
-  Typography,
   Card,
   CardContent,
-  CardActions,
-  Button,
-  Divider,
   Chip,
+  Divider,
+  Grid,
   IconButton,
-  useTheme,
-  alpha,
+  Link,
   Menu,
   MenuItem,
-  Tooltip,
-  Link,
   Snackbar,
-  Alert,
+  Tooltip,
+  Typography,
+  useTheme
 } from '@mui/material';
-import {
-  Description,
-  AccessTime,
-  Download,
-  Share,
-  Visibility,
-  Group,
-  Assessment,
-  TrendingUp,
-  WaterDrop,
-  Sanitizer,
-  Delete,
-  Facebook,
-  Twitter,
-  LinkedIn,
-  WhatsApp,
-  ContentCopy,
-  Email,
-  Chat,
-} from '@mui/icons-material';
+import React, { useState } from 'react';
 
 // Mock data for reports with download links
 const recentReports = [
@@ -65,7 +63,7 @@ const recentReports = [
     downloads: 32,
     views: 95,
     color: '#4caf50',
-    downloadUrl: 'https://example.com/reports/sanitation-status-june-2023.pdf',
+    downloadUrl: 'https://docs.google.com/spreadsheets/d/1AtpMFgVrsgtBF0r-Z7xYGzIXIe55S2b8Sd7Jdx-mukw/edit?usp=sharing',
     viewUrl: 'https://example.com/view/sanitation-status-june-2023',
   },
   {
@@ -80,7 +78,7 @@ const recentReports = [
     color: '#ff9800',
     downloadUrl: 'https://example.com/reports/waste-management-june-2023.pdf',
     viewUrl: 'https://example.com/view/waste-management-june-2023',
-  },
+  }
 ];
 
 const generalReports = [
@@ -207,11 +205,11 @@ const ReportCard: React.FC<{
     }
     handleShareClose();
   };
-  
+
   return (
-    <Card 
+    <Card
       elevation={0}
-      sx={{ 
+      sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -240,26 +238,26 @@ const ReportCard: React.FC<{
                 sx: { color: report.color, fontSize: '1.25rem' },
               })}
             </Box>
-            <Chip 
-              label={report.type} 
-              size="small" 
-              sx={{ 
+            <Chip
+              label={report.type}
+              size="small"
+              sx={{
                 backgroundColor: alpha(report.color, 0.1),
                 color: report.color,
                 fontWeight: 500,
                 height: 20,
                 fontSize: '0.75rem',
-              }} 
+              }}
             />
           </Box>
           <Box sx={{ display: 'flex', gap: 0.5 }}>
             <Tooltip title="View Report">
-              <IconButton 
+              <IconButton
                 size="small"
                 component={Link}
                 href={report.viewUrl}
                 target="_blank"
-                sx={{ 
+                sx={{
                   p: 0.5,
                   color: 'text.secondary',
                   '&:hover': { backgroundColor: 'grey.100' },
@@ -269,12 +267,12 @@ const ReportCard: React.FC<{
               </IconButton>
             </Tooltip>
             <Tooltip title="Download Report">
-              <IconButton 
+              <IconButton
                 size="small"
                 component={Link}
                 href={report.downloadUrl}
                 download
-                sx={{ 
+                sx={{
                   p: 0.5,
                   color: 'text.secondary',
                   '&:hover': { backgroundColor: 'grey.100' },
@@ -284,10 +282,10 @@ const ReportCard: React.FC<{
               </IconButton>
             </Tooltip>
             <Tooltip title="Share Report">
-              <IconButton 
+              <IconButton
                 size="small"
                 onClick={handleShareClick}
-                sx={{ 
+                sx={{
                   p: 0.5,
                   color: 'text.secondary',
                   '&:hover': { backgroundColor: 'grey.100' },
@@ -298,9 +296,9 @@ const ReportCard: React.FC<{
             </Tooltip>
           </Box>
         </Box>
-        <Typography 
-          variant="subtitle1" 
-          sx={{ 
+        <Typography
+          variant="subtitle1"
+          sx={{
             fontWeight: 500,
             mb: 0.5,
             fontSize: '0.9rem',
@@ -309,10 +307,10 @@ const ReportCard: React.FC<{
         >
           {report.title}
         </Typography>
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
             mb: 1.5,
             fontSize: '0.8rem',
             lineHeight: 1.4,
@@ -385,9 +383,9 @@ const ReportCard: React.FC<{
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
-          severity="success" 
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
           sx={{ width: '100%' }}
           elevation={1}
         >
@@ -404,9 +402,9 @@ const ReportSection: React.FC<{
 }> = ({ title, reports }) => (
   <Box sx={{ mb: 4 }}>
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-      <Typography 
-        variant="h6" 
-        sx={{ 
+      <Typography
+        variant="h6"
+        sx={{
           color: 'text.primary',
           fontWeight: 500,
           fontSize: '1rem',
@@ -430,9 +428,9 @@ const Reports: React.FC = () => {
   return (
     <Box sx={{ p: 3, backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h4" 
-          sx={{ 
+        <Typography
+          variant="h4"
+          sx={{
             fontWeight: 500,
             color: 'text.primary',
             mb: 1,
