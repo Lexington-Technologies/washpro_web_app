@@ -263,7 +263,7 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
         <Grid item xs={6}>
             <DetailItem
               icon={HeartPulse}
-              label="Water Source Status"
+              label="Water Quality"
               value={waterSource.quality}
             />
           </Grid>

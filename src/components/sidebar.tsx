@@ -97,7 +97,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
     // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
-    { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
+    // { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
     { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" }
   ];
 

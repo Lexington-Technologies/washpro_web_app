@@ -3,8 +3,10 @@ import {
   Box,
   Button,
   Card,
+  Chip,
   Grid,
   Paper,
+  Stack,
   styled,
   Typography
 } from '@mui/material';
@@ -145,10 +147,27 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('type', {
-    header: 'Type',
+    header: 'Tags',
     cell: info => {
       return (
-        <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.type}
+            color={'primary'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Functional' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.quality}
+            color={info.row.original.quality === 'Drinkable' ? 'info' : 'error'}
+          />
+        </Stack>
       )
     },
   }),
@@ -532,11 +551,7 @@ const WaterSourcesDashboard: React.FC = () => {
                   data: pieChartData,
                   arcLabel: (item) => `${item.value}`,
                   arcLabelMinAngle: 50,
-                  arcLabelRadius: '60%',
-                  arcLabelStyle: {
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                  },
+                  arcLabelRadius: '60%'
                 },
               ]}
               width={400}
