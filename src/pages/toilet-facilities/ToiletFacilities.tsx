@@ -184,7 +184,6 @@ const ToiletFacilities: React.FC = () => {
     queryKey: ['toilet-facilities', { limit, page, search }],
     queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities?limit=${limit}&page=${page}&search=${search}`),
   });
-  console.log("toilet",data)
 
   if (isLoading) return <LoadingAnimation />;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
