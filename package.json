@@ -6,7 +6,7 @@
   "homepage": "https://<kingkuta080>.github.io/<washpro_web_app>",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "vite build",

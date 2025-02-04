@@ -21,7 +21,7 @@ export default function Navbar({ onMenuClick, onSidebarToggle, isSidebarCollapse
       sx={{
         bgcolor: "#25306B",
         boxShadow: "none",
-        padding: "20px 10px",
+        padding: { xs: '12px 8px', md: '20px 16px' },
       }}
     >
       <Toolbar
@@ -29,72 +29,93 @@ export default function Navbar({ onMenuClick, onSidebarToggle, isSidebarCollapse
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          minHeight: { xs: '56px !important', md: '64px !important' },
+          px: { xs: 0, md: 2 },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* Menu button for mobile */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
           {isMobile ? (
             <IconButton
               color="inherit"
               edge="start"
               onClick={onMenuClick}
-              sx={{ mr: 2 }}
+              sx={{ mr: { xs: 1, md: 2 } }}
             >
-              <MenuIcon />
+              <MenuIcon sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }} />
             </IconButton>
           ) : (
-            /* Desktop sidebar toggle */
             <IconButton
               color="inherit"
               edge="start"
               onClick={onSidebarToggle}
-              sx={{ mr: 2 }}
+              sx={{ mr: { xs: 1, md: 2 } }}
             >
-              {isSidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
+              {isSidebarCollapsed ? (
+                <ChevronRight sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }} />
+              ) : (
+                <ChevronLeft sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }} />
+              )}
             </IconButton>
           )}
           
           {/* Welcome Section */}
-          <Box>
-            <Typography variant="h6" sx={{ color: "#ffffff", fontWeight: "bold" }}>
+          <Box sx={{ maxWidth: { xs: '200px', md: 'none' }, overflow: 'hidden' }}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                fontSize: { xs: '1rem', md: '1.25rem' },
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+              }}
+            >
               Welcome, Muhammad Buhari
             </Typography>
-            <Typography variant="subtitle2" sx={{ color: "#dcdcdc" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: "#dcdcdc",
+                display: { xs: 'none', sm: 'block' },
+                fontSize: { xs: '0.75rem', md: '0.875rem' }
+              }}
+            >
               Governor
             </Typography>
           </Box>
         </Box>
 
         {/* Icons Section */}
-        <Box>
+        <Box sx={{ display: 'flex', gap: { xs: 0.5, md: 1 } }}>
           <IconButton
             sx={{
               bgcolor: "white",
               borderRadius: "50%",
-              width: 36,
-              height: 36,
-              "&:hover": {
-                bgcolor: "#e0e0e0", 
-              },
-              marginRight: 1,
+              width: { xs: 32, md: 36 },
+              height: { xs: 32, md: 36 },
+              "&:hover": { bgcolor: "#e0e0e0" },
             }}
           >
-            <NotificationsIcon sx={{ color: "#25306B", fontSize: "20px" }} />
+            <NotificationsIcon sx={{ 
+              color: "#25306B", 
+              fontSize: { xs: '1.1rem', md: '1.25rem' } 
+            }} />
           </IconButton>
 
-          {/* Settings Icon */}
           <IconButton
             sx={{
               bgcolor: "white",
               borderRadius: "50%",
-              width: 36,
-              height: 36,
-              "&:hover": {
-                bgcolor: "#e0e0e0", 
-              },
+              width: { xs: 32, md: 36 },
+              height: { xs: 32, md: 36 },
+              "&:hover": { bgcolor: "#e0e0e0" },
             }}
           >
-            <SettingsIcon sx={{ color: "#25306B", fontSize: "20px" }} />
+            <SettingsIcon sx={{ 
+              color: "#25306B", 
+              fontSize: { xs: '1.1rem', md: '1.25rem' } 
+            }} />
           </IconButton>
         </Box>
       </Toolbar>

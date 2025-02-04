@@ -56,7 +56,6 @@ interface ToiletFacility {
 }
 
 const ToiletFacilitiesDetails: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
   const [isImageOpen, setIsImageOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -318,20 +317,6 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
   </Grid>
 );
 
-const SafetyRisksTab = ({ safetyRisks }: { safetyRisks: string[] }) => (
-  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
-    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-      Safety Risks
-    </Typography>
-    <ul>
-      {safetyRisks.map((risk, index) => (
-        <li key={index}>
-          <Typography variant="body1">{risk}</Typography>
-        </li>
-      ))}
-    </ul>
-  </Box>
-);
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

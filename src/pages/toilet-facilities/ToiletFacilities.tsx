@@ -152,7 +152,7 @@ const columns = [
           color = 'error';
           break;
         default:
-          color = 'default';
+          color = 'warning';
       }
       return (
         <Chip label={status} color={color} />
@@ -166,7 +166,7 @@ const columns = [
 ];
 
 const ToiletFacilities: React.FC = () => {
-  const [toilets, setToilets] = useState({});
+  const [, setToilets] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');

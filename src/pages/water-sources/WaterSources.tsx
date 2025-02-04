@@ -108,12 +108,6 @@ const columnHelper = createColumnHelper<WaterSource>()
 
 // Make some columns!
 const columns = [
-  // columnHelper.accessor((_, index) => index + 1, {
-  //   id: 'index',
-  //   header: 'S/N',
-  //   cell: info => info.getValue(),
-  //   size: 50,
-  // }),
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: props => (
@@ -200,7 +194,7 @@ const WaterSourcesDashboard: React.FC = () => {
     nonFunctionalNonMotorizedBoreholes: 0,
     maintenanceDueNonMotorizedBoreholes: 0,
   });
-  const [waterSource, setWaterSource] = useState({});
+  const [, setWaterSource] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');

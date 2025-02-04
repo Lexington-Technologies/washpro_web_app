@@ -19,7 +19,6 @@ import React from 'react';
 import { FaCheckCircle, FaClipboardCheck, FaExclamationCircle, FaExclamationTriangle, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { AxiosResponse } from 'axios';
 
 interface Location {
   ward: string;
@@ -89,37 +88,6 @@ const WaterSourceRisk = () => {
   }
 
   // Calculate total summaries across all water sources
-  const totalSummary = waterRisks?.reduce((acc, curr) => ({
-    toilets: {
-      critical: acc.toilets.critical + curr.summary.toilets.critical,
-      moderate: acc.toilets.moderate + curr.summary.toilets.moderate,
-      good: acc.toilets.good + curr.summary.toilets.good,
-      total: acc.toilets.total + curr.summary.toilets.total,
-    },
-    soakAways: {
-      critical: acc.soakAways.critical + curr.summary.soakAways.critical,
-      moderate: acc.soakAways.moderate + curr.summary.soakAways.moderate,
-      good: acc.soakAways.good + curr.summary.soakAways.good,
-      total: acc.soakAways.total + curr.summary.soakAways.total,
-    },
-    openDefecation: {
-      critical: acc.openDefecation.critical + curr.summary.openDefecation.critical,
-      moderate: acc.openDefecation.moderate + curr.summary.openDefecation.moderate,
-      good: acc.openDefecation.good + curr.summary.openDefecation.good,
-      total: acc.openDefecation.total + curr.summary.openDefecation.total,
-    },
-    gutters: {
-      critical: acc.gutters.critical + curr.summary.gutters.critical,
-      moderate: acc.gutters.moderate + curr.summary.gutters.moderate,
-      good: acc.gutters.good + curr.summary.gutters.good,
-      total: acc.gutters.total + curr.summary.gutters.total,
-    },
-  }), {
-    toilets: { critical: 0, moderate: 0, good: 0, total: 0 },
-    soakAways: { critical: 0, moderate: 0, good: 0, total: 0 },
-    openDefecation: { critical: 0, moderate: 0, good: 0, total: 0 },
-    gutters: { critical: 0, moderate: 0, good: 0, total: 0 },
-  });
 
   // Define custom icons
   const criticalIcon = new L.Icon({
@@ -354,66 +322,5 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) 
   </Card>
 );
 
-// Alert Item Component
-interface AlertItemProps {
-  status: 'critical' | 'warning' | 'safe';
-  icon: React.ReactElement;
-  title: string;
-  description: string;
-}
-
-const AlertItem: React.FC<AlertItemProps> = ({ status, icon, title, description }) => {
-  const getStatusColor = (status: 'critical' | 'warning' | 'safe'): string => {
-    switch (status) {
-      case 'critical':
-        return '#f44336';
-      case 'warning':
-        return '#ff9800';
-      case 'safe':
-        return '#4caf50';
-      default:
-        return '#757575';
-    }
-  };
-
-  return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 1,
-        bgcolor: `${getStatusColor(status)}10`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        border: 1,
-        borderColor: `${getStatusColor(status)}30`,
-      }}
-    >
-      {/* Icon */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          bgcolor: `${getStatusColor(status)}15`,
-        }}
-      >
-        {icon}
-      </Box>
-      {/* Text */}
-      <Box>
-        <Typography variant="subtitle2" sx={{ color: getStatusColor(status), mb: 0.5 }}>
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </Box>
-    </Box>
-  );
-};
 
 export default WaterSourceRisk;
