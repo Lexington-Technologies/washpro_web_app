@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -22,7 +23,7 @@ import { RiAlarmWarningLine, RiDeleteBin6Line } from 'react-icons/ri';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
+
 
 // Define types for the dump site
 interface DumpSite {
@@ -63,7 +64,7 @@ const DumpSiteDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isLoading) return <LoadingAnimation />;
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error || !dumpSite) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>

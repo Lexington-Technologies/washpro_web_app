@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -22,7 +23,7 @@ import { MdOutlinePropaneTank } from 'react-icons/md';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
+
 
 // Define types for the soakaway
 interface SoakAway {
@@ -63,7 +64,7 @@ const SoakAwayDetails: React.FC = () => {
   });
 
 
-  if (isLoading) return <LoadingAnimation />;
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error || !soakAway) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>

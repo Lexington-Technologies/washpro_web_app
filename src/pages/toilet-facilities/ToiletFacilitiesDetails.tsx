@@ -3,6 +3,7 @@ import {
   Box,
   capitalize,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -24,7 +25,6 @@ import { RiDoorLine } from 'react-icons/ri';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the toilet facility
 interface ToiletFacility {
@@ -67,7 +67,7 @@ const ToiletFacilitiesDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isLoading) return <LoadingAnimation />;
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error || !toiletFacility) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>

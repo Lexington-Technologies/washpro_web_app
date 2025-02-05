@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Box, Card, CardContent, Typography, Grid, Tab, Tabs, useTheme, Button, Menu, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Card, CardContent, Typography, Grid, Tab, Tabs, useTheme, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import { PieChart, Pie, Cell, Legend, Tooltip, Sector, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { styled } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
-import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
 import { apiController } from '../../axios';
-import { ArrowDropDown as ArrowDropDownIcon } from '@mui/icons-material';
+import { createColumnHelper } from '@tanstack/react-table';
+
 
 // ============================== CONSTANTS & DATA ==============================
 const SUMMARY_DATA = [
   { label: 'Total Households', value: '2,178', color: '#1976d2' },
-  { label: 'Active Enumerators', value: '57', color: '#2e7d32' },
+  { label: 'Total Hamlets', value: '57', color: '#2e7d32' },
   { label: 'Total Villages', value: '8', color: '#7b1fa2' },
   { label: 'Total Wards', value: '3', color: '#ed6c02' }
 ];
@@ -84,8 +84,13 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary
 }));
 
+// Utility function to format numbers with commas
+const formatNumberWithCommas = (number: string) => {
+  return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 // ============================== COMPONENTS ==============================
-const SummaryCard = ({ label, value, color }) => (
+const SummaryCard = ({ label, value, color }: { label: string; value: string; color: string }) => (
   <Grid item xs={12} sm={6} md={3}>
     <ProfessionalCard>
       <CardContent sx={{ textAlign: 'center', py: 3 }}>
@@ -93,14 +98,14 @@ const SummaryCard = ({ label, value, color }) => (
           {label}
         </Typography>
         <Typography variant="h4" sx={{ color, fontWeight: 700 }}>
-          {value}
+          {formatNumberWithCommas(value)}
         </Typography>
       </CardContent>
     </ProfessionalCard>
   </Grid>
 );
 
-const FacilityCard = ({ title, count, percentage, color }) => (
+const FacilityCard = ({ title, count, percentage, color }: { title: string; count: string; percentage: string; color: string }) => (
   <Grid item xs={12} sm={6} md={4}>
     <ProfessionalCard sx={{ position: 'relative', height: '100%' }}>
       <CardContent sx={{ py: 3, px: 2.5 }}>
@@ -117,7 +122,7 @@ const FacilityCard = ({ title, count, percentage, color }) => (
           {title}
         </Typography>
         <Typography variant="h3" fontWeight={700} gutterBottom>
-          {count}
+          {formatNumberWithCommas(count)}
         </Typography>
         <Typography variant="body2" color="textSecondary">
           {percentage} of total facilities
@@ -127,29 +132,37 @@ const FacilityCard = ({ title, count, percentage, color }) => (
   </Grid>
 );
 
-const FacilityPieChart = ({ title, data }) => {
+const FacilityPieChart = ({ title, data }: { title: string; data: { name: string; value: number; color: string }[] }) => {
   const theme = useTheme();
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  const renderActiveShape = (props) => (
-    <g>
-      <text
-        x={props.cx}
-        y={props.cy}
-        dy={8}
-        textAnchor="middle"
-        fill={theme.palette.text.primary}
-        style={{ fontWeight: 600 }}
-      >
-        {props.name}
-      </text>
-      <Sector
-        {...props}
-        outerRadius={props.outerRadius + 6}
-        cornerRadius={8}
-      />
-    </g>
-  );
+    const renderActiveShape = (props: {
+      cx: number;
+      cy: number;
+      outerRadius: number;
+      name: string;
+    }) => (
+      <g>
+        <StyledText
+          x={props.cx}
+          y={props.cy}
+          dy={8}
+          textAnchor="middle"
+          fill={theme.palette.text.primary}
+        >
+          {props.name}
+        </StyledText>
+        <Sector
+          {...props}
+          outerRadius={props.outerRadius + 6}
+          cornerRadius={8}
+        />
+      </g>
+    );
+  
+  const StyledText = styled('text')({
+    fontWeight: 600,
+  });
 
 
   return (
@@ -169,16 +182,16 @@ const FacilityPieChart = ({ title, data }) => {
             onMouseEnter={(_, index) => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}
           >
-            {data.map((entry, index) => (
+            {data.map((entry: any, index: number) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
           <Legend
             wrapperStyle={{ paddingTop: 24 }}
-            formatter={(value, entry) => (
-              <span style={{ color: theme.palette.text.primary }}>
+            formatter={(value) => (
+              <Typography style={{ color: theme.palette.text.primary }}>
                 {value}
-              </span>
+              </Typography>
             )}
           />
           <Tooltip
@@ -194,7 +207,7 @@ const FacilityPieChart = ({ title, data }) => {
   );
 };
 
-const ChartCard = ({ children }) => (
+const ChartCard = ({ children }: { children: React.ReactNode }) => (
   <ProfessionalCard sx={{ p: 3, mt: 3 }}>
     {children}
   </ProfessionalCard>
@@ -256,6 +269,7 @@ const DistributionCharts = () => {
   );
 };
 
+
 interface EnumeratorPerformance {
   id: string;
   name: string;
@@ -272,70 +286,68 @@ interface EnumeratorPerformance {
   };
 }
 
-// Define your row shape
 const columnHelper = createColumnHelper<EnumeratorPerformance>();
 
-// Make some columns!
 const columns = [
   columnHelper.accessor('name', {
-    header: 'Enumerator',
-    cell: info => info.getValue(),
+    header: 'Name',
+    cell: (info) => info.getValue(),
   }),
   columnHelper.accessor('totalFacilities', {
-    header: 'Total',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('villages', {
-    header: 'Villages',
-    cell: info => info.getValue().join(', '), // Convert array to comma-separated string
-  }),
-  columnHelper.accessor('facilities.waterSources', {
-    header: 'W/S',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('facilities.toiletFacilities', {
-    header: 'Toilet',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('facilities.dumpSites', {
-    header: 'Dump',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('facilities.gutters', {
-    header: 'Gutters',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('facilities.soakAways', {
-    header: 'SoakAways',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('facilities.openDefecationSites', {
-    header: 'ODF',
-    cell: info => info.getValue(),
+    header: 'Total Facilities',
+    cell: (info) => info.getValue(),
   }),
   columnHelper.accessor('lastActive', {
     header: 'Last Active',
-    cell: info => new Date(info.getValue()).toLocaleString(), // Format date
+    cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+  }),
+  columnHelper.accessor('villages', {
+    header: 'Villages',
+    cell: (info) => (info.getValue() as string[]).join(', '),
+  }),
+  columnHelper.accessor((row) => row.facilities.waterSources, {
+    header: 'Water Sources',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor((row) => row.facilities.toiletFacilities, {
+    header: 'Toilet Facilities',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor((row) => row.facilities.dumpSites, {
+    header: 'Dump Sites',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor((row) => row.facilities.gutters, {
+    header: 'Gutters',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor((row) => row.facilities.soakAways, {
+    header: 'Soak Aways',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor((row) => row.facilities.openDefecationSites, {
+    header: 'Open Defecation Sites',
+    cell: (info) => info.getValue(),
   }),
 ];
 
-const FilterDropdown = ({ label, options }) => {
+const FilterDropdown = ({ label, options }: { label: string; options: string[] }) => {
   const [selectedOption, setSelectedOption] = useState('');
 
-  const handleChange = (event) => {
-    setSelectedOption(event.target.value);
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setSelectedOption(event.target.value as string);
   };
 
   return (
-    <FormControl variant="outlined" sx={{ minWidth: 120, mb: 2 }}>
+    <FormControl variant="outlined" sx={{ mb: 2, height: 40 }}>
       <InputLabel>{label}</InputLabel>
       <Select
         value={selectedOption}
         onChange={handleChange}
         label={label}
-        endIcon={<ArrowDropDownIcon />}
+        sx={{ height:45, width:100 }}
       >
-        {options.map((option, index) => (
+        {options.map((option: string, index: number) => (
           <MenuItem key={index} value={option}>
             {option}
           </MenuItem>
@@ -347,19 +359,16 @@ const FilterDropdown = ({ label, options }) => {
 
 // Main Component
 const WashDashboard: React.FC = () => {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
   const [currentTab, setCurrentTab] = useState(0);
 
-  const { data, isLoading } = useQuery<EnumeratorPerformance[], Error>({
-    queryKey: ['enumerator', { limit, page, search }],
-    queryFn: async () => {
-      const data = await apiController.get(`/enumerator?limit=${limit}&page=${page}&search=${search}`);
-      return data as EnumeratorPerformance[];
-    },
+  const { data, isLoading } = useQuery({
+    queryKey: ['analytics'],
+    queryFn: () => apiController.get<{ enumeratorPerformance: EnumeratorPerformance[] }>('/analytics')
   });
-  console.log("enu", data)
+  
+  useEffect(() => {
+    console.log("enu", data?.enumeratorPerformance);
+  }, [data]);
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -374,15 +383,16 @@ const WashDashboard: React.FC = () => {
       >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: "bold", color: "#25306B" }}>
-           Dashboard
+            Dashboard
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
-        <Typography variant="caption" color="textSecondary">
-          Last updated: {new Date().toLocaleString()}
-        </Typography>
+          <Typography variant="caption" color="textSecondary">
+            Last updated: {new Date().toLocaleString()}
+          </Typography>
         </Box>
       </Box>
+
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {SUMMARY_DATA.map((item) => (
@@ -422,12 +432,10 @@ const WashDashboard: React.FC = () => {
                 <FacilityCard key={facility.title} {...facility} />
               ))}
               <Grid item xs={12}>
-                <ChartCard>
-                  <FacilityPieChart 
-                    title="Facility Distribution Overview"
-                    data={CHART_DATA.waterSources}
-                  />
-                </ChartCard>
+                <FacilityPieChart 
+                  title="Facility Distribution Overview"
+                  data={CHART_DATA.waterSources}
+                />
               </Grid>
             </Grid>
           )}
@@ -520,17 +528,10 @@ const WashDashboard: React.FC = () => {
           )}
 
           {currentTab === 3 && (
-              <Box sx={{ p: 1 }}>
-                <DataTable
-                  setSearch={setSearch}
-                  setPage={setPage}
-                  setLimit={setLimit}
-                  isLoading={isLoading}
-                  columns={columns}
-                  data={data || []}
-                />
-              </Box>
-            )}
+            <>  
+            <DataTable setSearch={() => {}} setPage={() => {}} setLimit={() => {}} isLoading={isLoading} columns={columns} data={data?.enumeratorPerformance || []} />
+            </>
+          )}
         </CardContent>
       </ProfessionalCard>
     </Box>

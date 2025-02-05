@@ -19,7 +19,7 @@ import { GiHole } from "react-icons/gi";
 import { LuToilet } from "react-icons/lu";
 import { PiToiletFill } from "react-icons/pi";
 import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
+
 import { DataTable } from '../../components/Table/DataTable';
 
 interface StatCardProps {
@@ -152,7 +152,7 @@ const columns = [
           color = 'error';
           break;
         default:
-          color = 'warning';
+          color = 'default';
       }
       return (
         <Chip label={status} color={color} />
@@ -166,7 +166,7 @@ const columns = [
 ];
 
 const ToiletFacilities: React.FC = () => {
-  const [, setToilets] = useState({});
+  const [toilets, setToilets] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
