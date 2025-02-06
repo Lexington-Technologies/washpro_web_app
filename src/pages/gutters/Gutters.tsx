@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   IconButton,
   Paper,
   ToggleButton,
@@ -127,6 +128,8 @@ const GutterDashboard = () => {
     { type: 'Maintained', value: maitained, color: '#00B4D8' },
     { type: 'Unmaintained', value: unMaintained, color: '#4CAF50' },
   ];
+
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>

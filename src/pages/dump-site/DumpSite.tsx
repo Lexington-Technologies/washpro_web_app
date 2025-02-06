@@ -8,6 +8,7 @@ import {
   Card,
   CardContent, // Add this import at the top
   Chip,
+  CircularProgress,
   Grid,
   Typography
 } from "@mui/material";
@@ -189,8 +190,10 @@ const DumpSites = () => {
     },
   ];
 
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: { xs: 2, sm: 3 } }}>
       {/* Header Section */}
       <Box
         sx={{
@@ -198,6 +201,7 @@ const DumpSites = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: 4,
+          flexDirection: { xs: "column", sm: "row" },
         }}
       >
         <Box>
@@ -208,7 +212,7 @@ const DumpSites = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
         <Button
               variant="outlined"
               sx={{
@@ -242,7 +246,7 @@ const DumpSites = () => {
       </Box>
 
       {/* Metric Cards */}
-      <Grid container spacing={3} sx={{ marginBottom: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ marginBottom: 4 }}>
         {metricCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card
@@ -303,7 +307,7 @@ const DumpSites = () => {
       </Card>
 
       {/* Notifications Section */}
-      <Grid container spacing={3} sx={{ marginBottom: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ marginBottom: 4 }}>
         {notificationCards.map((card, index) => (
           <Grid item xs={12} sm={4} key={index}>
             <Card sx={{ borderRadius: 2, boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" }}>

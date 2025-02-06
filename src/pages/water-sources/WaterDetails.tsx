@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Chip,
+  CircularProgress,
   Container,
   Divider,
   Grid,
@@ -16,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, User, Users, X, ZoomIn } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -36,7 +37,6 @@ import {
   YAxis
 } from 'recharts';
 import { apiController } from '../../axios';
-import LoadingAnimation from '../../components/LoadingAnimation';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -89,35 +89,18 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const fetchReport = async () => {
-    try {
-      const data = await fetch('../../api/analytics.json', {
-        headers: {
-          "Content-Type" : "application/json"
-        }
-      });
-      console.log({data});
-      const response = await data.json()
-      console.log('res', response);
+  console.log("water",waterSource)
 
-      return response;
-    } catch (error) {
-      console.log(error);
-    }
-  }
+    const { data: household } = useQuery({
+      queryKey: ['/households'],
+      queryFn: () => apiController.get(`/households`).then(res => res.data),
+    }); 
+    console.log("household",household)
+  
+  
 
-  const { data: analytics } = useQuery<WaterSource>({
-    queryKey: ['reports'],
-    queryFn: () => fetchReport(),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-  });
 
-  useEffect(() => {
-    console.log({analytics});
-  }, [analytics])
-
-  if (isLoading) return <LoadingAnimation />;
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error || !waterSource) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -170,13 +153,16 @@ const WaterSourceDetails: React.FC = () => {
         >
           <Tab label="Overview" />
           <Tab label="Water Quality" />
+          <Tab label="Person Contact" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
           <OverviewTab waterSource={waterSource} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (
+        ) : activeTab === 1 ? (
           <QualityTab qualityTest={waterSource.qualityTest[0]} />
+        ) : (
+          <PersonContactTab domain={waterSource.domain} />
         )}
 
         {/* Image Modal */}
@@ -461,6 +447,20 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
     </Grid>
   );
 };
+
+const PersonContactTab = ({ domain }: { domain: { _id: string; createdBy: string } }) => (
+  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
+    <Typography variant="subtitle1" gutterBottom>Person Contact</Typography>
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={6}>
+        <DetailItem icon={User} label="Domain ID" value={domain._id} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <DetailItem icon={User} label="Created By" value={domain.createdBy} />
+      </Grid>
+    </Grid>
+  </Box>
+);
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

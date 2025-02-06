@@ -1,28 +1,69 @@
-import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Grid, Tab, Tabs, useTheme, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
-import { PieChart, Pie, Cell, Legend, Tooltip, Sector, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { styled } from '@mui/material/styles';
+import { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Tab,
+  Tabs,
+  useTheme,
+  IconButton,
+  Stack,
+  Chip,
+  alpha,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  styled,
+  CircularProgress,
+} from '@mui/material';
+import {
+  WaterDrop,
+  Home,
+  Landscape,
+  Sanitizer,
+  DeleteOutline,
+  Group,
+  Timeline,
+  LocationOn,
+  Assessment,
+  Refresh,
+  TrendingUp,
+  TrendingDown,
+  PieChart,
+} from '@mui/icons-material';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Legend, CartesianGrid } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
+import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
 import { apiController } from '../../axios';
-import { createColumnHelper } from '@tanstack/react-table';
 
+// Constants
+const FACILITY_DATA = [
+  { name: 'Water Sources', count: 1666 },
+  { name: 'Toilet Facilities', count: 2124 },
+  { name: 'Dump Sites', count: 1459 },
+  { name: 'Gutters', count: 1423 },
+  { name: 'Soak Aways', count: 317 },
+  { name: 'Open Defecation', count: 194 },
+];
 
-// ============================== CONSTANTS & DATA ==============================
 const SUMMARY_DATA = [
-  { label: 'Total Households', value: '2,178', color: '#1976d2' },
-  { label: 'Total Hamlets', value: '57', color: '#2e7d32' },
-  { label: 'Total Villages', value: '8', color: '#7b1fa2' },
-  { label: 'Total Wards', value: '3', color: '#ed6c02' }
+  { label: 'Total Households', value: '2,178', icon: Home, trend: '+12%', isPositive: true },
+  { label: 'Active Enumerators', value: '57', icon: Group, trend: '+5%', isPositive: true },
+  { label: 'Total Villages', value: '8', icon: Landscape, trend: '-2%', isPositive: false },
+  { label: 'Total Wards', value: '3', icon: LocationOn, trend: '0%', isPositive: true },
 ];
 
 const FACILITY_CARDS = [
-  { title: 'Water Sources', count: '1,666', percentage: '23.2%', color: '#1976d2' },
-  { title: 'Toilet Facilities', count: '2,124', percentage: '29.6%', color: '#7b1fa2' },
-  { title: 'Dump Sites', count: '1,459', percentage: '20.3%', color: '#ed6c02' },
-  { title: 'Gutters', count: '1,423', percentage: '19.8%', color: '#2e7d32' },
-  { title: 'Soak Aways', count: '317', percentage: '4.4%', color: '#e91e63' },
-  { title: 'Open Defecation Sites', count: '194', percentage: '2.7%', color: '#d32f2f' }
+  { title: 'Water Sources', count: '1,666', percentage: '23.2%', icon: WaterDrop, color: '#1976d2' },
+  { title: 'Toilet Facilities', count: '2,124', percentage: '29.6%', icon: Sanitizer, color: '#7b1fa2' },
+  { title: 'Dump Sites', count: '1,459', percentage: '20.3%', icon: DeleteOutline, color: '#ed6c02' },
+  { title: 'Gutters', count: '1,423', percentage: '19.8%', icon: Home, color: '#2e7d32' },
+  { title: 'Soak Aways', count: '317', percentage: '4.4%', icon: Home, color: '#e91e63' },
+  { title: 'Open Defecation Sites', count: '194', percentage: '2.7%', icon: LocationOn, color: '#d32f2f' },
 ];
 
 const CHART_DATA = {
@@ -31,187 +72,205 @@ const CHART_DATA = {
     { name: 'Protected Dug Well', value: 5.5, color: '#ff9800' },
     { name: 'Unprotected Dug Well', value: 3.0, color: '#9c27b0' },
     { name: 'Motorized Borehole', value: 2.5, color: '#03a9f4' },
-    { name: 'Pipe Born Water', value: 2.0, color: '#e91e63' }
+    { name: 'Pipe Born Water', value: 2.0, color: '#e91e63' },
   ],
   waterSourceConditions: [
     { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' }
+    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
   ],
   toiletFacilities: [
     { name: 'Pit Latrine', value: 15.0, color: '#4caf50' },
     { name: 'WC Squatting', value: 8.0, color: '#ff9800' },
-    { name: 'WC Sitting', value: 6.6, color: '#9c27b0' }
+    { name: 'WC Sitting', value: 6.6, color: '#9c27b0' },
   ],
   toiletConditions: [
     { name: 'Improved', value: 18.0, color: '#4caf50' },
     { name: 'With Hand Wash', value: 5.2, color: '#f44336' },
-    { name: 'Basic', value: 5.2, color: '#ff9800' }
+    { name: 'Basic', value: 5.2, color: '#ff9800' },
   ],
   dumpsiteStatus: [
     { name: 'Maintained', value: 18.0, color: '#4caf50' },
-    { name: 'Needs Evacuation', value: 5.2, color: '#f44336' }
+    { name: 'Needs Evacuation', value: 5.2, color: '#f44336' },
   ],
   gutterCondition: [
     { name: 'Clean', value: 18.0, color: '#4caf50' },
-    { name: 'Blocked', value: 5.2, color: '#f44336' }
+    { name: 'Blocked', value: 5.2, color: '#f44336' },
   ],
   soakawayCondition: [
     { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' }
+    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
   ],
   openDefecationStatus: [
     { name: 'Active', value: 18.0, color: '#4caf50' },
-    { name: 'Inactive', value: 5.2, color: '#f44336' }
-  ]
+    { name: 'Inactive', value: 5.2, color: '#f44336' },
+  ],
 };
 
-// ============================== STYLED COMPONENTS ==============================
+// Styled Components
+const StyledCard = ({ children, ...props }) => {
+  const theme = useTheme();
+  return (
+    <Card
+      {...props}
+      sx={{
+        height: '100%',
+        boxShadow: theme.shadows[2],
+        transition: 'all 0.3s',
+        '&:hover': {
+          boxShadow: theme.shadows[4],
+          transform: 'translateY(-2px)',
+        },
+        ...props.sx,
+      }}
+    >
+      {children}
+    </Card>
+  );
+};
+
 const ProfessionalCard = styled(Card)(({ theme }) => ({
   borderRadius: 4,
   boxShadow: theme.shadows[1],
 }));
 
-const ChartContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
-  backgroundColor: theme.palette.background.paper,
-  position: 'relative'
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  letterSpacing: '0.5px',
-  marginBottom: theme.spacing(3),
-  color: theme.palette.text.primary
-}));
-
-// Utility function to format numbers with commas
-const formatNumberWithCommas = (number: string) => {
-  return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-// ============================== COMPONENTS ==============================
-const SummaryCard = ({ label, value, color }: { label: string; value: string; color: string }) => (
-  <Grid item xs={12} sm={6} md={3}>
-    <ProfessionalCard>
-      <CardContent sx={{ textAlign: 'center', py: 3 }}>
-        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-          {label}
-        </Typography>
-        <Typography variant="h4" sx={{ color, fontWeight: 700 }}>
-          {formatNumberWithCommas(value)}
-        </Typography>
-      </CardContent>
-    </ProfessionalCard>
-  </Grid>
-);
-
-const FacilityCard = ({ title, count, percentage, color }: { title: string; count: string; percentage: string; color: string }) => (
-  <Grid item xs={12} sm={6} md={4}>
-    <ProfessionalCard sx={{ position: 'relative', height: '100%' }}>
-      <CardContent sx={{ py: 3, px: 2.5 }}>
-        <Box sx={{ 
-          width: 10,
-          height: 10,
-          borderRadius: '50%',
-          backgroundColor: color,
-          position: 'absolute',
-          right: 20,
-          top: 20
-        }} />
-        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-          {title}
-        </Typography>
-        <Typography variant="h3" fontWeight={700} gutterBottom>
-          {formatNumberWithCommas(count)}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {percentage} of total facilities
-        </Typography>
-      </CardContent>
-    </ProfessionalCard>
-  </Grid>
-);
-
-const FacilityPieChart = ({ title, data }: { title: string; data: { name: string; value: number; color: string }[] }) => {
-  const theme = useTheme();
-  const [activeIndex, setActiveIndex] = useState(-1);
-
-    const renderActiveShape = (props: {
-      cx: number;
-      cy: number;
-      outerRadius: number;
-      name: string;
-    }) => (
-      <g>
-        <StyledText
-          x={props.cx}
-          y={props.cy}
-          dy={8}
-          textAnchor="middle"
-          fill={theme.palette.text.primary}
-        >
-          {props.name}
-        </StyledText>
-        <Sector
-          {...props}
-          outerRadius={props.outerRadius + 6}
-          cornerRadius={8}
-        />
-      </g>
-    );
-  
-  const StyledText = styled('text')({
-    fontWeight: 600,
-  });
-
-
-  return (
-    <ChartContainer>
-      <SectionTitle variant="h6">{title}</SectionTitle>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <PieChart width={400} height={400}>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={80}
-            outerRadius={120}
-            dataKey="value"
-            activeIndex={activeIndex}
-            activeShape={renderActiveShape}
-            onMouseEnter={(_, index) => setActiveIndex(index)}
-            onMouseLeave={() => setActiveIndex(-1)}
-          >
-            {data.map((entry: any, index: number) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Legend
-            wrapperStyle={{ paddingTop: 24 }}
-            formatter={(value) => (
-              <Typography style={{ color: theme.palette.text.primary }}>
-                {value}
-              </Typography>
-            )}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: '8px',
-              boxShadow: theme.shadows[3],
-              border: 'none'
-            }}
-          />
-        </PieChart>
-      </Box>
-    </ChartContainer>
-  );
-};
-
-const ChartCard = ({ children }: { children: React.ReactNode }) => (
+const ChartCard = ({ children }) => (
   <ProfessionalCard sx={{ p: 3, mt: 3 }}>
     {children}
   </ProfessionalCard>
 );
+
+const StatCard = ({ label, value, icon: Icon, trend, isPositive }) => {
+  const theme = useTheme();
+
+  return (
+    <StyledCard>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box
+            sx={{
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              borderRadius: '12px',
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon sx={{ color: theme.palette.primary.main }} />
+          </Box>
+          <Chip
+            icon={isPositive ? <TrendingUp /> : <TrendingDown />}
+            label={trend}
+            size="small"
+            color={isPositive ? 'success' : 'error'}
+            sx={{ height: 24 }}
+          />
+        </Box>
+        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {value}
+        </Typography>
+        <Typography color="text.secondary" variant="body2">
+          {label}
+        </Typography>
+      </CardContent>
+    </StyledCard>
+  );
+};
+
+const FacilityCard = ({ title, count, percentage, icon: Icon, color }) => {
+  return (
+    <StyledCard>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box
+            sx={{
+              backgroundColor: alpha(color, 0.1),
+              borderRadius: '12px',
+              p: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon sx={{ color }} />
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            {percentage}
+          </Typography>
+        </Box>
+        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {count}
+        </Typography>
+        <Typography color="text.secondary" variant="body2">
+          {title}
+        </Typography>
+      </CardContent>
+    </StyledCard>
+  );
+};
+
+const FilterDropdown = ({ label, options }) => {
+  const [selectedOption, setSelectedOption] = useState('');
+
+  const handleChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  return (
+    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+      <InputLabel>{label}</InputLabel>
+      <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+        {options.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
+const FacilityBarChart = () => {
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={FACILITY_DATA}>
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="count" fill="#1976d2" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+const FacilityPieChart = ({ title, data }) => {
+  return (
+    <Box>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        {title}
+      </Typography>
+      <ResponsiveContainer width="100%" height={400}>
+        <RechartsPieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            outerRadius={120}
+            fill="#8884d8"
+            dataKey="value"
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend />
+        </RechartsPieChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+};
 
 const DistributionCharts = () => {
   const wardData = [
@@ -269,7 +328,7 @@ const DistributionCharts = () => {
   );
 };
 
-
+// Interfaces
 interface EnumeratorPerformance {
   id: string;
   name: string;
@@ -286,254 +345,208 @@ interface EnumeratorPerformance {
   };
 }
 
+// Define your row shape
 const columnHelper = createColumnHelper<EnumeratorPerformance>();
 
+// Make some columns!
 const columns = [
-  columnHelper.accessor('name', {
-    header: 'Name',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('fullName', {
+    header: 'Enumerator',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor('totalFacilities', {
-    header: 'Total Facilities',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('totalRecords', {
+    header: 'Total',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor('lastActive', {
-    header: 'Last Active',
-    cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+  columnHelper.accessor('waterSources', {
+    header: 'W/s',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor('villages', {
-    header: 'Villages',
-    cell: (info) => (info.getValue() as string[]).join(', '),
+  columnHelper.accessor('openDefecation', {
+    header: 'Odf',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor((row) => row.facilities.waterSources, {
-    header: 'Water Sources',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('soakAways', {
+    header: 'SoakAways',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor((row) => row.facilities.toiletFacilities, {
-    header: 'Toilet Facilities',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('toiletFacilities', {
+    header: 'ToiletFacilities',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor((row) => row.facilities.dumpSites, {
-    header: 'Dump Sites',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('dumpSites', {
+    header: 'DumpSites',
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor((row) => row.facilities.gutters, {
+  columnHelper.accessor('gutters', {
     header: 'Gutters',
-    cell: (info) => info.getValue(),
+    cell: info => info.getValue(),
   }),
-  columnHelper.accessor((row) => row.facilities.soakAways, {
-    header: 'Soak Aways',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor((row) => row.facilities.openDefecationSites, {
-    header: 'Open Defecation Sites',
-    cell: (info) => info.getValue(),
+  columnHelper.accessor('lastLogin', {
+    header: 'Last Active',
+    cell: info => new Date(info.getValue() as string).toLocaleString(),
   }),
 ];
 
-const FilterDropdown = ({ label, options }: { label: string; options: string[] }) => {
-  const [selectedOption, setSelectedOption] = useState('');
+// Main Dashboard Component
+const WashDashboard = () => {
+  const [currentTab, setCurrentTab] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedOption(event.target.value as string);
+  const handleTabChange = (e, newValue) => {
+    setCurrentTab(newValue);
   };
 
-  return (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        value={selectedOption}
-        onChange={handleChange}
-        label={label}
-        sx={{ height:45, width:100 }}
-      >
-        {options.map((option: string, index: number) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
-// Main Component
-const WashDashboard: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState(0);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['analytics'],
-    queryFn: () => apiController.get<{ enumeratorPerformance: EnumeratorPerformance[] }>('/analytics')
+  const { data, isLoading } = useQuery<EnumeratorPerformance[], Error>({
+    queryKey: ['enumerator-performance', { limit, page, search }],
+    queryFn: () => apiController.get<EnumeratorPerformance[]>(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`),
   });
-  
-  useEffect(() => {
-    console.log("enu", data?.enumeratorPerformance);
-  }, [data]);
+
+  // const enumrators = data?.enumarators;
+  console.log("enu", data);
+
+
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      {/* Header Section */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 4,
-        }}
-      >
+    <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: "bold", color: "#25306B" }}>
-            Dashboard
+          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+            Analytics Dashboard
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Comprehensive WASH facilities overview
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Typography variant="caption" color="textSecondary">
+        <Stack direction="row" spacing={1} alignItems="center">
+          <IconButton size="small" aria-label="refresh">
+            <Refresh />
+          </IconButton>
+          <Typography variant="caption" color="text.secondary">
             Last updated: {new Date().toLocaleString()}
           </Typography>
-        </Box>
+        </Stack>
       </Box>
 
-      {/* Summary Cards */}
+      {/* Summary Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {SUMMARY_DATA.map((item) => (
-          <SummaryCard key={item.label} {...item} />
+        {SUMMARY_DATA.map((stat) => (
+          <Grid item xs={12} sm={6} md={3} key={stat.label}>
+            <StatCard {...stat} />
+          </Grid>
         ))}
       </Grid>
 
-      {/* Tabs Navigation and Content */}
-      <ProfessionalCard>
-        <Tabs
-          value={currentTab}
-          onChange={(_, newValue) => setCurrentTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            '& .MuiTab-root': {
-              minHeight: 48,
-              textTransform: 'none',
-              fontWeight: 600
-            }
-          }}
-        >
-          <Tab label="Facilities Overview" />
-          <Tab label="Distribution Analysis" />
-          <Tab label="Geographic Analysis" />
-          <Tab label="Enumerator Performance" />
-        </Tabs>
+      {/* Main Content */}
+      <StyledCard>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              px: 2,
+              '& .MuiTab-root': {
+                minHeight: 64,
+                textTransform: 'none',
+              },
+            }}
+          >
+            
+            <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
+            <Tab icon={<PieChart />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
+            <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" />
+            <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" />
+          </Tabs>
+        </Box>
+
         <CardContent>
           {currentTab === 0 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
-              </Grid>   
-              {FACILITY_CARDS.map((facility) => (
-                <FacilityCard key={facility.title} {...facility} />
-              ))}
-              <Grid item xs={12}>
-                <FacilityPieChart 
-                  title="Facility Distribution Overview"
-                  data={CHART_DATA.waterSources}
-                />
+            <>
+              <Box sx={{ mb: 3 }}>
+                <Stack direction="row" spacing={2}>
+                  <FilterDropdown label="Ward" options={['All', 'Ward 1', 'Ward 2', 'Ward 3']} />
+                  <FilterDropdown label="Village" options={['All', 'Village 1', 'Village 2']} />
+                  <FilterDropdown label="Hamlet" options={['All', 'Hamlet 1', 'Hamlet 2']} />
+                </Stack>
+              </Box>
+              <Grid container spacing={3}>
+                {FACILITY_CARDS.map((facility) => (
+                  <Grid item xs={12} sm={6} md={4} key={facility.title}>
+                    <FacilityCard {...facility} />
+                  </Grid>
+                ))}
               </Grid>
-            </Grid>
+              <Box sx={{ mt: 15 }}>
+                <FacilityBarChart />
+              </Box>
+            </>
           )}
-
           {currentTab === 1 && (
             <Grid container spacing={3}>
               <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
                 <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
                 <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
                 <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
-              </Grid>   
+              </Grid>
 
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Water Source Types"
-                    data={CHART_DATA.waterSources}
-                  />
+                  <FacilityPieChart title="Water Source Types" data={CHART_DATA.waterSources} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Water Source Conditions"
-                    data={CHART_DATA.waterSourceConditions}
-                  />
+                  <FacilityPieChart title="Water Source Conditions" data={CHART_DATA.waterSourceConditions} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Toilet Facility Types"
-                    data={CHART_DATA.toiletFacilities}
-                  />
+                  <FacilityPieChart title="Toilet Facility Types" data={CHART_DATA.toiletFacilities} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Toilet Facility Conditions"
-                    data={CHART_DATA.toiletConditions}
-                  />
+                  <FacilityPieChart title="Toilet Facility Conditions" data={CHART_DATA.toiletConditions} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Dumpsite by Status"
-                    data={CHART_DATA.dumpsiteStatus}
-                  />
+                  <FacilityPieChart title="Dumpsite by Status" data={CHART_DATA.dumpsiteStatus} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Gutter by Condition"
-                    data={CHART_DATA.gutterCondition}
-                  />
+                  <FacilityPieChart title="Gutter by Condition" data={CHART_DATA.gutterCondition} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Soakaway by Condition"
-                    data={CHART_DATA.soakawayCondition}
-                  />
+                  <FacilityPieChart title="Soakaway by Condition" data={CHART_DATA.soakawayCondition} />
                 </ChartCard>
               </Grid>
               <Grid item xs={12} md={6}>
                 <ChartCard>
-                  <FacilityPieChart 
-                    title="Open Defecation by Status"
-                    data={CHART_DATA.openDefecationStatus}
-                  />
+                  <FacilityPieChart title="Open Defecation by Status" data={CHART_DATA.openDefecationStatus} />
                 </ChartCard>
               </Grid>
             </Grid>
           )}
-
-          {currentTab === 2 && (
-            <>
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
-              </Grid>   
-
-              <DistributionCharts />
-            </>
-          )}
-
+          {currentTab === 2 && 
+            <DistributionCharts />
+          }
           {currentTab === 3 && (
-            <>  
-            <DataTable setSearch={() => {}} setPage={() => {}} setLimit={() => {}} isLoading={isLoading} columns={columns} data={data?.enumeratorPerformance || []} />
-            </>
+            <Card sx={{ mt: 3, boxShadow: 1 }}>
+                <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data?.enumerators || []} />
+            </Card>
           )}
         </CardContent>
-      </ProfessionalCard>
+      </StyledCard>
     </Box>
   );
 };

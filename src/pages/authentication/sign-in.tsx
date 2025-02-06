@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
   useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +29,7 @@ interface LoginResponse {
 
 const SignInPage: FC = function () {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { logIn } = useAuthStore();
   const { setAlert, setLoading } = useSnackStore();
   const [formData, setFormData] = useState({
@@ -38,7 +40,7 @@ const SignInPage: FC = function () {
   const [showPassword, setShowPassword] = useState(false);
 
   // Responsive hook for detecting screen size
-  const isMobile = useMediaQuery("(max-width:768px)");
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +81,7 @@ const SignInPage: FC = function () {
         height: "100vh",
         display: "flex",
         overflow: "hidden",
+        flexDirection: isMobile ? "column" : "row",
       }}
     >
       {!isMobile && (
@@ -135,6 +138,7 @@ const SignInPage: FC = function () {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#D5DAE1",
+          p: isMobile ? 2 : 0,
         }}
       >
         <form
@@ -153,7 +157,7 @@ const SignInPage: FC = function () {
             <img
               src="/logo.png"
               alt="Logo"
-              style={{ width: 300, }}
+              style={{ width: isMobile ? 200 : 300 }}
             />
             <Typography variant="h6" sx={{ mt: 2 }}>
               Enter your details to access your account.

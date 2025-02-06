@@ -64,6 +64,9 @@ export function DataTable<T extends object>({
     const [selectedVillage, setSelectedVillage] = useState('');
     const [selectedHamlet, setSelectedHamlet] = useState('');
 
+    // Ensure data is an array
+    const tableData = Array.isArray(data) ? data : [];
+
     // Add S/N column to the beginning of columns array
     const columnsWithSN: ColumnDef<T, any>[] = [
         {
@@ -80,7 +83,7 @@ export function DataTable<T extends object>({
     ];
 
     const table = useReactTable({
-        data,
+        data: tableData,
         columns: columnsWithSN, // Use the modified columns array
         state: {
             sorting,
@@ -105,9 +108,9 @@ export function DataTable<T extends object>({
         return Array.from(new Set(data.map(item => item[key]))).filter(Boolean);
     };
 
-    const wards = getUniqueValues(data, 'ward');
-    const villages = selectedWard ? getUniqueValues(data.filter(item => item.ward === selectedWard), 'village') : [];
-    const hamlets = selectedVillage ? getUniqueValues(data.filter(item => item.village === selectedVillage), 'hamlet') : [];
+    const wards = getUniqueValues(tableData, 'ward');
+    const villages = selectedWard ? getUniqueValues(tableData.filter(item => item.ward === selectedWard), 'village') : [];
+    const hamlets = selectedVillage ? getUniqueValues(tableData.filter(item => item.village === selectedVillage), 'hamlet') : [];
 
     return (
         <Box sx={{ width: '100%', py: 2, px: 3, bgcolor: '#f4f6f8', borderRadius: '12px' }}>

@@ -204,6 +204,12 @@ const WaterSourcesDashboard: React.FC = () => {
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
 
+  const { data: household } = useQuery({
+    queryKey: ['/households', { limit, page, search }],
+    queryFn: () => apiController.get(`/households?limit=${limit}&page=${page}&search=${search}`),
+  });
+
+  console.log("house",household);
 
 
   useEffect(() => {

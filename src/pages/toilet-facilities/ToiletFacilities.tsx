@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   Container,
   Grid,
   Paper,
@@ -19,12 +20,11 @@ import { GiHole } from "react-icons/gi";
 import { LuToilet } from "react-icons/lu";
 import { PiToiletFill } from "react-icons/pi";
 import { apiController } from '../../axios';
-
 import { DataTable } from '../../components/Table/DataTable';
 
 interface StatCardProps {
   title: string;
-  value: number| void;
+  value: number;
   icon?: React.ReactNode;
   bgColor?: string;
 }
@@ -143,7 +143,7 @@ const columns = [
     header: 'Status',
     cell: info => {
       const status = info.getValue();
-      let color;
+      let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
       switch (status) {
         case 'Improved':
           color = 'success';
@@ -191,7 +191,7 @@ const ToiletFacilities: React.FC = () => {
   };
 
 
-  if (isLoading) return <LoadingAnimation />;
+  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
   if (!data || data.length === 0) return <NotFoundAlert />;
 
@@ -232,7 +232,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Total Toilet Facility"
-            value={data?.length}
+            value={data?.length || 0}
             icon={<LuToilet style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
@@ -240,7 +240,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Pit Latrine"
-            value={countByProperty(data, 'type', 'Pit Latrine')}
+            value={countByProperty(data, 'type', 'Pit Latrine') || 0}
             icon={<GiHole style={{ color: '#4CAF50', fontSize: '1.8rem' }} />}
             bgColor="#E8F5E9"
           />
@@ -248,7 +248,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="WC Sitting"
-            value={countByProperty(data, 'type', 'WC Sitting')}
+            value={countByProperty(data, 'type', 'WC Sitting') || 0}
             icon={<FaToilet style={{ color: '#FF9800', fontSize: '2rem' }} />}
             bgColor="#FFF3E0"
           />
@@ -256,7 +256,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="WC Squatting"
-            value={countByProperty(data, 'type', 'WC Squatting')}
+            value={countByProperty(data, 'type', 'WC Squatting') || 0}
             icon={<PiToiletFill style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />

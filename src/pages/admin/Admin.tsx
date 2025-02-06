@@ -436,9 +436,7 @@ const UserPage: React.FC = () => {
                 name="email"
                 type="email"
                 value={formData.email}
-                InputProps={{
-                  readOnly: true,
-                }}
+                onChange={handleInputChange}
                 required
               />
               <TextField
@@ -462,8 +460,9 @@ const UserPage: React.FC = () => {
                 select
               >
                 {[
-                  { value: 'admin', label: 'Admin' },
+                  { value: 'admin', label: 'Admin', },
                   { value: 'profiler', label: 'Profiler' },
+                  { value: 'reviewer', label: 'Reviewer' },
                 ].map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
