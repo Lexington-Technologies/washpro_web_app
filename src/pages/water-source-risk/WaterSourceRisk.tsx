@@ -17,7 +17,6 @@ import {
   Divider,
   Avatar,
   Modal,
-  CircularProgress,
 } from '@mui/material';
 import { ZoomIn, X, HomeIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -75,7 +74,7 @@ const WaterSourceRisk = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  const { data: waterRisks, error, isLoading } = useQuery<WaterSourceRiskData[], Error>({
+  const { data: waterRisks, error } = useQuery<WaterSourceRiskData[], Error>({
     queryKey: ['waterSourceRisk'],
     queryFn: async () => {
       const response = await apiController.get<WaterSourceRiskData[]>('/analysis');
@@ -83,14 +82,6 @@ const WaterSourceRisk = () => {
     },
   });
   console.log("waterRisks", waterRisks);
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   if (error) {
     return (
