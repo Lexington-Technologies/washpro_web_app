@@ -17,6 +17,11 @@ import {
   Divider,
   Avatar,
   Modal,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { ZoomIn, X, HomeIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -73,6 +78,9 @@ const WaterSourceRisk = () => {
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const [selectedWard, setSelectedWard] = useState('All');
+  const [selectedVillage, setSelectedVillage] = useState('All');
+  const [selectedHamlet, setSelectedHamlet] = useState('All');
 
   const { data: waterRisks, error } = useQuery<WaterSourceRiskData[], Error>({
     queryKey: ['waterSourceRisk'],
@@ -81,7 +89,48 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
-  console.log("waterRisks", waterRisks);
+
+  // Filter logic
+  const filteredWaterRisks = React.useMemo(() => {
+    if (!waterRisks) return [];
+    
+    return waterRisks.filter(item => {
+      const wardMatch = selectedWard === 'All' || item.location.ward === selectedWard;
+      const villageMatch = selectedVillage === 'All' || item.location.village === selectedVillage;
+      const hamletMatch = selectedHamlet === 'All' || item.location.hamlet === selectedHamlet;
+      return wardMatch && villageMatch && hamletMatch;
+    });
+  }, [waterRisks, selectedWard, selectedVillage, selectedHamlet]);
+
+  // Calculate risk stats based on filtered data
+  const calculateRiskStats = (waterRisks: WaterSourceRiskData[]) => {
+    return waterRisks.reduce((acc, source) => {
+      const criticalCount = source.summary.toilets.critical + 
+                           source.summary.soakAways.critical + 
+                           source.summary.openDefecation.critical + 
+                           source.summary.gutters.critical;
+      
+      const moderateCount = source.summary.toilets.moderate + 
+                           source.summary.soakAways.moderate + 
+                           source.summary.openDefecation.moderate + 
+                           source.summary.gutters.moderate;
+      
+      const safeCount = source.summary.toilets.good + 
+                        source.summary.soakAways.good + 
+                        source.summary.openDefecation.good + 
+                        source.summary.gutters.good;
+      
+      return {
+        critical: acc.critical + criticalCount,
+        moderate: acc.moderate + moderateCount,
+        safe: acc.safe + safeCount,
+        total: acc.total + criticalCount + moderateCount + safeCount
+      };
+    }, { critical: 0, moderate: 0, safe: 0, total: 0 });
+  };
+
+  // Update the stats cards section to use filtered data
+  const riskStats = calculateRiskStats(filteredWaterRisks);
 
   if (error) {
     return (
@@ -142,7 +191,7 @@ const WaterSourceRisk = () => {
             Distance Monitoring for Risks
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {waterRisks?.length || 0} Water Sources Monitored
+            {filteredWaterRisks.length || 0} Water Sources Monitored
           </Typography>
         </Box>
         <Button
@@ -160,29 +209,30 @@ const WaterSourceRisk = () => {
         </Button>
       </Box>
 
+
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
           title="Critical Risks"
-          value={"798"}
+          value={riskStats.critical.toString()}
           icon={<ErrorIcon />}
           iconColor="#f44336"
         />
         <StatsCard
           title="Moderate Risks"
-          value={"198"}
+          value={riskStats.moderate.toString()}
           icon={<FaWrench style={{ color: "#CA8A04" }} />}
           iconColor="#ff9800"
         />
         <StatsCard
           title="Safe Facilities"
-          value={"670"}
+          value={riskStats.safe.toString()}
           icon={<FaClipboardCheck style={{ color: "#4caf50" }} />}
           iconColor="#4caf50"
         />
         <StatsCard
           title="Total Facilities"
-          value={"1,666"}
+          value={riskStats.total.toString()}
           icon={<Waves style={{ color: "#2196f3" }} />}
           iconColor="#2196f3"
         />
@@ -207,6 +257,30 @@ const WaterSourceRisk = () => {
                 <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Safe Distance (&gt;30m)</Typography>
               </Box>
             </Box>
+                  {/* Filter Dropdowns */}
+      <Box sx={{ mb: 1 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown 
+            label="Ward" 
+            options={getUniqueValues('ward', waterRisks)}
+            value={selectedWard}
+            onChange={(value) => setSelectedWard(value)}
+          />
+          <FilterDropdown 
+            label="Village" 
+            options={getUniqueValues('village', waterRisks)}
+            value={selectedVillage}
+            onChange={(value) => setSelectedVillage(value)}
+          />
+          <FilterDropdown 
+            label="Hamlet" 
+            options={getUniqueValues('hamlet', waterRisks)}
+            value={selectedHamlet}
+            onChange={(value) => setSelectedHamlet(value)}
+          />
+        </Stack>
+      </Box>
+
           </Box>
 
           <Box sx={{ height: 600, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
@@ -219,7 +293,7 @@ const WaterSourceRisk = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; OpenStreetMap contributors'
               />
-              {waterRisks?.map((waterRisk) => (
+              {filteredWaterRisks.map((waterRisk) => (
                 <Marker 
                   key={waterRisk.waterSourceId}
                   position={[waterRisk.location.coordinates[1], waterRisk.location.coordinates[0]]}
@@ -497,5 +571,44 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) 
     </Box>
   </Card>
 );
+
+// Add the FilterDropdown component here
+const FilterDropdown: React.FC<FilterDropdownProps> = ({ 
+  label, 
+  options, 
+  value = 'All',
+  onChange 
+}) => {
+  return (
+    <Box sx={{ minWidth: 120 }}>
+      <FormControl fullWidth size="small">
+        <InputLabel>{label}</InputLabel>
+        <Select
+          value={value}
+          label={label}
+          onChange={(e) => onChange?.(e.target.value)}
+          sx={{
+            bgcolor: 'white',
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(0, 0, 0, 0.12)',
+            },
+          }}
+        >
+          {options.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
+};
+
+// Update the getUniqueValues function to accept waterRisks as an argument
+const getUniqueValues = (key: 'ward' | 'village' | 'hamlet', waterRisks: WaterSourceRiskData[]): string[] => {
+  const values = waterRisks?.map(item => item.location[key]) || [];
+  return ['All', ...Array.from(new Set(values))];
+};
 
 export default WaterSourceRisk;
