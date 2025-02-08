@@ -31,6 +31,7 @@ import React, { useState } from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { DataTable } from '../../components/Table/DataTable';
 
 interface Location {
   ward: string;
@@ -183,6 +184,13 @@ const WaterSourceRisk = () => {
     return safeIcon;
   };
 
+  const columns = [
+    {
+      accessor: 'waterSourceType',
+      header: 'Type',
+    },
+  ];
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -210,6 +218,29 @@ const WaterSourceRisk = () => {
         </Button>
       </Box>
 
+      {/* Filter Dropdowns */}
+      <Box sx={{ mb: 1 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown 
+            label="Ward" 
+            options={getUniqueValues('ward', waterRisks)}
+            value={selectedWard}
+            onChange={(value) => setSelectedWard(value)}
+          />
+          <FilterDropdown 
+            label="Village" 
+            options={getUniqueValues('village', waterRisks)}
+            value={selectedVillage}
+            onChange={(value) => setSelectedVillage(value)}
+          />
+          <FilterDropdown 
+            label="Hamlet" 
+            options={getUniqueValues('hamlet', waterRisks)}
+            value={selectedHamlet}
+            onChange={(value) => setSelectedHamlet(value)}
+          />
+        </Stack>
+      </Box>
 
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -258,30 +289,6 @@ const WaterSourceRisk = () => {
                 <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Safe Distance (&gt;30m)</Typography>
               </Box>
             </Box>
-                  {/* Filter Dropdowns */}
-      <Box sx={{ mb: 1 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown 
-            label="Ward" 
-            options={getUniqueValues('ward', waterRisks)}
-            value={selectedWard}
-            onChange={(value) => setSelectedWard(value)}
-          />
-          <FilterDropdown 
-            label="Village" 
-            options={getUniqueValues('village', waterRisks)}
-            value={selectedVillage}
-            onChange={(value) => setSelectedVillage(value)}
-          />
-          <FilterDropdown 
-            label="Hamlet" 
-            options={getUniqueValues('hamlet', waterRisks)}
-            value={selectedHamlet}
-            onChange={(value) => setSelectedHamlet(value)}
-          />
-        </Stack>
-      </Box>
-
           </Box>
 
           <Box sx={{ height: 600, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
@@ -538,6 +545,21 @@ const WaterSourceRisk = () => {
           />
         </Box>
       </Modal>
+
+      {/* Table Section */}
+      <Card sx={{ mt: 3, boxShadow: 1 }}>
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Water Sources Overview</Typography>
+          <DataTable
+            setSearch={() => {}} // Implement search logic if needed
+            setPage={() => {}} // Implement pagination logic if needed
+            setLimit={() => {}} // Implement limit logic if needed
+            isLoading={false}
+            columns={columns}
+            data={filteredWaterRisks} // Use filtered data here
+          />
+        </Box>
+      </Card>
     </Box>
   );
 };

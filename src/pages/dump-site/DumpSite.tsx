@@ -265,7 +265,7 @@ const DumpSites = () => {
                   {card.title}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
-                  {card.value || 0}
+                  {card.value.toLocaleString() || 0}
                 </Typography>
               </Box>
               <Box

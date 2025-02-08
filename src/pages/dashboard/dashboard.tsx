@@ -22,38 +22,23 @@ import {
 import {
   WaterDrop,
   Home,
-  Landscape,
   Sanitizer,
   DeleteOutline,
-  Group,
   Timeline,
   LocationOn,
-  Assessment,
   Refresh,
   TrendingUp,
   TrendingDown,
   PieChart,
 } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Legend, CartesianGrid } from 'recharts';
+import { Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Legend } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
-import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
 import { apiController } from '../../axios';
-
-// Constants
-const FACILITY_DATA = [
-  { name: 'Water Sources', count: 1666 },
-  { name: 'Toilet Facilities', count: 2124 },
-  { name: 'Dump Sites', count: 1459 },
-  { name: 'Gutters', count: 1423 },
-  { name: 'Soak Aways', count: 317 },
-  { name: 'Open Defecation', count: 194 },
-];
 
 const SUMMARY_DATA = [
   { label: 'Total Households', value: '2,178', icon: Home, trend: '+12%', isPositive: true },
-  { label: 'Active Enumerators', value: '57', icon: Group, trend: '+5%', isPositive: true },
-  { label: 'Total Villages', value: '8', icon: Landscape, trend: '-2%', isPositive: false },
+  { label: 'Total Hamlet', value: '57', icon: LocationOn, trend: '+5%', isPositive: true },
+  { label: 'Total Villages', value: '8', icon: LocationOn, trend: '-2%', isPositive: true },
   { label: 'Total Wards', value: '3', icon: LocationOn, trend: '0%', isPositive: true },
 ];
 
@@ -108,20 +93,9 @@ const CHART_DATA = {
 
 // Styled Components
 const StyledCard = ({ children, ...props }) => {
-  const theme = useTheme();
   return (
     <Card
       {...props}
-      sx={{
-        height: '100%',
-        boxShadow: theme.shadows[2],
-        transition: 'all 0.3s',
-        '&:hover': {
-          boxShadow: theme.shadows[4],
-          transform: 'translateY(-2px)',
-        },
-        ...props.sx,
-      }}
     >
       {children}
     </Card>
@@ -230,18 +204,6 @@ const FilterDropdown = ({ label, options }) => {
   );
 };
 
-const FacilityBarChart = () => {
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={FACILITY_DATA}>
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="count" fill="#1976d2" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
 
 const FacilityPieChart = ({ title, data }) => {
   return (
@@ -272,136 +234,133 @@ const FacilityPieChart = ({ title, data }) => {
   );
 };
 
-const DistributionCharts = () => {
-  const wardData = [
-    { name: 'S/GARI', value: 3272 },
-    { name: 'LIKORO', value: 3906 }
-  ];
+// const DistributionCharts = () => {
+//   const wardData = [
+//     { name: 'S/GARI', value: 3272 },
+//     { name: 'LIKORO', value: 3906 }
+//   ];
 
-  const villageData = [
-    { name: 'SIGARIN LILUNKIYI', value: 1098 },
-    { name: 'LIKORO', value: 3210 },
-    { name: 'KYAUDAI', value: 230 },
-    { name: 'JAJA', value: 331 },
-    { name: 'S / GARIN LIKORO', value: 696 },
-    { name: 'MUSAWA', value: 992 },
-    { name: 'KAURAN WALI', value: 621 }
-  ];
+//   const villageData = [
+//     { name: 'SIGARIN LILUNKIYI', value: 1098 },
+//     { name: 'LIKORO', value: 3210 },
+//     { name: 'KYAUDAI', value: 230 },
+//     { name: 'JAJA', value: 331 },
+//     { name: 'S / GARIN LIKORO', value: 696 },
+//     { name: 'MUSAWA', value: 992 },
+//     { name: 'KAURAN WALI', value: 621 }
+//   ];
 
-  return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Ward-wise Distribution
-            </Typography>
-            <Box sx={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={wardData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 4000]} />
-                  <Bar dataKey="value" fill="#4F98FF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-      </Grid>
-      <Grid item xs={12} md={6}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Village-wise Distribution
-            </Typography>
-            <Box sx={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={villageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis domain={[0, 4000]} />
-                  <Bar dataKey="value" fill="#4F98FF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-      </Grid>
-    </Grid>
-  );
-};
+//   return (
+//     <Grid container spacing={3}>
+//       <Grid item xs={12} md={6}>
+//           <CardContent>
+//             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+//               Ward-wise Distribution
+//             </Typography>
+//             <Box sx={{ height: 400 }}>
+//               <ResponsiveContainer width="100%" height="100%">
+//                 <BarChart data={wardData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+//                   <CartesianGrid strokeDasharray="3 3" />
+//                   <XAxis dataKey="name" />
+//                   <YAxis domain={[0, 4000]} />
+//                   <Bar dataKey="value" fill="#4F98FF" />
+//                 </BarChart>
+//               </ResponsiveContainer>
+//             </Box>
+//           </CardContent>
+//       </Grid>
+//       <Grid item xs={12} md={6}>
+//           <CardContent>
+//             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+//               Village-wise Distribution
+//             </Typography>
+//             <Box sx={{ height: 400 }}>
+//               <ResponsiveContainer width="100%" height="100%">
+//                 <BarChart data={villageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+//                   <CartesianGrid strokeDasharray="3 3" />
+//                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+//                   <YAxis domain={[0, 4000]} />
+//                   <Bar dataKey="value" fill="#4F98FF" />
+//                 </BarChart>
+//               </ResponsiveContainer>
+//             </Box>
+//           </CardContent>
+//       </Grid>
+//     </Grid>
+//   );
+// };
 
 // Interfaces
-interface EnumeratorPerformance {
-  id: string;
-  name: string;
-  totalFacilities: number;
-  lastActive: string;
-  villages: string[];
-  facilities: {
-    waterSources: number;
-    toiletFacilities: number;
-    dumpSites: number;
-    gutters: number;
-    soakAways: number;
-    openDefecationSites: number;
-  };
-}
+// interface EnumeratorPerformance {
+//   id: string;
+//   name: string;
+//   totalFacilities: number;
+//   lastActive: string;
+//   villages: string[];
+//   facilities: {
+//     waterSources: number;
+//     toiletFacilities: number;
+//     dumpSites: number;
+//     gutters: number;
+//     soakAways: number;
+//     openDefecationSites: number;
+//   };
+// }
 
 // Define your row shape
-const columnHelper = createColumnHelper<EnumeratorPerformance>();
+// const columnHelper = createColumnHelper<EnumeratorPerformance>();
 
 // Make some columns!
-const columns = [
-  columnHelper.accessor('fullName', {
-    header: 'Enumerator',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('totalRecords', {
-    header: 'Total',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('waterSources', {
-    header: 'W/s',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('openDefecation', {
-    header: 'Odf',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('soakAways', {
-    header: 'SoakAways',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('toiletFacilities', {
-    header: 'ToiletFacilities',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('dumpSites', {
-    header: 'DumpSites',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('gutters', {
-    header: 'Gutters',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('lastLogin', {
-    header: 'Last Active',
-    cell: info => new Date(info.getValue() as string).toLocaleString(),
-  }),
-];
+// const columns = [
+//   columnHelper.accessor('fullName', {
+//     header: 'Enumerator',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('totalRecords', {
+//     header: 'Total',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('waterSources', {
+//     header: 'W/s',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('openDefecation', {
+//     header: 'Odf',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('soakAways', {
+//     header: 'SoakAways',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('toiletFacilities', {
+//     header: 'ToiletFacilities',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('dumpSites', {
+//     header: 'DumpSites',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('gutters', {
+//     header: 'Gutters',
+//     cell: info => info.getValue(),
+//   }),
+//   columnHelper.accessor('lastLogin', {
+//     header: 'Last Active',
+//     cell: info => new Date(info.getValue() as string).toLocaleString(),
+//   }),
+// ];
 
 // Main Dashboard Component
 const WashDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
 
   const handleTabChange = (e, newValue) => {
     setCurrentTab(newValue);
   };
 
-  const { data, isLoading } = useQuery<EnumeratorPerformance[], Error>({
-    queryKey: ['enumerator-performance', { limit, page, search }],
-    queryFn: () => apiController.get<EnumeratorPerformance[]>(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`),
+  const { data, isLoading } = useQuery<[], Error>({
+    queryKey: ['enumerator-performance'],
+    queryFn: () => apiController.get(`/analytics/summary`),
   });
 
   // const enumrators = data?.enumarators;
@@ -460,8 +419,8 @@ const WashDashboard = () => {
             
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
             <Tab icon={<PieChart />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
-            <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" />
-            <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" />
+            {/* <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" /> */}
+            {/* <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" /> */}
           </Tabs>
         </Box>
 
@@ -469,11 +428,11 @@ const WashDashboard = () => {
           {currentTab === 0 && (
             <>
               <Box sx={{ mb: 3 }}>
-                <Stack direction="row" spacing={2}>
-                  <FilterDropdown label="Ward" options={['All', 'Ward 1', 'Ward 2', 'Ward 3']} />
-                  <FilterDropdown label="Village" options={['All', 'Village 1', 'Village 2']} />
-                  <FilterDropdown label="Hamlet" options={['All', 'Hamlet 1', 'Hamlet 2']} />
-                </Stack>
+              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
+                <FilterDropdown label="Ward" options={['All']} />
+                <FilterDropdown label="Village" options={['All']} />
+                <FilterDropdown label="Hamlet" options={['All']} />
+              </Grid>
               </Box>
               <Grid container spacing={3}>
                 {FACILITY_CARDS.map((facility) => (
@@ -482,17 +441,17 @@ const WashDashboard = () => {
                   </Grid>
                 ))}
               </Grid>
-              <Box sx={{ mt: 15 }}>
+              {/* <Box sx={{ mt: 15 }}>
                 <FacilityBarChart />
-              </Box>
+              </Box> */}
             </>
           )}
           {currentTab === 1 && (
             <Grid container spacing={3}>
               <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
+                <FilterDropdown label="Ward" options={['All']} />
+                <FilterDropdown label="Village" options={['All']} />
+                <FilterDropdown label="Hamlet" options={['All']} />
               </Grid>
 
               <Grid item xs={12} md={6}>
@@ -537,14 +496,14 @@ const WashDashboard = () => {
               </Grid>
             </Grid>
           )}
-          {currentTab === 2 && 
+          {/* {currentTab === 2 && 
             <DistributionCharts />
-          }
-          {currentTab === 3 && (
+          } */}
+          {/* {currentTab === 3 && (
             <Card sx={{ mt: 3, boxShadow: 1 }}>
                 <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data?.enumerators || []} />
             </Card>
-          )}
+          )} */}
         </CardContent>
       </StyledCard>
     </Box>

@@ -158,7 +158,7 @@ const GutterDashboard = () => {
   <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
     <Box>
       <Typography color="text.secondary">Total Gutters</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>{gutters?.length}</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>{gutters?.length.toLocaleString() || 0}</Typography>
     </Box>
     <Box
       sx={{
@@ -179,7 +179,7 @@ const GutterDashboard = () => {
     <Box>
       <Typography color="text.secondary">Constructed with Block</Typography>
         <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>
-          {countByProperty(gutters, 'type', 'Constructed with Block')}
+          {countByProperty(gutters, 'type', 'Constructed with Block').toLocaleString() || 0}
         </Typography>
     </Box>
     <Box
@@ -200,7 +200,7 @@ const GutterDashboard = () => {
     <Box>
       <Typography color="text.secondary">Locally Dug</Typography>
         <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>
-        {countByProperty(gutters, 'type', 'Locally Dug')}
+        {countByProperty(gutters, 'type', 'Locally Dug').toLocaleString() || 0}
         </Typography>
     </Box>
     <Box
@@ -222,7 +222,7 @@ const GutterDashboard = () => {
     <Box>
       <Typography color="text.secondary">Surfaced Gutter</Typography>
       <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
-      {countByProperty(gutters, 'type', 'Surface Gutter')}
+      {countByProperty(gutters, 'type', 'Surface Gutter').toLocaleString() || 0}
       </Typography>
     </Box>
     <Box
@@ -288,7 +288,7 @@ const GutterDashboard = () => {
                   {item.type}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 500, color: item.color }}>
-                  {`${item.value}  - ${((item.value / totalStatus) * 100).toFixed(2)}%`}
+                  {`${item.value.toLocaleString()} - ${((item.value / totalStatus) * 100).toFixed(2)}%`}
                 </Typography>
               </Box>
               <Box

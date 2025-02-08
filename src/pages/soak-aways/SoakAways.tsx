@@ -91,7 +91,6 @@ const columns = [
       <Chip
         label={info.getValue()}
         color={info.getValue() === 'Improved' ? 'success' : 'error'}
-
         size="small"
       />
     ),
@@ -108,14 +107,14 @@ const SoakAways = () => {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data , isLoading } = useQuery<SoakAway[], Error>({
+  const { data, isLoading } = useQuery<SoakAway[], Error>({
     queryKey: ['soak-aways', { limit, page, search }],
     queryFn: () => apiController.get<SoakAway[]>(`/soak-aways?limit=${limit}&page=${page}&search=${search}`),
   });
 
   useEffect(() => {
     if (data) {
-      setSoakAways(data)
+      setSoakAways(data);
     }
   }, [data]);
 
@@ -168,27 +167,27 @@ const SoakAways = () => {
       <Box sx={{ display: 'flex', gap: 2, mb: 3, width: '100%' }}>
         <StatsCard
           title="Total Soakaways"
-          value={data?.length}
+          value={data?.length?.toLocaleString()}
           icon={<Waves />}
           iconColor="#2196f3"
         />
         <StatsCard
           title="Maintained"
-          value={countByProperty(data, 'condition', 'Maintained')}
-          icon={<FaClipboardCheck style={{color: "#16A34A"}}/>}
+          value={countByProperty(data, 'condition', 'Maintained').toLocaleString()}
+          icon={<FaClipboardCheck style={{ color: "#16A34A" }} />}
           iconColor="#4caf50"
           valueColor="#16A34A"
         />
         <StatsCard
-          title="Unmaitained"
-          value={countByProperty(data, 'condition', 'Unmaintained')}
-          icon={<FaExclamationTriangle style={{color: "#DC2626"}}/>}
+          title="Unmaintained"
+          value={countByProperty(data, 'condition', 'Unmaintained').toLocaleString()}
+          icon={<FaExclamationTriangle style={{ color: "#DC2626" }} />}
           iconColor="#f44336"
           valueColor="#f44336"
         />
         <StatsCard
-          title="Dilapated"
-          value={countByProperty(data, 'condition', 'Dilapidated')}
+          title="Dilapidated"
+          value={countByProperty(data, 'condition', 'Dilapidated').toLocaleString()}
           icon={<FaWrench color="#CA8A04" />}
           iconColor="#ff9800"
           valueColor="#ff9800"
@@ -197,28 +196,25 @@ const SoakAways = () => {
 
       {/* Main Content */}
       <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+        {/* Soakaway Overview */}
+        <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h6">Soakaway Overview</Typography>
+          </Box>
 
-      {/* Soakaway Overview */}
-      <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h6">Soakaway Overview</Typography>
-        </Box>
-
-        <DataTable
-          setSearch={setSearch}
-          setPage={setPage}
-          setLimit={setLimit}
-          isLoading={isLoading}
-          columns={columns}
-          data={data || []}
-        />
-
-      </Paper>
+          <DataTable
+            setSearch={setSearch}
+            setPage={setPage}
+            setLimit={setLimit}
+            isLoading={isLoading}
+            columns={columns}
+            data={data || []}
+          />
+        </Paper>
+      </Box>
     </Box>
-  </Box>
   );
 }
-
 
 // Stats Card Component
 interface StatsCardProps {

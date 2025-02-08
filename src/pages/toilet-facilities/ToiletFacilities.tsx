@@ -85,7 +85,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
           {title}
         </Typography>
         <Typography variant="h4" sx={{ mt: 1, fontWeight: 500 }}>
-          {value}
+          {value.toLocaleString()}
         </Typography>
       </Box>
       {icon && (

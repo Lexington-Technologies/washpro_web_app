@@ -16,7 +16,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
@@ -90,12 +90,6 @@ const WaterSourceDetails: React.FC = () => {
   });
 
   console.log("water",waterSource)
-
-    const { data: household } = useQuery({
-      queryKey: ['/households'],
-      queryFn: () => apiController.get(`/households`).then(res => res.data),
-    }); 
-    console.log("household",household)
   
   
 
@@ -448,15 +442,20 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   );
 };
 
-const PersonContactTab = ({ domain }: { domain: { _id: string; createdBy: string } }) => (
+const PersonContactTab = ({ domain }: { domain: { contactPersonName: string; contactPersonPhoneNumber: string, address: string } }) => (
   <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
     <Typography variant="subtitle1" gutterBottom>Person Contact</Typography>
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
-        <DetailItem icon={User} label="Domain ID" value={domain._id} />
+        <DetailItem icon={User} label="Person Name" value={domain.contactPersonName} />
       </Grid>
       <Grid item xs={12} md={6}>
-        <DetailItem icon={User} label="Created By" value={domain.createdBy} />
+        <DetailItem icon={User} label="Person Phone No." value={domain?.contactPersonPhoneNumber
+} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <DetailItem icon={User} label="Address" value={domain?.address
+} />
       </Grid>
     </Grid>
   </Box>
