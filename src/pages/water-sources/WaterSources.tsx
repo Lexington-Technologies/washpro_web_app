@@ -533,6 +533,7 @@ const WaterSourcesDashboard: React.FC = () => {
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" mb={2}>Water source functionality</Typography>
             <BarChart
+              colors={['#007bff', '#6c757d']}
               series={[
                 { data: dataset.functional, label: 'Functional' },
                 { data: dataset.nonFunctional, label: 'Non Functional' },
@@ -547,7 +548,7 @@ const WaterSourcesDashboard: React.FC = () => {
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" mb={2}>Safe Water</Typography>
             <PieChart
-              colors={['#007bff', '#dc3545']} // Use palette
+              colors={['#2e96ff', '#ff9800']} // Use palette
               series={[
                 {
                   data: pieChartData,
@@ -556,7 +557,7 @@ const WaterSourcesDashboard: React.FC = () => {
                   arcLabelRadius: '60%'
                 },
               ]}
-              width={550}
+              width={600}
               height={350}
             />
           </Paper>

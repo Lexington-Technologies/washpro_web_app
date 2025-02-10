@@ -1,46 +1,41 @@
-import { useState } from 'react';
 import {
+  DeleteOutline,
+  Group,
+  Home,
+  Landscape,
+  LocationOn,
+  PieChart,
+  Refresh,
+  Sanitizer,
+  Timeline,
+  WaterDrop
+} from '@mui/icons-material';
+import {
+  alpha,
   Box,
   Card,
   CardContent,
-  Typography,
-  Grid,
-  Tab,
-  Tabs,
-  useTheme,
-  IconButton,
-  Stack,
-  Chip,
-  alpha,
+  CircularProgress,
   FormControl,
+  Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
+  Stack,
   styled,
-  CircularProgress,
+  Tab,
+  Tabs,
+  Typography,
+  useTheme
 } from '@mui/material';
-import {
-  WaterDrop,
-  Home,
-  Landscape,
-  Sanitizer,
-  DeleteOutline,
-  Group,
-  Timeline,
-  LocationOn,
-  Assessment,
-  Refresh,
-  TrendingUp,
-  TrendingDown,
-  PieChart,
-} from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Legend, CartesianGrid } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
-import { createColumnHelper } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
+import { useState } from 'react';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { apiController } from '../../axios';
 
 // Constants
+
 const FACILITY_DATA = [
   { name: 'Water Sources', count: 1666 },
   { name: 'Toilet Facilities', count: 2124 },
@@ -49,62 +44,6 @@ const FACILITY_DATA = [
   { name: 'Soak Aways', count: 317 },
   { name: 'Open Defecation', count: 194 },
 ];
-
-const SUMMARY_DATA = [
-  { label: 'Total Households', value: '2,178', icon: Home, trend: '+12%', isPositive: true },
-  { label: 'Active Enumerators', value: '57', icon: Group, trend: '+5%', isPositive: true },
-  { label: 'Total Villages', value: '8', icon: Landscape, trend: '-2%', isPositive: false },
-  { label: 'Total Wards', value: '3', icon: LocationOn, trend: '0%', isPositive: true },
-];
-
-const FACILITY_CARDS = [
-  { title: 'Water Sources', count: '1,666', percentage: '23.2%', icon: WaterDrop, color: '#1976d2' },
-  { title: 'Toilet Facilities', count: '2,124', percentage: '29.6%', icon: Sanitizer, color: '#7b1fa2' },
-  { title: 'Dump Sites', count: '1,459', percentage: '20.3%', icon: DeleteOutline, color: '#ed6c02' },
-  { title: 'Gutters', count: '1,423', percentage: '19.8%', icon: Home, color: '#2e7d32' },
-  { title: 'Soak Aways', count: '317', percentage: '4.4%', icon: Home, color: '#e91e63' },
-  { title: 'Open Defecation Sites', count: '194', percentage: '2.7%', icon: LocationOn, color: '#d32f2f' },
-];
-
-const CHART_DATA = {
-  waterSources: [
-    { name: 'Hand Pump Borehole', value: 10.2, color: '#4caf50' },
-    { name: 'Protected Dug Well', value: 5.5, color: '#ff9800' },
-    { name: 'Unprotected Dug Well', value: 3.0, color: '#9c27b0' },
-    { name: 'Motorized Borehole', value: 2.5, color: '#03a9f4' },
-    { name: 'Pipe Born Water', value: 2.0, color: '#e91e63' },
-  ],
-  waterSourceConditions: [
-    { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-  ],
-  toiletFacilities: [
-    { name: 'Pit Latrine', value: 15.0, color: '#4caf50' },
-    { name: 'WC Squatting', value: 8.0, color: '#ff9800' },
-    { name: 'WC Sitting', value: 6.6, color: '#9c27b0' },
-  ],
-  toiletConditions: [
-    { name: 'Improved', value: 18.0, color: '#4caf50' },
-    { name: 'With Hand Wash', value: 5.2, color: '#f44336' },
-    { name: 'Basic', value: 5.2, color: '#ff9800' },
-  ],
-  dumpsiteStatus: [
-    { name: 'Maintained', value: 18.0, color: '#4caf50' },
-    { name: 'Needs Evacuation', value: 5.2, color: '#f44336' },
-  ],
-  gutterCondition: [
-    { name: 'Clean', value: 18.0, color: '#4caf50' },
-    { name: 'Blocked', value: 5.2, color: '#f44336' },
-  ],
-  soakawayCondition: [
-    { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-  ],
-  openDefecationStatus: [
-    { name: 'Active', value: 18.0, color: '#4caf50' },
-    { name: 'Inactive', value: 5.2, color: '#f44336' },
-  ],
-};
 
 // Styled Components
 const StyledCard = ({ children, ...props }) => {
@@ -139,7 +78,7 @@ const ChartCard = ({ children }) => (
   </ProfessionalCard>
 );
 
-const StatCard = ({ label, value, icon: Icon, trend, isPositive }) => {
+const StatCard = ({ label, value, icon: Icon }) => {
   const theme = useTheme();
 
   return (
@@ -158,13 +97,6 @@ const StatCard = ({ label, value, icon: Icon, trend, isPositive }) => {
           >
             <Icon sx={{ color: theme.palette.primary.main }} />
           </Box>
-          <Chip
-            icon={isPositive ? <TrendingUp /> : <TrendingDown />}
-            label={trend}
-            size="small"
-            color={isPositive ? 'success' : 'error'}
-            sx={{ height: 24 }}
-          />
         </Box>
         <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
           {value}
@@ -177,7 +109,7 @@ const StatCard = ({ label, value, icon: Icon, trend, isPositive }) => {
   );
 };
 
-const FacilityCard = ({ title, count, percentage, icon: Icon, color }) => {
+const FacilityCard = ({ title, count, icon: Icon, color }) => {
   return (
     <StyledCard>
       <CardContent>
@@ -194,9 +126,9 @@ const FacilityCard = ({ title, count, percentage, icon: Icon, color }) => {
           >
             <Icon sx={{ color }} />
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          {/* <Typography variant="body2" color="text.secondary">
             {percentage}
-          </Typography>
+          </Typography> */}
         </Box>
         <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
           {count}
@@ -328,66 +260,6 @@ const DistributionCharts = () => {
   );
 };
 
-// Interfaces
-interface EnumeratorPerformance {
-  id: string;
-  name: string;
-  totalFacilities: number;
-  lastActive: string;
-  villages: string[];
-  facilities: {
-    waterSources: number;
-    toiletFacilities: number;
-    dumpSites: number;
-    gutters: number;
-    soakAways: number;
-    openDefecationSites: number;
-  };
-}
-
-// Define your row shape
-const columnHelper = createColumnHelper<EnumeratorPerformance>();
-
-// Make some columns!
-const columns = [
-  columnHelper.accessor('fullName', {
-    header: 'Enumerator',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('totalRecords', {
-    header: 'Total',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('waterSources', {
-    header: 'W/s',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('openDefecation', {
-    header: 'Odf',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('soakAways', {
-    header: 'SoakAways',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('toiletFacilities', {
-    header: 'ToiletFacilities',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('dumpSites', {
-    header: 'DumpSites',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('gutters', {
-    header: 'Gutters',
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor('lastLogin', {
-    header: 'Last Active',
-    cell: info => new Date(info.getValue() as string).toLocaleString(),
-  }),
-];
-
 // Main Dashboard Component
 const WashDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -399,16 +271,133 @@ const WashDashboard = () => {
     setCurrentTab(newValue);
   };
 
-  const { data, isLoading } = useQuery<EnumeratorPerformance[], Error>({
-    queryKey: ['enumerator-performance', { limit, page, search }],
-    queryFn: () => apiController.get<EnumeratorPerformance[]>(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`),
+  const { data: houseHolds, isLoading: houseLoading } = useQuery({
+    queryKey: ['households'],
+    queryFn: () => apiController.get(`/households`),
   });
 
-  // const enumrators = data?.enumarators;
-  console.log("enu", data);
+  const { data: waterSource, isLoading: waterLoading } = useQuery({
+    queryKey: ['waterSource'],
+    queryFn: () => apiController.get(`/water-sources`),
+  });
 
+  const { data: toiletFacilities, isLoading: toiletLoading } = useQuery({
+    queryKey: ['toiletFacilities'],
+    queryFn: () => apiController.get(`/toilet-facilities`),
+  });
 
-  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  const { data: dumpSites, isLoading: dumpLoading } = useQuery({
+    queryKey: ['dumpSites'],
+    queryFn: () => apiController.get(`/dump-sites`),
+  });
+
+  const { data: gutters, isLoading: guttLoading } = useQuery({
+    queryKey: ['gutters'],
+    queryFn: () => apiController.get(`/gutters`),
+  });
+
+  const { data: soakAways , isLoading: soakLoading} = useQuery({
+    queryKey: ['soakAways'],
+    queryFn: () => apiController.get(`/soak-aways`),
+  });
+
+  const { data: openDefecations, isLoading: openLoading } = useQuery({
+    queryKey: ['openDefecations'],
+    queryFn: () => apiController.get(`/open-defecations`),
+  });
+
+  const countByProperties = (data, filters) => {
+    if (!data) return 0;
+
+    return data.filter(item =>
+      filters.every(filter => item[filter.property] === filter.value)
+    ).length;
+  };
+
+  const SUMMARY_DATA = [
+    {
+      label: 'Total Households',
+      value: houseHolds?.length,
+      icon: Home
+    },
+    { label: 'Total Hamlets', value: '57', icon: Group },
+    { label: 'Total Villages', value: '8', icon: Landscape},
+    { label: 'Total Wards', value: '3', icon: LocationOn },
+  ];
+
+  const FACILITY_CARDS = [
+    { title: 'Water Sources', count: waterSource?.length, icon: WaterDrop, color: '#1976d2' },
+    { title: 'Toilet Facilities', count: toiletFacilities?.length, icon: Sanitizer, color: '#7b1fa2' },
+    { title: 'Dump Sites', count: dumpSites?.length, icon: DeleteOutline, color: '#ed6c02' },
+    { title: 'Gutters', count: gutters?.length, icon: Home, color: '#2e7d32' },
+    { title: 'Soak Aways', count: soakAways?.length, icon: Home, color: '#e91e63' },
+    { title: 'Open Defecation Sites', count: openDefecations?.length, icon: LocationOn, color: '#d32f2f' },
+  ];
+
+  const CHART_DATA = {
+    waterSources: [
+      {
+        name: 'Hand Pump Borehole',
+        value: countByProperties(waterSource, [
+          { property: 'type', value: 'Hand Pump Boreholes' }
+        ]),
+        color: '#4caf50'
+      },
+      {
+        name: 'Protected Dug Well',
+        value: countByProperties(waterSource, [
+          { property: 'type', value: 'Protected Dug Wells' }
+        ]),
+        color: '#ff9800'
+      },
+      {
+        name: 'Unprotected Dug Well',
+        value: countByProperties(waterSource, [
+          { property: 'type', value: 'Unprotected Dug Wells' }
+        ]),
+        color: '#9c27b0'
+      },
+      {
+        name: 'Motorized Borehole',
+        value: countByProperties(waterSource, [
+          { property: 'type', value: 'Motorized Boreholes' }
+        ]),
+        color: '#03a9f4'
+      },
+    ],
+    waterSourceConditions: [
+      { name: 'Functional', value: 18.0, color: '#4caf50' },
+      { name: 'Non-Functional', value: 5.2, color: '#f44336' },
+    ],
+    toiletFacilities: [
+      { name: 'Pit Latrine', value: 15.0, color: '#4caf50' },
+      { name: 'WC Squatting', value: 8.0, color: '#ff9800' },
+      { name: 'WC Sitting', value: 6.6, color: '#9c27b0' },
+    ],
+    toiletConditions: [
+      { name: 'Improved', value: 18.0, color: '#4caf50' },
+      { name: 'With Hand Wash', value: 5.2, color: '#f44336' },
+      { name: 'Basic', value: 5.2, color: '#ff9800' },
+    ],
+    dumpsiteStatus: [
+      { name: 'Maintained', value: 18.0, color: '#4caf50' },
+      { name: 'Needs Evacuation', value: 5.2, color: '#f44336' },
+    ],
+    gutterCondition: [
+      { name: 'Clean', value: 18.0, color: '#4caf50' },
+      { name: 'Blocked', value: 5.2, color: '#f44336' },
+    ],
+    soakawayCondition: [
+      { name: 'Functional', value: 18.0, color: '#4caf50' },
+      { name: 'Non-Functional', value: 5.2, color: '#f44336' },
+    ],
+    openDefecationStatus: [
+      { name: 'Active', value: 18.0, color: '#4caf50' },
+      { name: 'Inactive', value: 5.2, color: '#f44336' },
+    ],
+  };
+
+  if (houseLoading || waterLoading || toiletLoading || dumpLoading || guttLoading|| openLoading || soakLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -441,7 +430,6 @@ const WashDashboard = () => {
         ))}
       </Grid>
 
-      {/* Main Content */}
       <StyledCard>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
@@ -457,11 +445,11 @@ const WashDashboard = () => {
               },
             }}
           >
-            
+
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
             <Tab icon={<PieChart />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
-            <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" />
-            <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" />
+            {/* <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" /> */}
+            {/* <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" /> */}
           </Tabs>
         </Box>
 
@@ -475,16 +463,14 @@ const WashDashboard = () => {
                   <FilterDropdown label="Hamlet" options={['All', 'Hamlet 1', 'Hamlet 2']} />
                 </Stack>
               </Box>
+
               <Grid container spacing={3}>
                 {FACILITY_CARDS.map((facility) => (
-                  <Grid item xs={12} sm={6} md={4} key={facility.title}>
-                    <FacilityCard {...facility} />
-                  </Grid>
-                ))}
+                <Grid item xs={12} sm={6} md={4} key={facility.title}>
+                  <FacilityCard {...facility} />
+                </Grid>
+              ))}
               </Grid>
-              <Box sx={{ mt: 15 }}>
-                <FacilityBarChart />
-              </Box>
             </>
           )}
           {currentTab === 1 && (
@@ -537,16 +523,12 @@ const WashDashboard = () => {
               </Grid>
             </Grid>
           )}
-          {currentTab === 2 && 
+          {/* {currentTab === 2 &&
             <DistributionCharts />
-          }
-          {currentTab === 3 && (
-            <Card sx={{ mt: 3, boxShadow: 1 }}>
-                <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data?.enumerators || []} />
-            </Card>
-          )}
+          } */}
         </CardContent>
       </StyledCard>
+
     </Box>
   );
 };
