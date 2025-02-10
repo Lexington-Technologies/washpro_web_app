@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useEffect, useState } from 'react';
@@ -417,17 +417,27 @@ const WaterSourcesDashboard: React.FC = () => {
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" mb={2}>Safe Water</Typography>
             <PieChart
-              colors={['#2e96ff', '#ff9800']} // Use palette
+              colors={['#2e96ff', '#ef5350']} // Use palette
               series={[
                 {
                   data: pieChartData,
                   arcLabel: (item) => `${item.value}`,
-                  arcLabelMinAngle: 50,
-                  arcLabelRadius: '60%'
+                  arcLabelMinAngle: 35,
+                  arcLabelRadius: '60%',
+                  innerRadius: 40,
+                  outerRadius: 150,
+                  paddingAngle: 3,
+                  cornerRadius: 5,
                 },
               ]}
               width={600}
               height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
             />
           </Paper>
         </Grid>

@@ -19,18 +19,20 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
   styled,
   Typography,
   useTheme
 } from '@mui/material';
+import { BarChart } from '@mui/x-charts/BarChart';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { apiController } from '../../axios';
-
-// Constants
+import StatsCard from '../../components/StatsCard';
 
 const FACILITY_DATA = [
   { name: 'Water Sources', count: 1666 },
@@ -68,42 +70,36 @@ const ProfessionalCard = styled(Card)(({ theme }) => ({
   boxShadow: theme.shadows[1],
 }));
 
-const ChartCard = ({ children }) => (
-  <ProfessionalCard sx={{ p: 3, mt: 3 }}>
-    {children}
-  </ProfessionalCard>
-);
+// const StatCard = ({ label, value, icon: Icon }) => {
+//   const theme = useTheme();
 
-const StatCard = ({ label, value, icon: Icon }) => {
-  const theme = useTheme();
-
-  return (
-    <StyledCard>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box
-            sx={{
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              borderRadius: '12px',
-              p: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon sx={{ color: theme.palette.primary.main }} />
-          </Box>
-        </Box>
-        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {value}
-        </Typography>
-        <Typography color="text.secondary" variant="body2">
-          {label}
-        </Typography>
-      </CardContent>
-    </StyledCard>
-  );
-};
+//   return (
+//     <StyledCard>
+//       <CardContent>
+//         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+//           <Box
+//             sx={{
+//               backgroundColor: alpha(theme.palette.primary.main, 0.1),
+//               borderRadius: '12px',
+//               p: 1,
+//               display: 'flex',
+//               alignItems: 'center',
+//               justifyContent: 'center',
+//             }}
+//           >
+//             <Icon sx={{ color: theme.palette.primary.main }} />
+//           </Box>
+//         </Box>
+//         <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+//           {value}
+//         </Typography>
+//         <Typography color="text.secondary" variant="body2">
+//           {label}
+//         </Typography>
+//       </CardContent>
+//     </StyledCard>
+//   );
+// };
 
 const FacilityCard = ({ title, count, icon: Icon, color }) => {
   return (
@@ -272,32 +268,32 @@ const WashDashboard = () => {
     queryFn: () => apiController.get(`/households`),
   });
 
-  const { data: waterSource, isLoading: waterLoading } = useQuery({
+  const { data: waterSource } = useQuery({
     queryKey: ['waterSource'],
     queryFn: () => apiController.get(`/water-sources`),
   });
 
-  const { data: toiletFacilities, isLoading: toiletLoading } = useQuery({
+  const { data: toiletFacilities } = useQuery({
     queryKey: ['toiletFacilities'],
     queryFn: () => apiController.get(`/toilet-facilities`),
   });
 
-  const { data: dumpSites, isLoading: dumpLoading } = useQuery({
+  const { data: dumpSites } = useQuery({
     queryKey: ['dumpSites'],
     queryFn: () => apiController.get(`/dump-sites`),
   });
 
-  const { data: gutters, isLoading: guttLoading } = useQuery({
+  const { data: gutters } = useQuery({
     queryKey: ['gutters'],
     queryFn: () => apiController.get(`/gutters`),
   });
 
-  const { data: soakAways , isLoading: soakLoading} = useQuery({
+  const { data: soakAways} = useQuery({
     queryKey: ['soakAways'],
     queryFn: () => apiController.get(`/soak-aways`),
   });
 
-  const { data: openDefecations, isLoading: openLoading } = useQuery({
+  const { data: openDefecations } = useQuery({
     queryKey: ['openDefecations'],
     queryFn: () => apiController.get(`/open-defecations`),
   });
@@ -322,12 +318,12 @@ const WashDashboard = () => {
   ];
 
   const FACILITY_CARDS = [
-    { title: 'Water Sources', count: waterSource?.length, icon: WaterDrop, color: '#1976d2' },
-    { title: 'Toilet Facilities', count: toiletFacilities?.length, icon: Sanitizer, color: '#7b1fa2' },
-    { title: 'Dump Sites', count: dumpSites?.length, icon: DeleteOutline, color: '#ed6c02' },
-    { title: 'Gutters', count: gutters?.length, icon: Home, color: '#2e7d32' },
-    { title: 'Soak Aways', count: soakAways?.length, icon: Home, color: '#e91e63' },
-    { title: 'Open Defecation Sites', count: openDefecations?.length, icon: LocationOn, color: '#d32f2f' },
+    { label: 'Water Sources', value: waterSource?.length, icon: WaterDrop, color: '#1976d2' },
+    { label: 'Toilet Facilities', value: toiletFacilities?.length, icon: Sanitizer, color: '#7b1fa2' },
+    { label: 'Dump Sites', value: dumpSites?.length, icon: DeleteOutline, color: '#ed6c02' },
+    { label: 'Gutters', value: gutters?.length, icon: Home, color: '#2e7d32' },
+    { label: 'Soak Aways', value: soakAways?.length, icon: Home, color: '#e91e63' },
+    { label: 'Open Defecation Sites', value: openDefecations?.length, icon: LocationOn, color: '#d32f2f' },
   ];
 
   const CHART_DATA = {
@@ -393,7 +389,7 @@ const WashDashboard = () => {
     ],
   };
 
-  if (houseLoading || waterLoading || toiletLoading || dumpLoading || guttLoading|| openLoading || soakLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (houseLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -418,17 +414,140 @@ const WashDashboard = () => {
       </Box>
 
       {/* Summary Stats */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {SUMMARY_DATA.map((stat) => (
-          <Grid item xs={12} sm={6} md={3} key={stat.label}>
-            <StatCard {...stat} />
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {SUMMARY_DATA.map(({ label, value, icon}, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <StatsCard title={label} value={value} icon={icon} />
           </Grid>
         ))}
-        {FACILITY_CARDS.map((facility) => (
-          <Grid item xs={12} sm={6} md={3} key={facility.title}>
-            <FacilityCard {...facility} />
+        {FACILITY_CARDS.map(({ label, value, icon, color}, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <StatsCard title={label} value={value} icon={icon} iconColor={color}/>
           </Grid>
         ))}
+      </Grid>
+
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+            <PieChart
+              series={[
+                {
+                  arcLabel: (item) => `${item.value}%`,
+                  arcLabelMinAngle: 30,
+                  arcLabelRadius: '50%',
+                  data: [
+                    { id: 0, value: 10, label: 'series A' },
+                    { id: 1, value: 15, label: 'series B' },
+                    { id: 2, value: 20, label: 'series C' },
+                    { id: 3, value: 15, label: 'series D' },
+                    { id: 4, value: 20, label: 'series F' },
+                    { id: 5, value: 15, label: 'series G' }
+                  ],
+                  // innerRadius: 5,
+                  outerRadius: 140,
+                  // paddingAngle: 3,
+                  // cornerRadius: 5,
+                }
+              ]}
+              width={500}
+              height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
+            <PieChart
+              series={[
+                {
+                  arcLabel: (item) => `${item.value}`,
+                  arcLabelMinAngle: 35,
+                  arcLabelRadius: '60%',
+                  data: [
+                    { id: 0, value: 10, label: 'series A' },
+                    { id: 1, value: 15, label: 'series B' },
+                    { id: 2, value: 20, label: 'series C' }
+                  ],
+                  innerRadius: 10,
+                  outerRadius: 140,
+                  paddingAngle: 0,
+                  cornerRadius: 0,
+                  startAngle: -45,
+                  endAngle: 225,
+                }
+              ]}
+              width={550}
+              height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
+            />
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+            <BarChart
+              xAxis={[{
+                scaleType: 'band',
+                data: ['group A', 'group B', 'group C'],
+              }]}
+              series={[
+                { data: [4, 3, 5], label: 'Part 1' },
+                { data: [1, 6, 3], label: 'Part 2' },
+                { data: [2, 5, 6], label: 'Part 3' }]}
+              width={600}
+              height={350}
+              borderRadius={7}
+              barLabel="value"
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
+            <PieChart
+              series={[
+                {
+                  arcLabel: (item) => `${item.value}`,
+                  arcLabelMinAngle: 35,
+                  arcLabelRadius: '60%',
+                  data: [
+                    { id: 0, value: 10, label: 'series A' },
+                    { id: 1, value: 15, label: 'series B' },
+                    { id: 2, value: 20, label: 'series C' }
+                  ],
+                  innerRadius: 0,
+                  outerRadius: 140,
+                  paddingAngle: 0,
+                  cornerRadius: 0,
+                }
+              ]}
+              width={550}
+              height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
+            />
+          </Paper>
+        </Grid>
       </Grid>
 
     </Box>

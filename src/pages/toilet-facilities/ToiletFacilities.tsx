@@ -12,7 +12,7 @@ import {
   styled,
   Typography
 } from '@mui/material';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useEffect, useState } from 'react';
@@ -203,18 +203,18 @@ const ToiletFacilities: React.FC = () => {
   };
 
   const safetyRisk = {
-    weight: countByProperties(data, [
-      { property: 'safetyRisk', value: 'Poor weight-bearing' }
+    yes: countByProperties(data, [
+      { property: 'handWashingFacility', value: 'yes' }
     ]),
-    privacy: countByProperties(data, [
-      { property: 'safetyRisk', value: 'Privacy issue' }
+    no: countByProperties(data, [
+      { property: 'handWashingFacility', value: 'no' }
     ]),
   }
 
   // Format data for PieChart
   const safetyRiskChartData = [
-    { id: 0, label: 'Poor weight-bearing', value: safetyRisk.weight },
-    { id: 1, label: 'Privacy issue', value: safetyRisk.privacy },
+    { id: 0, label: 'Handwash', value: safetyRisk.yes },
+    { id: 1, label: 'No Handwash', value: safetyRisk.no },
   ];
 
 
@@ -305,39 +305,50 @@ const ToiletFacilities: React.FC = () => {
                     { id: 1, value: 15, label: 'series B' },
                     { id: 2, value: 20, label: 'series C' },
                     { id: 3, value: 15, label: 'series D' },
-                    { id: 4, value: 20, label: 'series E' },
+                    { id: 4, value: 20, label: 'series F' },
+                    { id: 5, value: 15, label: 'series G' }
                   ],
-                  innerRadius: 30,
+                  innerRadius: 40,
                   outerRadius: 150,
-                  paddingAngle: 5,
+                  paddingAngle: 3,
                   cornerRadius: 5,
-                  // startAngle: -45,
-                  // endAngle: 225,
                 }
               ]}
               width={500}
               height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
             />
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Toilet Facility Conditions</Typography>
+            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
             <PieChart
               series={[
                 {
-                  data: safetyRiskChartData,
                   arcLabel: (item) => `${item.value}`,
-                  arcLabelMinAngle: 50,
+                  arcLabelMinAngle: 35,
                   arcLabelRadius: '60%',
-                  innerRadius: 20,
+                  data: safetyRiskChartData,
+                  innerRadius: 30,
                   outerRadius: 140,
-                  paddingAngle: 5,
+                  paddingAngle: 3,
                   cornerRadius: 5,
                 }
               ]}
-              width={500}
+              width={550}
               height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
             />
           </Paper>
         </Grid>

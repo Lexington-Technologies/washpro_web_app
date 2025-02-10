@@ -91,4 +91,4 @@
             <DistributionCharts />
           } */}
         </CardContent>
-      </StyledCard>
+</StyledCard>
