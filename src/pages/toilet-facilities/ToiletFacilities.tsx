@@ -12,6 +12,7 @@ import {
   styled,
   Typography
 } from '@mui/material';
+import { PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useEffect, useState } from 'react';
@@ -190,6 +191,32 @@ const ToiletFacilities: React.FC = () => {
     return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
   };
 
+  const countByProperties = <T extends object>(
+    data: T[] | undefined,
+    filters: Array<{ property: keyof T; value: T[keyof T] }>
+  ): number => {
+    if (!data) return 0;
+
+    return data.filter(item =>
+      filters.every(filter => item[filter.property] === filter.value)
+    ).length;
+  };
+
+  const safetyRisk = {
+    weight: countByProperties(data, [
+      { property: 'safetyRisk', value: 'Poor weight-bearing' }
+    ]),
+    privacy: countByProperties(data, [
+      { property: 'safetyRisk', value: 'Privacy issue' }
+    ]),
+  }
+
+  // Format data for PieChart
+  const safetyRiskChartData = [
+    { id: 0, label: 'Poor weight-bearing', value: safetyRisk.weight },
+    { id: 1, label: 'Privacy issue', value: safetyRisk.privacy },
+  ];
+
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
@@ -260,6 +287,59 @@ const ToiletFacilities: React.FC = () => {
             icon={<PiToiletFill style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+            <PieChart
+              series={[
+                {
+                  arcLabel: (item) => `${item.value}%`,
+                  arcLabelMinAngle: 35,
+                  arcLabelRadius: '60%',
+                  data: [
+                    { id: 0, value: 10, label: 'series A' },
+                    { id: 1, value: 15, label: 'series B' },
+                    { id: 2, value: 20, label: 'series C' },
+                    { id: 3, value: 15, label: 'series D' },
+                    { id: 4, value: 20, label: 'series E' },
+                  ],
+                  innerRadius: 30,
+                  outerRadius: 150,
+                  paddingAngle: 5,
+                  cornerRadius: 5,
+                  // startAngle: -45,
+                  // endAngle: 225,
+                }
+              ]}
+              width={500}
+              height={350}
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Toilet Facility Conditions</Typography>
+            <PieChart
+              series={[
+                {
+                  data: safetyRiskChartData,
+                  arcLabel: (item) => `${item.value}`,
+                  arcLabelMinAngle: 50,
+                  arcLabelRadius: '60%',
+                  innerRadius: 20,
+                  outerRadius: 140,
+                  paddingAngle: 5,
+                  cornerRadius: 5,
+                }
+              ]}
+              width={500}
+              height={350}
+            />
+          </Paper>
         </Grid>
       </Grid>
 
