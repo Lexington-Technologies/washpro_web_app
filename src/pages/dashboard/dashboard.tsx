@@ -1,11 +1,14 @@
 import {
+  AccessibilityNew,
   DeleteOutline,
   Group,
   Home,
   Landscape,
+  LocalHospital,
   LocationOn,
   Refresh,
   Sanitizer,
+  School,
   Timeline,
   WaterDrop
 } from '@mui/icons-material';
@@ -313,6 +316,104 @@ const WashDashboard = () => {
     { label: 'Total Hamlets', value: '57', icon: Group },
     { label: 'Total Villages', value: '8', icon: Landscape},
     { label: 'Total Wards', value: '3', icon: LocationOn },
+    {
+      label: 'Population using improved water source within 500m',
+      value: '85%',
+      icon: WaterDrop,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Schools with improved water source on-premises',
+      value: '72%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Health facilities with improved water sources',
+      value: '68%',
+      icon: LocalHospital,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Almajiri schools with improved water source',
+      value: '45%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Households with improved non-shared latrines',
+      value: '60%',
+      icon: Home,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Schools with basic sanitation facilities',
+      value: '55%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Ratio of functional school latrines to students',
+      value: '1:50',
+      icon: AccessibilityNew,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Health facilities with improved sanitation',
+      value: '70%',
+      icon: LocalHospital,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Almajiri schools with basic sanitation',
+      value: '40%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Almajiri students per functional latrine',
+      value: '1:75',
+      icon: AccessibilityNew,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Households with basic handwashing facilities',
+      value: '65%',
+      icon: Sanitizer,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Schools with basic handwashing facilities',
+      value: '58%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Health facilities with basic handwashing',
+      value: '75%',
+      icon: LocalHospital,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Almajiri schools with basic handwashing',
+      value: '35%',
+      icon: School,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Open Defication Free communities',
+      value: '80%',
+      icon: Home,
+      color: '#d32f2f'
+    },
+    {
+      label: 'Communities regressed from ODF status',
+      value: '10%',
+      icon: Home,
+      color: '#d32f2f'
+    },
+
+    
   ];
 
   const FACILITY_CARDS = [

@@ -74,7 +74,9 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
     // { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
     // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
-    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
+    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources", subItems: [
+        { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
+    ]},
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
     { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
@@ -93,7 +95,6 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   ];
 
   const bottomMenuItems = [
-    { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
     // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
@@ -214,7 +215,12 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <List>
           {/* Main Menu Items */}
-          {mainMenuItems.map(renderMenuItem)}
+          {mainMenuItems.map(item => (
+            <>
+              {renderMenuItem(item)}
+              {item.subItems && item.subItems.map(renderMenuItem)}
+            </>
+          ))}
 
           {/* Waste Dropdown */}
           <ListItem disablePadding>
