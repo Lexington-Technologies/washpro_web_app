@@ -129,7 +129,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
             color: "#25306B",
             justifyContent: "center",
             "& svg": {
-              fontSize: 24
+              fontSize: 20
             },
             ".active &": {
               color: "white"
@@ -154,7 +154,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   const sidebarContent = (
     <Box
       sx={{
-        width: isCollapsed ? 100 : 320,
+        width: isCollapsed ? 100 : 270,
         bgcolor: "white",
         height: "100%",
         boxShadow: 1,
@@ -179,7 +179,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
             src="/logo.svg"
             alt="WashPro Logo"
             style={{
-              width: isCollapsed ? 50 : 270,
+              width: isCollapsed ? 50 : 200,
               height: isCollapsed ? 50 : "auto",
               objectFit: "fill",
               transition: "width 0.3s, height 0.3s",
@@ -370,7 +370,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     <Box
       component="nav"
       sx={{
-        width: isCollapsed ? 100 : 320,
+        width: isCollapsed ? 100 : 270,
         flexShrink: 0,
         display: { xs: 'none', md: 'block' },
       }}

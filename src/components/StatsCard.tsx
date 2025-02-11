@@ -6,11 +6,12 @@ interface StatsCardProps {
   value: React.ReactNode;
   icon: React.ElementType<SvgIconProps>;
   iconColor?: string;
+  bgColor?: string;
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, iconColor = '#003c1e' }) => (
-  <Card sx={{ flex: 1 }}>
-    <CardContent>
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, iconColor = '#003c1e', bgColor = '#fff' }) => (
+  <Card sx={{ flex: 1 , boxShadow: 'none'}}>
+    <CardContent sx={{backgroundColor: alpha(bgColor, 0.1)}}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>
           <Typography color="text.secondary" gutterBottom>

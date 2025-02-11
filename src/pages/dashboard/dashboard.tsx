@@ -6,6 +6,7 @@ import {
   LocationOn,
   Refresh,
   Sanitizer,
+  Timeline,
   WaterDrop
 } from '@mui/icons-material';
 import {
@@ -23,6 +24,8 @@ import {
   Select,
   Stack,
   styled,
+  Tab,
+  Tabs,
   Typography,
   useTheme
 } from '@mui/material';
@@ -52,11 +55,6 @@ const StyledCard = ({ children, ...props }) => {
       sx={{
         height: '100%',
         boxShadow: theme.shadows[2],
-        transition: 'all 0.3s',
-        '&:hover': {
-          boxShadow: theme.shadows[4],
-          transform: 'translateY(-2px)',
-        },
         ...props.sx,
       }}
     >
@@ -420,135 +418,194 @@ const WashDashboard = () => {
             <StatsCard title={label} value={value} icon={icon} />
           </Grid>
         ))}
-        {FACILITY_CARDS.map(({ label, value, icon, color}, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatsCard title={label} value={value} icon={icon} iconColor={color}/>
-          </Grid>
-        ))}
       </Grid>
 
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
-            <PieChart
-              series={[
-                {
-                  arcLabel: (item) => `${item.value}%`,
-                  arcLabelMinAngle: 30,
-                  arcLabelRadius: '50%',
-                  data: [
-                    { id: 0, value: 10, label: 'series A' },
-                    { id: 1, value: 15, label: 'series B' },
-                    { id: 2, value: 20, label: 'series C' },
-                    { id: 3, value: 15, label: 'series D' },
-                    { id: 4, value: 20, label: 'series F' },
-                    { id: 5, value: 15, label: 'series G' }
-                  ],
-                  // innerRadius: 5,
-                  outerRadius: 140,
-                  // paddingAngle: 3,
-                  // cornerRadius: 5,
-                }
-              ]}
-              width={500}
-              height={350}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              }}
-            />
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
-            <PieChart
-              series={[
-                {
-                  arcLabel: (item) => `${item.value}`,
-                  arcLabelMinAngle: 35,
-                  arcLabelRadius: '60%',
-                  data: [
-                    { id: 0, value: 10, label: 'series A' },
-                    { id: 1, value: 15, label: 'series B' },
-                    { id: 2, value: 20, label: 'series C' }
-                  ],
-                  innerRadius: 10,
-                  outerRadius: 140,
-                  paddingAngle: 0,
-                  cornerRadius: 0,
-                  startAngle: -45,
-                  endAngle: 225,
-                }
-              ]}
-              width={550}
-              height={350}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              }}
-            />
-          </Paper>
-        </Grid>
-      </Grid>
+      <StyledCard>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              px: 2,
+              '& .MuiTab-root': {
+                minHeight: 64,
+                textTransform: 'none',
+              },
+            }}
+          >
 
-      <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
-            <BarChart
-              xAxis={[{
-                scaleType: 'band',
-                data: ['group A', 'group B', 'group C'],
-              }]}
-              series={[
-                { data: [4, 3, 5], label: 'Part 1' },
-                { data: [1, 6, 3], label: 'Part 2' },
-                { data: [2, 5, 6], label: 'Part 3' }]}
-              width={600}
-              height={350}
-              borderRadius={7}
-              barLabel="value"
-            />
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
-            <PieChart
-              series={[
-                {
-                  arcLabel: (item) => `${item.value}`,
-                  arcLabelMinAngle: 35,
-                  arcLabelRadius: '60%',
-                  data: [
-                    { id: 0, value: 10, label: 'series A' },
-                    { id: 1, value: 15, label: 'series B' },
-                    { id: 2, value: 20, label: 'series C' }
-                  ],
-                  innerRadius: 0,
-                  outerRadius: 140,
-                  paddingAngle: 0,
-                  cornerRadius: 0,
-                }
-              ]}
-              width={550}
-              height={350}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              }}
-            />
-          </Paper>
-        </Grid>
-      </Grid>
+            <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
+            <Tab icon={<Timeline />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
+          </Tabs>
+        </Box>
+
+        <CardContent>
+          {currentTab === 0 && (
+            <>
+              <Box sx={{ mb: 3 }}>
+                <Stack direction="row" spacing={2}>
+                  <FilterDropdown label="Ward" options={['All', 'Ward 1', 'Ward 2', 'Ward 3']} />
+                  <FilterDropdown label="Village" options={['All', 'Village 1', 'Village 2']} />
+                  <FilterDropdown label="Hamlet" options={['All', 'Hamlet 1', 'Hamlet 2']} />
+                </Stack>
+              </Box>
+
+              <Box sx={{paddingTop: 5}}>
+                <Grid container spacing={3}>
+                  {FACILITY_CARDS.map(({ label, value, icon, color}, index) => (
+                    <Grid item xs={12} sm={6} md={3} key={index}>
+                      <StatsCard
+                        title={label}
+                        value={value}
+                        icon={icon}
+                        iconColor={color}
+                        bgColor={color}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            </>
+          )}
+          {currentTab === 1 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
+                <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
+                <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
+                <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
+              </Grid>
+
+              <Box sx={{padding: 3}}>
+              <Grid container spacing={3} mb={3}>
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+                    <PieChart
+                      series={[
+                        {
+                          arcLabel: (item) => `${item.value}%`,
+                          arcLabelMinAngle: 30,
+                          arcLabelRadius: '50%',
+                          data: [
+                            { id: 0, value: 10, label: 'series A' },
+                            { id: 1, value: 15, label: 'series B' },
+                            { id: 2, value: 20, label: 'series C' },
+                            { id: 3, value: 15, label: 'series D' },
+                            { id: 4, value: 20, label: 'series F' },
+                            { id: 5, value: 15, label: 'series G' }
+                          ],
+                          // innerRadius: 5,
+                          outerRadius: 140,
+                          // paddingAngle: 3,
+                          // cornerRadius: 5,
+                        }
+                      ]}
+                      width={500}
+                      height={350}
+                      sx={{
+                        [`& .${pieArcLabelClasses.root}`]: {
+                          fontWeight: 'bold',
+                          fill: 'white',
+                        },
+                      }}
+                    />
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
+                    <PieChart
+                      series={[
+                        {
+                          arcLabel: (item) => `${item.value}`,
+                          arcLabelMinAngle: 35,
+                          arcLabelRadius: '60%',
+                          data: [
+                            { id: 0, value: 10, label: 'series A' },
+                            { id: 1, value: 15, label: 'series B' },
+                            { id: 2, value: 20, label: 'series C' }
+                          ],
+                          innerRadius: 10,
+                          outerRadius: 140,
+                          paddingAngle: 0,
+                          cornerRadius: 0,
+                          startAngle: -45,
+                          endAngle: 225,
+                        }
+                      ]}
+                      width={550}
+                      height={350}
+                      sx={{
+                        [`& .${pieArcLabelClasses.root}`]: {
+                          fontWeight: 'bold',
+                          fill: 'white',
+                        },
+                      }}
+                    />
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              <Grid container spacing={3} mb={3}>
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+                    <BarChart
+                      xAxis={[{
+                        scaleType: 'band',
+                        data: ['group A', 'group B', 'group C'],
+                      }]}
+                      series={[
+                        { data: [4, 3, 5], label: 'Part 1' },
+                        { data: [1, 6, 3], label: 'Part 2' },
+                        { data: [2, 5, 6], label: 'Part 3' }]}
+                      width={600}
+                      height={350}
+                      borderRadius={7}
+                      barLabel="value"
+                    />
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
+                    <PieChart
+                      series={[
+                        {
+                          arcLabel: (item) => `${item.value}`,
+                          arcLabelMinAngle: 35,
+                          arcLabelRadius: '60%',
+                          data: [
+                            { id: 0, value: 10, label: 'series A' },
+                            { id: 1, value: 15, label: 'series B' },
+                            { id: 2, value: 20, label: 'series C' }
+                          ],
+                          innerRadius: 0,
+                          outerRadius: 140,
+                          paddingAngle: 0,
+                          cornerRadius: 0,
+                        }
+                      ]}
+                      width={550}
+                      height={350}
+                      sx={{
+                        [`& .${pieArcLabelClasses.root}`]: {
+                          fontWeight: 'bold',
+                          fill: 'white',
+                        },
+                      }}
+                    />
+                  </Paper>
+                </Grid>
+              </Grid>
+              </Box>
+
+            </Grid>
+          )}
+        </CardContent>
+      </StyledCard>
 
     </Box>
   );

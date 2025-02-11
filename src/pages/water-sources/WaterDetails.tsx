@@ -89,15 +89,14 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  console.log("water",waterSource)
+  const { data: household } = useQuery({
+    queryKey: ['/households'],
+    queryFn: () => apiController.get(`/households`).then(res => res.data),
+  });
 
-    const { data: household } = useQuery({
-      queryKey: ['/households'],
-      queryFn: () => apiController.get(`/households`).then(res => res.data),
-    }); 
-    console.log("household",household)
-  
-  
+
+  console.log('Hello world', waterSource)
+
 
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
