@@ -1,19 +1,24 @@
 import {
   AccessibilityNew,
+  AttachMoney,
+  Category,
   DeleteOutline,
   Group,
   Home,
+  Inventory,
   Landscape,
   LocalHospital,
+  LocalShipping,
   LocationOn,
+  People,
   Refresh,
   Sanitizer,
   School,
+  ShoppingCart,
   Timeline,
   WaterDrop
 } from '@mui/icons-material';
 import {
-  alpha,
   Box,
   Card,
   CardContent,
@@ -26,7 +31,6 @@ import {
   Paper,
   Select,
   Stack,
-  styled,
   Tab,
   Tabs,
   Typography,
@@ -36,18 +40,31 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Bar, CartesianGrid, Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { FaChartArea } from "react-icons/fa6";
+import { LiaPoopSolid } from "react-icons/lia";
+import { MdCleanHands } from "react-icons/md";
+import { SiCcleaner } from "react-icons/si";
 import { apiController } from '../../axios';
 import StatsCard from '../../components/StatsCard';
 
-const FACILITY_DATA = [
-  { name: 'Water Sources', count: 1666 },
-  { name: 'Toilet Facilities', count: 2124 },
-  { name: 'Dump Sites', count: 1459 },
-  { name: 'Gutters', count: 1423 },
-  { name: 'Soak Aways', count: 317 },
-  { name: 'Open Defecation', count: 194 },
+const data = [
+  { id: 0, value: 10, label: 'Category A' },
+  { id: 1, value: 15, label: 'Category B' },
+  { id: 2, value: 20, label: 'Category C' },
 ];
+
+const cardData1 = [
+  { icon: ShoppingCart, title: 'Total Sales', value: '$12,345', iconColor: '#3f51b5', bgColor: '#3f51b5' },
+  { icon: People, title: 'Total Users', value: '1,234', iconColor: '#e91e63', bgColor: '#e91e63' },
+  { icon: AttachMoney, title: 'Revenue', value: '$45,678', iconColor: '#4caf50', bgColor: '#4caf50' },
+];
+
+const cardData2 = [
+  { icon: Inventory, title: 'Inventory', value: '456', iconColor: '#9c27b0', bgColor: '#9c27b0' },
+  { icon: LocalShipping, title: 'Shipments', value: '78', iconColor: '#2196f3', bgColor: '#2196f3' },
+  { icon: Category, title: 'Categories', value: '15', iconColor: '#f44336', bgColor: '#f44336' },
+];
+
 
 // Styled Components
 const StyledCard = ({ children, ...props }) => {
@@ -63,74 +80,6 @@ const StyledCard = ({ children, ...props }) => {
     >
       {children}
     </Card>
-  );
-};
-
-const ProfessionalCard = styled(Card)(({ theme }) => ({
-  borderRadius: 4,
-  boxShadow: theme.shadows[1],
-}));
-
-// const StatCard = ({ label, value, icon: Icon }) => {
-//   const theme = useTheme();
-
-//   return (
-//     <StyledCard>
-//       <CardContent>
-//         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-//           <Box
-//             sx={{
-//               backgroundColor: alpha(theme.palette.primary.main, 0.1),
-//               borderRadius: '12px',
-//               p: 1,
-//               display: 'flex',
-//               alignItems: 'center',
-//               justifyContent: 'center',
-//             }}
-//           >
-//             <Icon sx={{ color: theme.palette.primary.main }} />
-//           </Box>
-//         </Box>
-//         <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-//           {value}
-//         </Typography>
-//         <Typography color="text.secondary" variant="body2">
-//           {label}
-//         </Typography>
-//       </CardContent>
-//     </StyledCard>
-//   );
-// };
-
-const FacilityCard = ({ title, count, icon: Icon, color }) => {
-  return (
-    <StyledCard>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box
-            sx={{
-              backgroundColor: alpha(color, 0.1),
-              borderRadius: '12px',
-              p: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon sx={{ color }} />
-          </Box>
-          {/* <Typography variant="body2" color="text.secondary">
-            {percentage}
-          </Typography> */}
-        </Box>
-        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {count}
-        </Typography>
-        <Typography color="text.secondary" variant="body2">
-          {title}
-        </Typography>
-      </CardContent>
-    </StyledCard>
   );
 };
 
@@ -155,114 +104,26 @@ const FilterDropdown = ({ label, options }) => {
   );
 };
 
-const FacilityBarChart = () => {
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={FACILITY_DATA}>
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="count" fill="#1976d2" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
-const FacilityPieChart = ({ title, data }) => {
-  return (
-    <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        {title}
-      </Typography>
-      <ResponsiveContainer width="100%" height={400}>
-        <RechartsPieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </RechartsPieChart>
-      </ResponsiveContainer>
-    </Box>
-  );
-};
-
-const DistributionCharts = () => {
-  const wardData = [
-    { name: 'S/GARI', value: 3272 },
-    { name: 'LIKORO', value: 3906 }
-  ];
-
-  const villageData = [
-    { name: 'SIGARIN LILUNKIYI', value: 1098 },
-    { name: 'LIKORO', value: 3210 },
-    { name: 'KYAUDAI', value: 230 },
-    { name: 'JAJA', value: 331 },
-    { name: 'S / GARIN LIKORO', value: 696 },
-    { name: 'MUSAWA', value: 992 },
-    { name: 'KAURAN WALI', value: 621 }
-  ];
-
-  return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Ward-wise Distribution
-            </Typography>
-            <Box sx={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={wardData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 4000]} />
-                  <Bar dataKey="value" fill="#4F98FF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-      </Grid>
-      <Grid item xs={12} md={6}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Village-wise Distribution
-            </Typography>
-            <Box sx={{ height: 400 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={villageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis domain={[0, 4000]} />
-                  <Bar dataKey="value" fill="#4F98FF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardContent>
-      </Grid>
-    </Grid>
-  );
-};
+interface Filter {
+  property: string; // The property to filter by
+  value: string | number;       // The value to compare against
+}
 
 // Main Dashboard Component
 const WashDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
 
   const handleTabChange = (e, newValue) => {
     setCurrentTab(newValue);
   };
+
+  const { data: analysis} = useQuery({
+    queryKey: ['analysis'],
+    queryFn: () => apiController.get(`/analysis`),
+  });
+
+  console.log("analysis", analysis);
+
 
   const { data: houseHolds, isLoading: houseLoading } = useQuery({
     queryKey: ['households'],
@@ -299,7 +160,10 @@ const WashDashboard = () => {
     queryFn: () => apiController.get(`/open-defecations`),
   });
 
-  const countByProperties = (data, filters) => {
+  const countByProperties = <T extends Record<string, string | number>>(
+    data: T[] | null | undefined,
+    filters: Filter[]
+  ): number => {
     if (!data) return 0;
 
     return data.filter(item =>
@@ -339,7 +203,10 @@ const WashDashboard = () => {
       value: '45%',
       icon: School,
       color: '#d32f2f'
-    },
+    }
+  ];
+
+  const SANITATION = [
     {
       label: 'Households with improved non-shared latrines',
       value: '60%',
@@ -358,6 +225,9 @@ const WashDashboard = () => {
       icon: AccessibilityNew,
       color: '#d32f2f'
     },
+  ];
+
+  const SANITATION2 = [
     {
       label: 'Health facilities with improved sanitation',
       value: '70%',
@@ -376,6 +246,9 @@ const WashDashboard = () => {
       icon: AccessibilityNew,
       color: '#d32f2f'
     },
+  ];
+
+  const HYGIENE = [
     {
       label: 'Households with basic handwashing facilities',
       value: '65%',
@@ -400,6 +273,9 @@ const WashDashboard = () => {
       icon: School,
       color: '#d32f2f'
     },
+  ];
+
+  const ODF = [
     {
       label: 'Open Defication Free communities',
       value: '80%',
@@ -412,8 +288,6 @@ const WashDashboard = () => {
       icon: Home,
       color: '#d32f2f'
     },
-
-    
   ];
 
   const FACILITY_CARDS = [
@@ -538,25 +412,20 @@ const WashDashboard = () => {
           >
 
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
-            <Tab icon={<Timeline />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
+            <Tab icon={<FaChartArea />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
+            <Tab icon={<SiCcleaner />} label="Sanitation Overview" iconPosition="start" key="Sanitation" />
+            <Tab icon={<MdCleanHands style={{fontSize: 15}} />} label="Hygiene" iconPosition="start" key="Hygiene" />
+            <Tab icon={<LiaPoopSolid />} label="Open Defecation" iconPosition="start" key="Open Defecation" />
           </Tabs>
         </Box>
 
         <CardContent>
           {currentTab === 0 && (
             <>
-              <Box sx={{ mb: 3 }}>
-                <Stack direction="row" spacing={2}>
-                  <FilterDropdown label="Ward" options={['All', 'Ward 1', 'Ward 2', 'Ward 3']} />
-                  <FilterDropdown label="Village" options={['All', 'Village 1', 'Village 2']} />
-                  <FilterDropdown label="Hamlet" options={['All', 'Hamlet 1', 'Hamlet 2']} />
-                </Stack>
-              </Box>
-
-              <Box sx={{paddingTop: 5}}>
+              <Box>
                 <Grid container spacing={3}>
                   {FACILITY_CARDS.map(({ label, value, icon, color}, index) => (
-                    <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Grid item xs={12} sm={6} md={4} key={index}>
                       <StatsCard
                         title={label}
                         value={value}
@@ -572,12 +441,6 @@ const WashDashboard = () => {
           )}
           {currentTab === 1 && (
             <Grid container spacing={3}>
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Village" options={['Option 1', 'Option 2', 'Option 3']} />
-                <FilterDropdown label="Hamlet" options={['Option 1', 'Option 2', 'Option 3']} />
-              </Grid>
-
               <Box sx={{padding: 3}}>
               <Grid container spacing={3} mb={3}>
                 <Grid item xs={12} md={6}>
@@ -704,6 +567,86 @@ const WashDashboard = () => {
               </Box>
 
             </Grid>
+          )}
+          {currentTab === 2 && (
+          <Box>
+              <Box display="flex" p={4}>
+                {/* Pie Chart on the Left */}
+                <Box flex={1.5} pr={2}>
+                  {/* <Typography variant="h6">
+                    Sales Distribution
+                  </Typography> */}
+                  <PieChart
+                    series={[
+                      {
+                        data,
+                        innerRadius: 0,
+                        outerRadius: 140
+                      },
+                    ]}
+                    width={460}
+                    height={350}
+                  />
+                </Box>
+
+                {/* Two Stacks of Cards on the Right */}
+                <Box flex={2} display="flex" pl={2}>
+                  {/* First Stack of Cards */}
+                  <Box flex={1} pr={1}>
+                    <Stack spacing={2}>
+                      {SANITATION.map((card, index) => (
+                        <StatsCard
+                          key={index}
+                          title={card.label}
+                          value={card.value}
+                          icon={card.icon}
+                          iconColor={card.color}
+                          bgColor={card.color}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+
+                  {/* Second Stack of Cards */}
+                  <Box flex={1} pl={1}>
+                    <Stack spacing={2}>
+                      {SANITATION2.map((card, index) => (
+                        <StatsCard
+                          key={index}
+                          title={card.label}
+                          value={card.value}
+                          icon={card.icon}
+                          iconColor={card.color}
+                          bgColor={card.color}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                </Box>
+              </Box>
+          </Box>
+          )}
+          {currentTab === 3 && (
+          <Box>
+            <Grid container spacing={3}>
+            {HYGIENE.map(({ label, value, icon, color}, index) => (
+              <Grid item xs={12} sm={6} md={3} key={index}>
+                <StatsCard title={label} value={value} icon={icon} iconColor={color} bgColor={color} />
+              </Grid>
+            ))}
+            </Grid>
+          </Box>
+          )}
+          {currentTab === 4 && (
+          <Box>
+            <Grid container spacing={3}>
+              {ODF.map(({ label, value, icon, color}, index) => (
+                <Grid item xs={12} sm={6} md={3} key={index}>
+                  <StatsCard title={label} value={value} icon={icon} iconColor={color} bgColor={color} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
           )}
         </CardContent>
       </StyledCard>
