@@ -110,7 +110,7 @@ interface Filter {
 }
 
 // Main Dashboard Component
-// const WashDashboard = () => {
+const WashDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
 
   const handleTabChange = (e, newValue) => {
@@ -655,4 +655,4 @@ interface Filter {
   );
 };
 
-// export default WashDashboard;
+export default WashDashboard;
