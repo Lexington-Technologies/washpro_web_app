@@ -54,7 +54,6 @@ export function DataTable<T extends object>({
     enablePagination = true,
     enableSorting = true,
     noDataMessage = "No data available",
-    setSearch,
     setPage,
     setLimit
 }: DataTableProps<T>) {
@@ -63,6 +62,8 @@ export function DataTable<T extends object>({
     const [selectedWard, setSelectedWard] = useState('');
     const [selectedVillage, setSelectedVillage] = useState('');
     const [selectedHamlet, setSelectedHamlet] = useState('');
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
 
     // Ensure data is an array
     const tableData = Array.isArray(data) ? data : [];
@@ -73,8 +74,6 @@ export function DataTable<T extends object>({
             id: 'serialNumber',
             header: 'S/N',
             cell: ({ row }) => {
-                const pageSize = table.getState().pagination.pageSize;
-                const pageIndex = table.getState().pagination.pageIndex;
                 return pageIndex * pageSize + row.index + 1;
             },
             enableSorting: false,
@@ -84,7 +83,7 @@ export function DataTable<T extends object>({
 
     const table = useReactTable({
         data: tableData,
-        columns: columnsWithSN, // Use the modified columns array
+        columns: columnsWithSN,
         state: {
             sorting,
             globalFilter,
@@ -111,6 +110,19 @@ export function DataTable<T extends object>({
     const wards = getUniqueValues(tableData, 'ward');
     const villages = selectedWard ? getUniqueValues(tableData.filter(item => item.ward === selectedWard), 'village') : [];
     const hamlets = selectedVillage ? getUniqueValues(tableData.filter(item => item.village === selectedVillage), 'hamlet') : [];
+
+    // Handle page change
+    const handlePageChange = (event: unknown, newPage: number) => {
+        setPageIndex(newPage);
+        if (setPage) setPage(newPage);
+    };
+
+    // Handle rows per page change
+    const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPageSize(parseInt(event.target.value, 10));
+        setPageIndex(0);
+        if (setLimit) setLimit(parseInt(event.target.value, 10));
+    };
 
     return (
         <Box sx={{ width: '100%', py: 2, px: 3, bgcolor: '#f4f6f8', borderRadius: '12px' }}>
@@ -247,19 +259,17 @@ export function DataTable<T extends object>({
                                         key={header.id}
                                         sx={{
                                             fontWeight: 600,
-                                            bgcolor: '#e3f2fd',
-                                            color: 'text.secondary',
+                                            bgcolor: '#25306B',
+                                            color: 'white',
                                             fontSize: '0.875rem',
                                             borderBottom: '1px solid',
                                             borderColor: 'divider',
                                             cursor: enableSorting && header.column.getCanSort() ? 'pointer' : 'default',
                                             userSelect: 'none',
-                                            py: 2,
-                                            px: 3,
                                             textTransform: 'uppercase',
                                             letterSpacing: '0.025em',
                                             '&:hover': enableSorting && header.column.getCanSort() ? {
-                                                color: 'text.primary',
+                                                color: '#B0BEC5',
                                             } : {},
                                         }}
                                         onClick={header.column.getToggleSortingHandler()}
@@ -317,13 +327,8 @@ export function DataTable<T extends object>({
                                 >
                                     {row.getVisibleCells().map(cell => (
                                         <TableCell 
-                                            component={Link} 
-                                            to={`${cell.row.original?._id}`} 
                                             key={cell.id}
                                             sx={{
-                                                cursor: 'pointer',
-                                                textDecoration: 'none',
-                                                color: 'text.primary',
                                                 height: '52px',
                                                 fontSize: '0.875rem',
                                                 borderBottom: '1px solid',
@@ -333,7 +338,9 @@ export function DataTable<T extends object>({
                                                 textTransform: 'capitalize',
                                             }}
                                         >
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            <Link to={`${cell.row.original?._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </Link>
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -348,10 +355,10 @@ export function DataTable<T extends object>({
                 <TablePagination
                     component="div"
                     count={table.getFilteredRowModel().rows.length}
-                    page={table.getState().pagination.pageIndex}
-                    onPageChange={(_, page) => setPage(page)}
-                    rowsPerPage={table.getState().pagination.pageSize}
-                    onRowsPerPageChange={e => setLimit(Number(e.target.value))}
+                    page={pageIndex}
+                    onPageChange={handlePageChange}
+                    rowsPerPage={pageSize}
+                    onRowsPerPageChange={handleRowsPerPageChange}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     sx={{
                         '.MuiTablePagination-select': {

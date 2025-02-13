@@ -16,8 +16,8 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, User, Users, X, ZoomIn } from 'lucide-react';
-import React, { useState } from 'react';
+import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -53,6 +53,10 @@ interface WaterSource {
   village: string;
   hamlet: string;
   space: string;
+  contactPersonName: string;
+  contactPersonPhoneNumber: string;
+  address: string;
+  population: string;
   quality: string;
   status: string;
   type: string;
@@ -78,7 +82,8 @@ interface QualityTest {
 
 const WaterSourceDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isImageOpen, setIsImageOpen] = useState(false);
+  const [isWaterSourceImageOpen, setIsWaterSourceImageOpen] = useState(false); // For water source image
+  const [isPersonImageOpen, setIsPersonImageOpen] = useState(false); // For person image
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -89,15 +94,9 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: household } = useQuery({
-    queryKey: ['/households'],
-    queryFn: () => apiController.get(`/households`).then(res => res.data),
-  });
-
-
-  console.log('Hello world', waterSource)
-
-
+  // Click handlers for each image
+  const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
+  const handlePersonImageClick = () => setIsPersonImageOpen(true);
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error || !waterSource) {
@@ -110,7 +109,7 @@ const WaterSourceDetails: React.FC = () => {
     );
   }
 
-  const position: [number, number] = [waterSource.geolocation.coordinates[1], waterSource.geolocation.coordinates[0]];
+  const position: [number, number] = [waterSource?.geolocation.coordinates[1], waterSource?.geolocation.coordinates[0]];
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -126,20 +125,20 @@ const WaterSourceDetails: React.FC = () => {
                 {"Water Source Details"}
               </Typography>
               <Typography color="text.secondary">
-                {waterSource.ward}, {waterSource.village}
+                {waterSource?.ward}, {waterSource?.village}
               </Typography>
             </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
               variant='outlined'
-              label={waterSource.status}
-              color={waterSource.status === 'Functional' ? 'success' : 'error'}
+              label={waterSource?.status}
+              color={waterSource?.status === 'Functional' ? 'success' : 'error'}
             />
             <Chip
               variant='outlined'
-              label={waterSource.quality}
-              color={waterSource.quality === 'Drinkable' ? 'success' : 'error'}
+              label={waterSource?.quality}
+              color={waterSource?.quality === 'Drinkable' ? 'success' : 'error'}
             />
           </Stack>
         </Stack>
@@ -152,22 +151,24 @@ const WaterSourceDetails: React.FC = () => {
         >
           <Tab label="Overview" />
           <Tab label="Water Quality" />
-          <Tab label="Person Contact" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
-          <OverviewTab waterSource={waterSource} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : activeTab === 1 ? (
-          <QualityTab qualityTest={waterSource.qualityTest[0]} />
+          <OverviewTab
+            waterSource={waterSource}
+            position={position}
+            onWaterSourceImageClick={handleWaterSourceImageClick}
+            onPersonImageClick={handlePersonImageClick}
+          />
         ) : (
-          <PersonContactTab domain={waterSource.domain} />
+          <QualityTab qualityTest={waterSource?.qualityTest[0]} />
         )}
 
-        {/* Image Modal */}
+        {/* Water Source Image Modal */}
         <Modal
-          open={isImageOpen}
-          onClose={() => setIsImageOpen(false)}
+          open={isWaterSourceImageOpen}
+          onClose={() => setIsWaterSourceImageOpen(false)}
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -176,7 +177,7 @@ const WaterSourceDetails: React.FC = () => {
         >
           <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
             <IconButton
-              onClick={() => setIsImageOpen(false)}
+              onClick={() => setIsWaterSourceImageOpen(false)}
               sx={{
                 position: 'absolute',
                 top: 16,
@@ -190,8 +191,46 @@ const WaterSourceDetails: React.FC = () => {
             </IconButton>
             <Box
               component="img"
-              src={waterSource.picture}
+              src={waterSource?.picture}
               alt="Water Source"
+              sx={{
+                maxWidth: '100%',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                borderRadius: 2,
+              }}
+            />
+          </Box>
+        </Modal>
+
+        {/* Person Image Modal */}
+        <Modal
+          open={isPersonImageOpen}
+          onClose={() => setIsPersonImageOpen(false)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+            <IconButton
+              onClick={() => setIsPersonImageOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+              }}
+            >
+              <X />
+            </IconButton>
+            <Box
+              component="img"
+              src={waterSource?.domain?.picture}
+              alt="Contact Person"
               sx={{
                 maxWidth: '100%',
                 maxHeight: '90vh',
@@ -206,13 +245,18 @@ const WaterSourceDetails: React.FC = () => {
   );
 };
 
-const OverviewTab = ({ waterSource, position, onImageClick }: {
+const OverviewTab = ({
+  waterSource,
+  position,
+  onWaterSourceImageClick,
+  onPersonImageClick,
+}: {
   waterSource: WaterSource;
   position: [number, number];
-  onImageClick: () => void;
+  onWaterSourceImageClick: () => void;
+  onPersonImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-
     <Grid item xs={12} md={8}>
       <Box sx={{
         p: 3,
@@ -226,34 +270,23 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={MapPin} label="Location" value={`${waterSource.hamlet}, ${waterSource.village}`} />
+            <DetailItem icon={MapPin} label="Location" value={`${waterSource?.hamlet}, ${waterSource?.village}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Home} label="Category" value={waterSource.space} />
-          </Grid>
-
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource.type} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependents" value={waterSource.dependent || 'Not specified'} />
+            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource?.type} />
           </Grid>
         </Grid>
-
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
         <Grid item xs={6}>
             <DetailItem
               icon={HeartPulse}
               label="Water Quality"
-              value={waterSource.quality}
+              value={waterSource?.quality}
             />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Cog} label="Water Source Status" value={waterSource.status} />
+            <DetailItem icon={Cog} label="Water Source Status" value={waterSource?.status} />
           </Grid>
         </Grid>
 
@@ -263,41 +296,70 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             <DetailItem
               icon={Calendar}
               label="Last Updated"
-              value={format(new Date(waterSource.updatedAt), 'PPP')}
+              value={format(new Date(waterSource?.updatedAt), 'PPP')}
             />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={User} label="Captured By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
         </Grid>
-
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Person Name" value={waterSource?.domain?.contactPersonName || 'Not specified'} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Phone} label="Phone No" value={waterSource?.domain?.contactPersonPhoneNumber || 'Not specified'} />
+          </Grid>
+        </Grid>
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem
+              icon={Home}
+              label="Address"
+              value={waterSource?.domain?.address || 'Not specified'}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Dependants"
+            value={waterSource?.domain?.population || 'Not specified'} />
+          </Grid>
+          <Grid item xs={12}>
+          <Divider sx={{ my:0 }} />
+          </Grid>
+          
+        </Grid>
       </Box>
     </Grid>
 
+{/* Right Column */}
     <Grid item xs={12} md={4}>
+      {/* Water Source Image */}
       <Box
         sx={{
           position: 'relative',
-          '&:hover .zoom-icon': { opacity: 1 }
+          '&:hover .zoom-icon': { opacity: 1 },
+          mb: 2, // Add margin between the two images
         }}
       >
         <Box
           component="img"
-          src={waterSource.picture}
+          src={waterSource?.picture}
           alt="Water Source"
-          onClick={onImageClick}
+          onClick={onWaterSourceImageClick}
           sx={{
             width: '100%',
             height: 400,
             objectFit: 'cover',
             borderRadius: 2,
             cursor: 'pointer',
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
           }}
         />
         <IconButton
           className="zoom-icon"
-          onClick={onImageClick}
+          onClick={onWaterSourceImageClick}
           sx={{
             position: 'absolute',
             top: 16,
@@ -306,14 +368,58 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             opacity: 0,
             transition: 'opacity 0.2s',
             '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-            color: 'white'
+            color: 'white',
           }}
         >
           <ZoomIn />
         </IconButton>
       </Box>
-    </Grid>
 
+{/* Person Image */}
+      <Grid item xs={12}>
+        {waterSource?.domain?.picture ? (
+          <Box
+            sx={{
+              position: 'relative',
+              '&:hover .zoom-icon': { opacity: 1 },
+            }}
+          >
+            <Box
+              component="img"
+              src={waterSource?.domain?.picture}
+              alt="Contact Person"
+              onClick={onPersonImageClick}
+              sx={{
+                width: '100%',
+                height: 400,
+                objectFit: 'cover',
+                borderRadius: 2,
+                cursor: 'pointer',
+                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+              }}
+            />
+            <IconButton
+              className="zoom-icon"
+              onClick={onPersonImageClick}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                opacity: 0,
+                transition: 'opacity 0.2s',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+                color: 'white',
+              }}
+            >
+              <ZoomIn />
+            </IconButton>
+          </Box>
+        ) : (
+           ""
+        )}
+      </Grid>
+    </Grid>
     <Grid item xs={12}>
       <Box sx={{
         height: 500,
@@ -332,7 +438,7 @@ const OverviewTab = ({ waterSource, position, onImageClick }: {
             attribution='&copy; OpenStreetMap contributors'
           />
           <Marker position={position}>
-            <Popup>{waterSource.type} at {waterSource.ward}</Popup>
+            <Popup>{waterSource?.type} at {waterSource?.ward}</Popup>
           </Marker>
         </MapContainer>
       </Box>
@@ -446,20 +552,6 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
     </Grid>
   );
 };
-
-const PersonContactTab = ({ domain }: { domain: { _id: string; createdBy: string } }) => (
-  <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)' }}>
-    <Typography variant="subtitle1" gutterBottom>Person Contact</Typography>
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
-        <DetailItem icon={User} label="Domain ID" value={domain._id} />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <DetailItem icon={User} label="Created By" value={domain.createdBy} />
-      </Grid>
-    </Grid>
-  </Box>
-);
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

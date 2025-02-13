@@ -106,7 +106,7 @@ const SignInPage: FC = function () {
           </Box>
           {/* Decorative Elements */}
           <img
-            src="/public/svg/Polygon 2.svg"
+            src="/src/assets/img/svg/Polygon 2.svg"
             alt="Polygon"
             style={{
               width: 70,
@@ -117,7 +117,7 @@ const SignInPage: FC = function () {
             }}
           />
           <img
-            src="/public/svg/Ellipse 5.svg"
+            src="/src/assets/img/svg/Ellipse 5.svg"
             alt="Ellipse"
             style={{
               width: 105,
@@ -125,6 +125,28 @@ const SignInPage: FC = function () {
               position: "absolute",
               top: 90,
               left: 380,
+            }}
+          />
+          <img
+            src="/src/assets/img/svg/Ellipse 5.svg"
+            alt="Ellipse"
+            style={{
+              width: 105,
+              height: 105,
+              position: "absolute",
+              top: 300,
+              left: 380,
+            }}
+          />
+          <img
+            src="/src/assets/img/svg/Ellipse 5.svg"
+            alt="Ellipse"
+            style={{
+              width: 105,
+              height: 105,
+              position: "absolute",
+              top: 650,
+              left: 50,
             }}
           />
         </Box>
@@ -155,7 +177,7 @@ const SignInPage: FC = function () {
           {/* Logo and Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <img
-              src="/logo.png"
+              src="./src/assets/img/logo.png"
               alt="Logo"
               style={{ width: isMobile ? 200 : 300 }}
             />

@@ -1,10 +1,8 @@
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
 import {
   Avatar,
   Box,
-  Button,
   Card,
   IconButton,
   Paper,
@@ -129,6 +127,8 @@ const OpenDefication = () => {
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
   });
 
+  console.log("odf", data)
+
   useEffect(() => {
     if (data) {
       setOpenDefications(data)
@@ -201,13 +201,6 @@ const OpenDefication = () => {
     setModalOpen(true);
   };
 
-  const countByProperty = <T extends object>(
-    data: T[] | undefined,
-    property: keyof T,
-    value: T[keyof T]
-  ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
-  };
 
   const getUniqueValues = (key: keyof OpenDefecation): string[] => {
     const values = data?.map(item => item[key] as string) || [];
@@ -248,19 +241,28 @@ const OpenDefication = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Button
-          startIcon={<FilterAltIcon />}
-          variant="contained"
-          sx={{
-            bgcolor: 'white',
-            color: 'text.primary',
-            boxShadow: 1,
-            '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none',
-          }}
-        >
-          Filter
-        </Button>
+        <Box sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <FilterDropdown 
+                label="Ward" 
+                options={getUniqueValues('ward')}
+                value={selectedWard}
+                onChange={(value) => setSelectedWard(value)}
+              />
+              <FilterDropdown 
+                label="Village" 
+                options={getUniqueValues('village')}
+                value={selectedVillage}
+                onChange={(value) => setSelectedVillage(value)}
+              />
+              <FilterDropdown 
+                label="Hamlet" 
+                options={getUniqueValues('hamlet')}
+                value={selectedHamlet}
+                onChange={(value) => setSelectedHamlet(value)}
+              />
+            </Stack>
+          </Box>
       </Box>
 
       {/* Update Stats Cards */}
@@ -464,9 +466,9 @@ const OpenDefication = () => {
       </Dialog>
 
       {/* Recent Observations Table */}
-      <Paper sx={{ p: 2, borderRadius: 2 }}>
+      <Paper sx={{ p: 2, borderRadius: 2, mt: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">Recent Observations</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600, }}>Open Defication Overview</Typography>
         </Box>
 
         <DataTable

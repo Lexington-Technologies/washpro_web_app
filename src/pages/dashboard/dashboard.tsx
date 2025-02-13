@@ -264,6 +264,13 @@ const WashDashboard = () => {
     setCurrentTab(newValue);
   };
 
+  const { data: analysis } = useQuery({
+    queryKey: ['analysis'],
+    queryFn: () => apiController.get(`/analysis`),
+  });
+
+  console.log("analysis", analysis)
+
   const { data: houseHolds, isLoading: houseLoading } = useQuery({
     queryKey: ['households'],
     queryFn: () => apiController.get(`/households`),
@@ -503,12 +510,22 @@ const WashDashboard = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton size="small" aria-label="refresh">
-            <Refresh />
-          </IconButton>
-          <Typography variant="caption" color="text.secondary">
-            Last updated: {new Date().toLocaleString()}
-          </Typography>
+          <Box sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <FilterDropdown 
+                label="Ward" 
+                options={['All']} 
+              />
+              <FilterDropdown 
+                label="Village" 
+                options={['All']} 
+              />
+              <FilterDropdown 
+                label="Hamlet" 
+                options={['All']} 
+              />
+            </Stack>
+          </Box>
         </Stack>
       </Box>
 

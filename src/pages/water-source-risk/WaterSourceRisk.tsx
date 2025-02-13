@@ -1,10 +1,8 @@
 import { Waves, WaterDrop, LocationOn, Business } from '@mui/icons-material';
 import ErrorIcon from '@mui/icons-material/Error';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
-  Button,
   Card,
   Grid,
   Paper,
@@ -17,6 +15,12 @@ import {
   Divider,
   Avatar,
   Modal,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  CircularProgress,
 } from '@mui/material';
 import { ZoomIn, X, HomeIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -69,19 +73,42 @@ interface WaterSourceRiskData {
   summary: Summary;
 }
 
+// interface summaryData {
+//   id: string;
+// }
+
+
 const WaterSourceRisk = () => {
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
 
-  const { data: waterRisks, error } = useQuery<WaterSourceRiskData[], Error>({
+  const { data: waterRisks, error, isLoading } = useQuery<WaterSourceRiskData[], Error>({
     queryKey: ['waterSourceRisk'],
     queryFn: async () => {
       const response = await apiController.get<WaterSourceRiskData[]>('/analysis');
       return response;
     },
   });
-  console.log("waterRisks", waterRisks);
+  console.log("risk",waterRisks )
+
+  // summary
+  // const { data: summary } = useQuery<summaryData[], Error>({
+  //   queryKey: ['summary'],
+  //   queryFn: async () => {
+  //     const response = await apiController.get<summaryData[]>('/analysis/summary');
+  //     return response;
+  //   },
+  // });
+  // console.log("summary",summary )
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (error) {
     return (
@@ -133,6 +160,28 @@ const WaterSourceRisk = () => {
     return safeIcon;
   };
 
+  const FilterDropdown = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = useState('');
+  
+    const handleChange = (event) => {
+      setSelectedOption(event.target.value);
+    };
+  
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };
+  
+
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
       {/* Header */}
@@ -145,19 +194,13 @@ const WaterSourceRisk = () => {
             {waterRisks?.length || 0} Water Sources Monitored
           </Typography>
         </Box>
-        <Button
-          startIcon={<FilterAltIcon />}
-          variant="contained"
-          sx={{
-            bgcolor: 'white',
-            color: 'text.primary',
-            boxShadow: 1,
-            '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none',
-          }}
-        >
-          Filter
-        </Button>
+        <Box sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={['All']} />
+          <FilterDropdown label="Village" options={['All']} />
+          <FilterDropdown label="Hamlet" options={['All']} />
+        </Stack>
+      </Box>
       </Box>
 
       {/* Stats Cards */}

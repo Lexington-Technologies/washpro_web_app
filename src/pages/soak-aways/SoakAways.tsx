@@ -11,8 +11,13 @@ import {
   Button,
   Card,
   Chip,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +25,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -65,7 +71,9 @@ const columns = [
       <Avatar
         src={props.getValue()}
         alt="soakaway"
-        sx={{ width: 50, height: 50 }}
+        sx={{
+          borderRadius: '100%', // Make avatar round
+        }}
       />
     ),
   }),
@@ -82,23 +90,33 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
-    header: 'Category',
+    header: 'Categories',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: info => (
-      <Chip
-        label={info.getValue()}
-        color={info.getValue() === 'Improved' ? 'success' : 'error'}
-
-        size="small"
-      />
-    ),
-  }),
-  columnHelper.accessor('capturedAt', {
-    header: 'Captured At',
-    cell: info => new Date(info.getValue()).toLocaleDateString(),
+  columnHelper.accessor('type', {
+    header: 'Tags',
+    cell: info => {
+      return (
+        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Maintained' ? 'success' : 'error'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Unimproved' ? 'warning' : 'success'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.safetyRisk}
+            color={info.row.original.safetyRisk === 'Fair' ? 'warning' : 'error'}
+          />
+        </Stack>
+      )
+    },
   }),
 ];
 
@@ -108,16 +126,22 @@ const SoakAways = () => {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
 
-  const { data , isLoading } = useQuery<SoakAway[], Error>({
+  const { data, isLoading } = useQuery<SoakAway[], Error>({
     queryKey: ['soak-aways', { limit, page, search }],
     queryFn: () => apiController.get<SoakAway[]>(`/soak-aways?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  useEffect(() => {
-    if (data) {
-      setSoakAways(data)
-    }
-  }, [data]);
+  console.log("soak", data)
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
+
 
   const countByProperty = <T extends object>(
     data: T[] | undefined,
@@ -137,6 +161,28 @@ const SoakAways = () => {
 
   const totalSafety = fairSafety + badSafety;
 
+  const FilterDropdown = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = useState('');
+  
+    const handleChange = (event) => {
+      setSelectedOption(event.target.value);
+    };
+  
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };
+  
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
@@ -149,19 +195,14 @@ const SoakAways = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Button
-          startIcon={<FilterAltIcon />}
-          variant="contained"
-          sx={{
-            bgcolor: 'white',
-            color: 'text.primary',
-            boxShadow: 1,
-            '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none',
-          }}
-        >
-          Filter
-        </Button>
+        <Box sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={['All']} />
+          <FilterDropdown label="Village" options={['All']} />
+          <FilterDropdown label="Hamlet" options={['All']} />
+        </Stack>
+      </Box>
+
       </Box>
 
       {/* Stats Cards */}
@@ -201,7 +242,9 @@ const SoakAways = () => {
       {/* Soakaway Overview */}
       <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h6">Soakaway Overview</Typography>
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              SoakaWay Overview
+            </Typography>
         </Box>
 
         <DataTable
@@ -210,7 +253,7 @@ const SoakAways = () => {
           setLimit={setLimit}
           isLoading={isLoading}
           columns={columns}
-          data={data || []}
+          data={data?.slice(0, limit) || []}
         />
 
       </Paper>
@@ -230,7 +273,7 @@ interface StatsCardProps {
 }
 
 const StatsCard = ({ title, value, icon, iconColor, valueColor }: StatsCardProps) => (
-  <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: 10 }}>
+  <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: 2 }}>
     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
       {title}
     </Typography>
