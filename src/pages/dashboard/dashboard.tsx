@@ -28,7 +28,6 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Tab,
@@ -40,7 +39,6 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { FaChartArea } from "react-icons/fa6";
 import { IoWater } from "react-icons/io5";
 import { LiaPoopSolid } from "react-icons/lia";
 import { MdCleanHands } from "react-icons/md";
@@ -416,7 +414,7 @@ const WashDashboard = () => {
           >
 
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
-            <Tab icon={<FaChartArea />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
+            {/* <Tab icon={<FaChartArea />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" /> */}
             <Tab icon={<IoWater />} label="Water Source Overview" iconPosition="start" key="Water Source Overview" />
             <Tab icon={<SiCcleaner />} label="Sanitation Overview" iconPosition="start" key="Sanitation" />
             <Tab icon={<MdCleanHands style={{fontSize: 15}} />} label="Hygiene" iconPosition="start" key="Hygiene" />
@@ -444,7 +442,7 @@ const WashDashboard = () => {
               </Box>
             </>
           )}
-          {currentTab === 1 && (
+          {/* {currentTab === 1 && (
             <Grid container spacing={3}>
             <Box sx={{padding: 3}}>
             <Grid container spacing={3} mb={3}>
@@ -572,8 +570,8 @@ const WashDashboard = () => {
             </Box>
 
           </Grid>
-          )}
-          {currentTab === 2 && (
+          )} */}
+          {currentTab === 1 && (
             <Box>
             <Grid container spacing={3}>
               {WATER.map(({ label, value}, index) => (
@@ -589,25 +587,39 @@ const WashDashboard = () => {
                 </Grid>
               ))}
             </Grid>
-            <Box display="flex" p={4}>
-              {/* Pie Chart on the Left */}
-              <Box>
-                <PieChart
-                  series={[
-                    {
-                      data,
-                      innerRadius: 0,
-                      outerRadius: 140
-                    },
-                  ]}
-                  width={460}
-                  height={350}
-                />
-              </Box>
-            </Box>
+            <Grid container spacing={3} mb={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <Grid item xs={12} md={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                {/* <Paper sx={{ p: 2, mt: 3, width: "100%", maxWidth: 600, textAlign: "center" }}> */}
+                  {/* <Typography variant="h6" mb={2}>Toilet Facility Types</Typography> */}
+                  <PieChart
+                    series={[{
+                      arcLabel: (item) => `${item.value}%`,
+                      arcLabelMinAngle: 30,
+                      arcLabelRadius: '50%',
+                      data: [
+                        { id: 0, value: 10, label: 'Household' },
+                        { id: 1, value: 15, label: 'Schools' },
+                        { id: 2, value: 20, label: 'Health' },
+                        { id: 3, value: 15, label: 'Almajiri' }
+                      ],
+                      outerRadius: 140,
+                    }]}
+                    width={500}
+                    height={350}
+                    sx={{
+                      [`& .${pieArcLabelClasses.root}`]: {
+                        fontWeight: 'bold',
+                        fill: 'white',
+                      },
+                    }}
+                  />
+                {/* </Paper> */}
+              </Grid>
+            </Grid>
+
         </Box>
           )}
-          {currentTab === 3 && (
+          {currentTab === 2 && (
             <Box>
               <Grid container spacing={3}>
                 {SANITATION.map(({ label, value}, index) => (
@@ -635,25 +647,35 @@ const WashDashboard = () => {
                   </Grid>
                 ))}
               </Grid>
-              <Box display="flex" p={4}>
-                {/* Pie Chart on the Left */}
-                <Box>
-                  <PieChart
+              <Grid container spacing={3} mb={3} sx={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 4 }}>
+              <Grid item xs={12} md={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <BarChart
+                  xAxis={[{
+                    scaleType: 'band',
+                    data: ['Households', 'Schools', 'Health facilities', 'Almajiri'],
+                  }]}
                     series={[
                       {
-                        data,
-                        innerRadius: 0,
-                        outerRadius: 140
-                      },
-                    ]}
-                    width={460}
-                    height={350}
-                  />
-                </Box>
-              </Box>
+                    data: [4, 3, 5, 10],
+                    label: 'Improved',
+                    color: '#4CAF50', // Green color for Improved
+                  },
+                  {
+                    data: [1, 6, 3, 6],
+                    label: 'Unimproved',
+                    color: '#F44336', // Red color for Unimproved
+                  },
+                  ]}
+                  width={900}
+                  height={350}
+                  borderRadius={7}
+                  barLabel="value"
+                />
+              </Grid>
+            </Grid>
           </Box>
           )}
-          {currentTab === 4 && (
+          {currentTab === 3 && (
           <Box>
             <Grid container spacing={3}>
             {HYGIENE.map(({ label, value, icon}, index) => (
@@ -664,7 +686,7 @@ const WashDashboard = () => {
             </Grid>
           </Box>
           )}
-          {currentTab === 5 && (
+          {currentTab === 4 && (
           <Box>
             <Grid container spacing={3}>
               {ODF.map(({ label, value, icon, color}, index) => (
