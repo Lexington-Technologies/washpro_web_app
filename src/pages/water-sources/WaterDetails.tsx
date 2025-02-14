@@ -11,13 +11,14 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography
+  Typography,
+  Tooltip, // Added Tooltip import
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
 import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,9 +35,10 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   XAxis,
-  YAxis
+  YAxis,
 } from 'recharts';
 import { apiController } from '../../axios';
+import { PinDrop, Map, Streetview } from '@mui/icons-material';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -98,13 +100,16 @@ const WaterSourceDetails: React.FC = () => {
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
 
-  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (isLoading)
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
   if (error || !waterSource) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity={error ? "error" : "info"}>
-          {error ? error.message : "No water source found"}
-        </Alert>
+        <Alert severity={error ? 'error' : 'info'}>{error ? error.message : 'No water source found'}</Alert>
       </Container>
     );
   }
@@ -122,7 +127,7 @@ const WaterSourceDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {"Water Source Details"}
+                {'Water Source Details'}
               </Typography>
               <Typography color="text.secondary">
                 {waterSource?.ward}, {waterSource?.village}
@@ -131,12 +136,12 @@ const WaterSourceDetails: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
-              variant='outlined'
+              variant="outlined"
               label={waterSource?.status}
               color={waterSource?.status === 'Functional' ? 'success' : 'error'}
             />
             <Chip
-              variant='outlined'
+              variant="outlined"
               label={waterSource?.quality}
               color={waterSource?.quality === 'Drinkable' ? 'success' : 'error'}
             />
@@ -258,13 +263,15 @@ const OverviewTab = ({
 }) => (
   <Grid container spacing={4}>
     <Grid item xs={12} md={8}>
-      <Box sx={{
-        p: 3,
-        borderRadius: 2,
-        bgcolor: 'background.paper',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        height: '100%'
-      }}>
+      <Box
+        sx={{
+          p: 3,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+          height: '100%',
+        }}
+      >
         <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
           Location Details
         </Typography>
@@ -278,18 +285,13 @@ const OverviewTab = ({
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-        <Grid item xs={6}>
-            <DetailItem
-              icon={HeartPulse}
-              label="Water Quality"
-              value={waterSource?.quality}
-            />
+          <Grid item xs={6}>
+            <DetailItem icon={HeartPulse} label="Water Quality" value={waterSource?.quality} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={Cog} label="Water Source Status" value={waterSource?.status} />
           </Grid>
         </Grid>
-
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
@@ -312,35 +314,53 @@ const OverviewTab = ({
             <DetailItem icon={Phone} label="Phone No" value={waterSource?.domain?.contactPersonPhoneNumber || 'Not specified'} />
           </Grid>
         </Grid>
-          <Divider sx={{ my: 2 }} />
-          <Grid container spacing={3}>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Address" value={waterSource?.domain?.address || 'Not specified'} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Dependants" value={waterSource?.domain?.population || 'Not specified'} />
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem
-              icon={Home}
-              label="Address"
-              value={waterSource?.domain?.address || 'Not specified'}
+              icon={PinDrop}
+              label="View on Map"
+              value={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Tooltip title="View on Google Maps">
+                    <a href={`https://www.google.com/maps?q=${position[0]},${position[1]}`} target="_blank" rel="noopener noreferrer">
+                      <IconButton color="primary">
+                        <Map />
+                      </IconButton>
+                    </a>
+                  </Tooltip>
+                  <Tooltip title="View on Street View">
+                    <a href={`https://www.google.com/maps?q=&layer=c&cbll=${position[0]},${position[1]}`} target="_blank" rel="noopener noreferrer">
+                      <IconButton color="secondary">
+                        <Streetview />
+                      </IconButton>
+                    </a>
+                  </Tooltip>
+                </Stack>
+              }
             />
           </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependants"
-            value={waterSource?.domain?.population || 'Not specified'} />
-          </Grid>
-          <Grid item xs={12}>
-          <Divider sx={{ my:0 }} />
-          </Grid>
-          
         </Grid>
       </Box>
     </Grid>
 
-{/* Right Column */}
+    {/* Right Column */}
     <Grid item xs={12} md={4}>
       {/* Water Source Image */}
       <Box
         sx={{
           position: 'relative',
           '&:hover .zoom-icon': { opacity: 1 },
-          mb: 2, // Add margin between the two images
+          mb: 2,
         }}
       >
         <Box
@@ -375,80 +395,63 @@ const OverviewTab = ({
         </IconButton>
       </Box>
 
-{/* Person Image */}
-      <Grid item xs={12}>
-        {waterSource?.domain?.picture ? (
+      {/* Person Image */}
+      {waterSource?.domain?.picture && (
+        <Box
+          sx={{
+            position: 'relative',
+            '&:hover .zoom-icon': { opacity: 1 },
+          }}
+        >
           <Box
+            component="img"
+            src={waterSource?.domain?.picture}
+            alt="Contact Person"
+            onClick={onPersonImageClick}
             sx={{
-              position: 'relative',
-              '&:hover .zoom-icon': { opacity: 1 },
+              width: '100%',
+              height: 150,
+              objectFit: 'cover',
+              borderRadius: 2,
+              cursor: 'pointer',
+              boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+            }}
+          />
+          <IconButton
+            className="zoom-icon"
+            onClick={onPersonImageClick}
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'rgba(0, 0, 0, 0.5)',
+              opacity: 0,
+              transition: 'opacity 0.2s',
+              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+              color: 'white',
             }}
           >
-            <Box
-              component="img"
-              src={waterSource?.domain?.picture}
-              alt="Contact Person"
-              onClick={onPersonImageClick}
-              sx={{
-                width: '100%',
-                height: 400,
-                objectFit: 'cover',
-                borderRadius: 2,
-                cursor: 'pointer',
-                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-              }}
-            />
-            <IconButton
-              className="zoom-icon"
-              onClick={onPersonImageClick}
-              sx={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
-                opacity: 0,
-                transition: 'opacity 0.2s',
-                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-                color: 'white',
-              }}
-            >
-              <ZoomIn />
-            </IconButton>
-          </Box>
-        ) : (
-           ""
-        )}
-      </Grid>
+            <ZoomIn />
+          </IconButton>
+        </Box>
+      )}
     </Grid>
+
+    {/* Map */}
     <Grid item xs={12}>
-      <Box sx={{
-        height: 500,
-        borderRadius: 2,
-        overflow: 'hidden',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
-      }}>
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
+      <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', mb: 4 }}>
+        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Marker position={position}>
-            <Popup>{waterSource?.type} at {waterSource?.ward}</Popup>
+            <Popup>
+              {waterSource?.type} at {waterSource?.ward}
+            </Popup>
           </Marker>
         </MapContainer>
       </Box>
-{/* <Typography variant="h6" line sx={{ color: '#25306B', fontWeight: 300 }}>
-            General Details
-          </Typography>     */}
     </Grid>
   </Grid>
 );
-
 
 const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   const barData = [
@@ -460,37 +463,19 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   ];
 
   const radarData = [
-    {
-      subject: 'Clearness',
-      value: qualityTest.clearness,
-      fullMark: 10,
-    },
-    {
-      subject: 'Odor',
-      value: qualityTest.odor,
-      fullMark: 10,
-    },
-    {
-      subject: 'pH',
-      value: qualityTest.ph,
-      fullMark: 14,
-    },
-    {
-      subject: 'Salinity',
-      value: qualityTest.salinity,
-      fullMark: 10,
-    },
-    {
-      subject: 'Conductivity',
-      value: qualityTest.conductivity,
-      fullMark: 10,
-    },
+    { subject: 'Clearness', value: qualityTest.clearness, fullMark: 10 },
+    { subject: 'Odor', value: qualityTest.odor, fullMark: 10 },
+    { subject: 'pH', value: qualityTest.ph, fullMark: 14 },
+    { subject: 'Salinity', value: qualityTest.salinity, fullMark: 10 },
+    { subject: 'Conductivity', value: qualityTest.conductivity, fullMark: 10 },
   ];
 
   return (
     <Grid container spacing={4}>
       <Grid item xs={12} md={6}>
-        <Typography variant="h6" gutterBottom>Quality Metrics</Typography>
+        <Typography variant="h6" gutterBottom>
+          Quality Metrics
+        </Typography>
         <Box sx={{ height: 400, boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', p: 2, borderRadius: 2 }}>
           <ResponsiveContainer>
             <BarChart data={barData}>
@@ -504,28 +489,23 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
         </Box>
       </Grid>
       <Grid item xs={12} md={6}>
-        <Typography variant="h6" gutterBottom>Quality Analysis</Typography>
+        <Typography variant="h6" gutterBottom>
+          Quality Analysis
+        </Typography>
         <Box sx={{ height: 400, boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', p: 2, borderRadius: 2 }}>
           <ResponsiveContainer>
             <RadarChart data={radarData}>
               <PolarGrid />
               <PolarAngleAxis dataKey="subject" />
               <PolarRadiusAxis />
-              <Radar
-                name="Quality"
-                dataKey="value"
-                stroke="#1976d2"
-                fill="#1976d2"
-                fillOpacity={0.6}
-              />
+              <Radar name="Quality" dataKey="value" stroke="#1976d2" fill="#1976d2" fillOpacity={0.6} />
               <Legend />
             </RadarChart>
           </ResponsiveContainer>
         </Box>
       </Grid>
       <Grid item xs={12}>
-        <Box sx={{
-          p: 3,
+        <Box sx={{ p:  3,
           borderRadius: 2,
           bgcolor: 'background.paper',
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'

@@ -44,24 +44,6 @@ import { SiCcleaner } from "react-icons/si";
 import { apiController } from '../../axios';
 import StatsCard from '../../components/StatsCard';
 
-const data = [
-  { id: 0, value: 10, label: 'Category A' },
-  { id: 1, value: 15, label: 'Category B' },
-  { id: 2, value: 20, label: 'Category C' },
-];
-
-const cardData1 = [
-  { icon: ShoppingCart, title: 'Total Sales', value: '$12,345', iconColor: '#3f51b5', bgColor: '#3f51b5' },
-  { icon: People, title: 'Total Users', value: '1,234', iconColor: '#e91e63', bgColor: '#e91e63' },
-  { icon: AttachMoney, title: 'Revenue', value: '$45,678', iconColor: '#4caf50', bgColor: '#4caf50' },
-];
-
-const cardData2 = [
-  { icon: Inventory, title: 'Inventory', value: '456', iconColor: '#9c27b0', bgColor: '#9c27b0' },
-  { icon: LocalShipping, title: 'Shipments', value: '78', iconColor: '#2196f3', bgColor: '#2196f3' },
-  { icon: Category, title: 'Categories', value: '15', iconColor: '#f44336', bgColor: '#f44336' },
-];
-
 
 // Styled Components
 const StyledCard = ({ children, ...props }) => {
@@ -101,10 +83,6 @@ const FilterDropdown = ({ label, options }) => {
   );
 };
 
-interface Filter {
-  property: string; // The property to filter by
-  value: string | number;       // The value to compare against
-}
 
 // Main Dashboard Component
 const WashDashboard = () => {
@@ -157,28 +135,37 @@ const WashDashboard = () => {
     queryFn: () => apiController.get(`/open-defecations`),
   });
 
-  const countByProperties = <T extends Record<string, string | number>>(
-    data: T[] | null | undefined,
-    filters: Filter[]
-  ): number => {
-    if (!data) return 0;
-
-    return data.filter(item =>
-      filters.every(filter => item[filter.property] === filter.value)
-    ).length;
-  };
 
   const SUMMARY_DATA = [
     {
       label: 'Total Households',
       value: houseHolds?.length,
-      icon: Home
+      icon: Home,
+      iconColor: '#25306B', // Add icon color
+      bgColor: '#fff',   // Add background color
     },
-    { label: 'Total Hamlets', value: '57', icon: Group },
-    { label: 'Total Villages', value: '8', icon: Landscape},
-    { label: 'Total Wards', value: '3', icon: LocationOn },
+    {
+      label: 'Total Hamlets',
+      value: '57',
+      icon: Group,
+      iconColor: '#25306B', // Add icon color
+      bgColor: '#fff',   // Add background color
+    },
+    {
+      label: 'Total Villages',
+      value: '8',
+      icon: Landscape,
+      iconColor: '#25306B', // Add icon color
+      bgColor: '#fff',   // Add background color
+    },
+    {
+      label: 'Total Wards',
+      value: '3',
+      icon: LocationOn,
+      iconColor: '#25306B', // Add icon color
+      bgColor: '#fff',   // Add background color
+    },
   ];
-
   const WATER = [
     {
       label: 'Population using improved water source within 500m',
@@ -299,68 +286,6 @@ const WashDashboard = () => {
     { label: 'Open Defecation Sites', value: openDefecations?.length, icon: LocationOn, color: '#d32f2f' },
   ];
 
-  const CHART_DATA = {
-    waterSources: [
-      {
-        name: 'Hand Pump Borehole',
-        value: countByProperties(waterSource, [
-          { property: 'type', value: 'Hand Pump Boreholes' }
-        ]),
-        color: '#4caf50'
-      },
-      {
-        name: 'Protected Dug Well',
-        value: countByProperties(waterSource, [
-          { property: 'type', value: 'Protected Dug Wells' }
-        ]),
-        color: '#ff9800'
-      },
-      {
-        name: 'Unprotected Dug Well',
-        value: countByProperties(waterSource, [
-          { property: 'type', value: 'Unprotected Dug Wells' }
-        ]),
-        color: '#9c27b0'
-      },
-      {
-        name: 'Motorized Borehole',
-        value: countByProperties(waterSource, [
-          { property: 'type', value: 'Motorized Boreholes' }
-        ]),
-        color: '#03a9f4'
-      },
-    ],
-    waterSourceConditions: [
-      { name: 'Functional', value: 18.0, color: '#4caf50' },
-      { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-    ],
-    toiletFacilities: [
-      { name: 'Pit Latrine', value: 15.0, color: '#4caf50' },
-      { name: 'WC Squatting', value: 8.0, color: '#ff9800' },
-      { name: 'WC Sitting', value: 6.6, color: '#9c27b0' },
-    ],
-    toiletConditions: [
-      { name: 'Improved', value: 18.0, color: '#4caf50' },
-      { name: 'With Hand Wash', value: 5.2, color: '#f44336' },
-      { name: 'Basic', value: 5.2, color: '#ff9800' },
-    ],
-    dumpsiteStatus: [
-      { name: 'Maintained', value: 18.0, color: '#4caf50' },
-      { name: 'Needs Evacuation', value: 5.2, color: '#f44336' },
-    ],
-    gutterCondition: [
-      { name: 'Clean', value: 18.0, color: '#4caf50' },
-      { name: 'Blocked', value: 5.2, color: '#f44336' },
-    ],
-    soakawayCondition: [
-      { name: 'Functional', value: 18.0, color: '#4caf50' },
-      { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-    ],
-    openDefecationStatus: [
-      { name: 'Active', value: 18.0, color: '#4caf50' },
-      { name: 'Inactive', value: 5.2, color: '#f44336' },
-    ],
-  };
 
   if (houseLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
@@ -398,13 +323,18 @@ const WashDashboard = () => {
 
       {/* Summary Stats */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        {SUMMARY_DATA.map(({ label, value, icon}, index) => (
+        {SUMMARY_DATA.map(({ label, value, icon, iconColor, bgColor }, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatsCard title={label} value={value} icon={icon} />
+            <StatsCard
+              title={label}
+              value={value}
+              icon={icon}
+              iconColor={iconColor} // Pass icon color
+              bgColor={bgColor}     // Pass background color
+            />
           </Grid>
         ))}
       </Grid>
-
       <StyledCard>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
@@ -642,7 +572,7 @@ const WashDashboard = () => {
                     />
                   </Grid>
                 ))}
-                {SANITATION2.map(({ label, value, icon}, index) => (
+                {SANITATION2.map(({ label, value}, index) => (
                   <Grid item xs={12} sm={6} md={3} key={index}>
                     <StatsCard
                       key={index}

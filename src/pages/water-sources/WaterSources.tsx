@@ -1,8 +1,6 @@
 import {
   Avatar,
   Box,
-  Button,
-  Card,
   Chip,
   FormControl,
   Grid,
@@ -15,16 +13,16 @@ import {
   Typography,
   CircularProgress
 } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useEffect, useState } from 'react';
-import { FaCheck, FaFilter, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 import { FaWrench } from 'react-icons/fa6';
 import { RiWaterFlashFill } from 'react-icons/ri';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
+import { BarChart as MuiBarChart, PieChart as MuiPieChart } from '@mui/x-charts';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 
 // Interfaces
 interface StatCardProps {
@@ -33,7 +31,6 @@ interface StatCardProps {
   icon: React.ReactNode;
   bgColor: string;
 }
-
 
 interface WaterSource {
   _id: string;
@@ -68,7 +65,6 @@ interface WaterSource {
     _id: string;
   }[];
 }
-
 
 // StyledComponents
 const StyledPaper = styled(Paper)`
@@ -107,8 +103,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor }) => (
 );
 
 // Define your row shape
-
-
 const columnHelper = createColumnHelper<WaterSource>()
 
 // Make some columns!
@@ -167,205 +161,77 @@ const columns = [
     },
   }),
 ]
+
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
-  const [analytics, setAnalytics] = useState({
-    totalSources: 0,
-    functional: 0,
-    nonFunctional: 0,
-    maintenanceDue: 0,
-    wells: 0,
-    streams: 0,
-    handpumpBoreholes: 0,
-    motorizedBoreholes: 0,
-    nonMotorizedBoreholes: 0,
-    functionalWells: 0,
-    nonFunctionalWells: 0,
-    maintenanceDueWells: 0,
-    functionalStreams: 0,
-    nonFunctionalStreams: 0,
-    maintenanceDueStreams: 0,
-    functionalHandpumpBoreholes: 0,
-    nonFunctionalHandpumpBoreholes: 0,
-    maintenanceDueHandpumpBoreholes: 0,
-    functionalMotorizedBoreholes: 0,
-    nonFunctionalMotorizedBoreholes: 0,
-    maintenanceDueMotorizedBoreholes: 0,
-    functionalNonMotorizedBoreholes: 0,
-    nonFunctionalNonMotorizedBoreholes: 0,
-    maintenanceDueNonMotorizedBoreholes: 0,
-  });
-  const [, setWaterSource] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data, isLoading } = useQuery<WaterSource[], Error>({
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
-  
 
-  const { data: household } = useQuery({
-    queryKey: ['/households', { limit, page, search }],
-    queryFn: () => apiController.get(`/households?limit=${limit}&page=${page}&search=${search}`),
-  });
+  console.log("w/s", data)
 
-  console.log("house",household);
+  // Filter State Initialization
+  const [filteredData, setFilteredData] = useState<WaterSource[]>([]);
 
-
+  // Applying Filters in useEffect
   useEffect(() => {
     if (data) {
-      setWaterSource(data);
-      const totalSources = data.length;
-      const functional = data.filter(source => source.status === 'Functional').length;
-      const nonFunctional = data.filter(source => source.status === 'Non Functional').length;
-      const maintenanceDue = data.filter(source => source.status === 'Maintenance Due').length;
-      const wells = data.filter(source => source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells').length;
-      const streams = data.filter(source => source.type === 'Stream').length;
-      const handpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes').length;
-      const motorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes').length;
-      const nonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes').length;
-      const functionalWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Functional').length;
-      const nonFunctionalWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Non Functional').length;
-      const maintenanceDueWells = data.filter(source => (source.type === 'protected Dug Wells' || source.type === 'Unprotected Dug Wells') && source.status === 'Maintenance Due').length;
-      const functionalStreams = data.filter(source => source.type === 'Stream' && source.status === 'Functional').length;
-      const nonFunctionalStreams = data.filter(source => source.type === 'Stream' && source.status === 'Non Functional').length;
-      const maintenanceDueStreams = data.filter(source => source.type === 'Stream' && source.status === 'Maintenance Due').length;
-      const functionalHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Functional').length;
-      const nonFunctionalHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Non Functional').length;
-      const maintenanceDueHandpumpBoreholes = data.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Maintenance Due').length;
-      const functionalMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Functional').length;
-      const nonFunctionalMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Non Functional').length;
-      const maintenanceDueMotorizedBoreholes = data.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Maintenance Due').length;
-      const functionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Functional').length;
-      const nonFunctionalNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Non Functional').length;
-      const maintenanceDueNonMotorizedBoreholes = data.filter(source => source.type === 'Non Motorized Boreholes' && source.status === 'Maintenance Due').length;
+      let filtered = [...data];
 
-      setAnalytics({
-        totalSources,
-        functional,
-        nonFunctional,
-        maintenanceDue,
-        wells,
-        streams,
-        handpumpBoreholes,
-        motorizedBoreholes,
-        nonMotorizedBoreholes,
-        functionalWells,
-        nonFunctionalWells,
-        maintenanceDueWells,
-        functionalStreams,
-        nonFunctionalStreams,
-        maintenanceDueStreams,
-        functionalHandpumpBoreholes,
-        nonFunctionalHandpumpBoreholes,
-        maintenanceDueHandpumpBoreholes,
-        functionalMotorizedBoreholes,
-        nonFunctionalMotorizedBoreholes,
-        maintenanceDueMotorizedBoreholes,
-        functionalNonMotorizedBoreholes,
-        nonFunctionalNonMotorizedBoreholes,
-        maintenanceDueNonMotorizedBoreholes,
-      });
+      if (ward) filtered = filtered.filter(item => item.ward === ward);
+      if (village) filtered = filtered.filter(item => item.village === village);
+      if (hamlet) filtered = filtered.filter(item => item.hamlet === hamlet);
+
+      setFilteredData(filtered);
     }
-  }, [data]);
+  }, [data, ward, village, hamlet]);
 
-  const countByProperties = <T extends object>(
-    data: T[] | undefined,
-    filters: Array<{ property: keyof T; value: T[keyof T] }>
-  ): number => {
-    if (!data) return 0;
+  // Generating Filter Dropdown Options
+  const wardOptions = [...new Set(data?.map(item => item.ward) || [])];
+  const villageOptions = [...new Set(data?.map(item => item.village) || [])];
+  const hamletOptions = [...new Set(data?.map(item => item.hamlet) || [])];
 
-    return data.filter(item =>
-      filters.every(filter => item[filter.property] === filter.value)
-    ).length;
+  // Analytics Count
+  const stats = {
+    functional: filteredData.filter(source => source.status === 'Functional').length.toLocaleString(),
+    nonFunctional: filteredData.filter(source => source.status === 'Non Functional').length.toLocaleString(),
+    maintenanceDue: filteredData.filter(source => source.status === 'Maintenance Due').length.toLocaleString(),
   };
 
-  const counts = {
-    functionalHPB: countByProperties(data, [
-      { property: 'type', value: 'Hand Pump Boreholes' },
-      { property: 'status', value: 'Functional' },
-    ]),
-    nonFunctionalHPB: countByProperties(data, [
-      { property: 'type', value: 'Hand Pump Boreholes' },
-      { property: 'status', value: 'Non Functional' },
-    ]),
-    functionalMB: countByProperties(data, [
-      { property: 'type', value: 'Motorized Boreholes' },
-      { property: 'status', value: 'Functional' },
-    ]),
-    nonFunctionalMB: countByProperties(data, [
-      { property: 'type', value: 'Motorized Boreholes' },
-      { property: 'status', value: 'Non Functional' },
-    ]),
-    functionalPDW: countByProperties(data, [
-      { property: 'type', value: 'Protected Dug Wells' },
-      { property: 'status', value: 'Functional' },
-    ]),
-    nonFunctionalPDW: countByProperties(data, [
-      { property: 'type', value: 'Protected Dug Wells' },
-      { property: 'status', value: 'Non Functional' },
-    ]),
+ // Bar Chart Data
+ const dataset = [
+  { type: 'Protected Dug Wells', functional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Non Functional').length.toLocaleString() },
+  { type: 'Hand Pump Boreholes', functional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Non Functional').length.toLocaleString() },
+  { type: 'Motorized Boreholes', functional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Non Functional').length.toLocaleString() },
+];
 
-    functionalUPDW: countByProperties(data, [
-      { property: 'type', value: 'Unprotected Dug Wells' },
-      { property: 'status', value: 'Functional' },
-    ]),
-    nonFunctionalUPDW: countByProperties(data, [
-      { property: 'type', value: 'Unprotected Dug Wells' },
-      { property: 'status', value: 'Non Functional' },
-    ]),
-  };
+// Pie Chart Data
+const pieChartData = [
+  { id: 'Drinkable', label: 'Drinkable', value: filteredData.filter(item => item.quality === 'Drinkable').length, color: '#40B3E6' },
+  { id: 'Non Drinkable', label: 'Non Drinkable', value: filteredData.filter(item => item.quality === 'Non Drinkable').length, color: '#E4080A' },
+];
 
-  const functionalW = counts.functionalPDW + counts.functionalUPDW;
-  const nonFunctionalW = counts.nonFunctionalPDW + counts.nonFunctionalUPDW;
-
-  // Dataset for the BarChart
-  const dataset = {
-    functional: [functionalW, counts.functionalHPB, counts.functionalMB],
-    nonFunctional: [nonFunctionalW, counts.nonFunctionalHPB, counts.nonFunctionalMB],
-  };
-
-  // Labels for the xAxis
-  const labels = ['Dug wells', 'Hand pump BH', 'Motorized BH'];
-
-  const safeWater = {
-    drinkable: countByProperties(data, [
-      { property: 'quality', value: 'Drinkable' }
-    ]),
-    nonDrinkable: countByProperties(data, [
-      { property: 'quality', value: 'Non Drinkable' }
-    ]),
-  }
-
-  // Format data for PieChart
-  const pieChartData = [
-    { id: 'Drinkable', label: 'Drinkable', value: safeWater.drinkable },
-    { id: 'Non Drinkable', label: 'Non Drinkable', value: safeWater.nonDrinkable },
-  ];
-
-  const FilterDropdown = ({ label, options }) => {
-    const [selectedOption, setSelectedOption] = useState('');
-  
-    const handleChange = (event) => {
-      setSelectedOption(event.target.value);
-    };
-  
-    return (
-      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-          {options.map((option, index) => (
-            <MenuItem key={index} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
-  
+const FilterDropdown = ({ label, options, value, onChange }) => (
+    <FormControl variant="outlined" sx={{ mb: 2, minWidth: 120 }}>
+      <InputLabel>{label}</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value)} label={label}>
+        <MenuItem value="">All</MenuItem>
+        {options.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 
   if (isLoading) {
     return (
@@ -377,7 +243,7 @@ const WaterSourcesDashboard: React.FC = () => {
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      {/* Header */}
+      {/* Filters */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'flex-start' }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
@@ -387,115 +253,61 @@ const WaterSourcesDashboard: React.FC = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-               <Stack direction="row" spacing={1} alignItems="center">
-          <Box sx={{ mb: 1 }}>
-            <Stack direction="row" spacing={2}>
-              <FilterDropdown 
-                label="Ward" 
-                options={['All']} 
-              />
-              <FilterDropdown 
-                label="Village" 
-                options={['All']} 
-              />
-              <FilterDropdown 
-                label="Hamlet" 
-                options={['All']} 
-              />
-            </Stack>
-          </Box>
-        </Stack>
 
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={wardOptions} value={ward} onChange={setWard} />
+          <FilterDropdown label="Village" options={villageOptions} value={village} onChange={setVillage} />
+          <FilterDropdown label="Hamlet" options={hamletOptions} value={hamlet} onChange={setHamlet} />
+        </Stack>
       </Box>
 
-      {/* Main Stats */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {[
-          {
-        title: 'Total Sources',
-        value: analytics.totalSources,
-        icon: <RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />,
-        bgColor: '#DBEAFE'
-          },
-          {
-        title: 'Functional',
-        value: analytics.functional,
-        icon: <FaCheck style={{ color: '#4CAF50', fontSize: '2rem' }} />,
-        bgColor: '#E8F5E9'
-          },
-          {
-        title: 'Non-Functional',
-        value: analytics.nonFunctional,
-        icon: <FaTimes style={{ color: '#EF5350', fontSize: '2rem' }} />,
-        bgColor: '#FFEBEE'
-          },
-          {
-        title: 'Due for Maintenance',
-        value: analytics.maintenanceDue,
-        icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }} />,
-        bgColor: '#FFF3E0'
-          },
+      {/* Stats */}
+      <Grid container spacing={2} mb={3}>
+        {[ 
+          { title: 'Total Sources', value: filteredData.length.toLocaleString(), icon: <RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />, bgColor: '#DBEAFE' },
+          { title: 'Improved', value: stats.functional, icon: <ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }}/>, bgColor: '#E8F5E9' },
+          { title: 'Non-Improved', value: stats.nonFunctional, icon: <ArrowDown style={{ color: '#EF5350', fontSize: '2rem' }}/>, bgColor: '#FFEBEE' },
+          { title: 'Due for Maintenance', value: stats.maintenanceDue, icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }}/>, bgColor: '#FFF3E0' },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-        <StatCard {...stat} />
+            <StatCard title={stat.title} value={stat.value} icon={stat.icon} bgColor={stat.bgColor} />
           </Grid>
         ))}
       </Grid>
 
-      <Grid container spacing={3} mb={3}>
+    {/* Charts */}
+    <Grid container spacing={3} mb={3}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Water source functionality</Typography>
-            <BarChart
-              colors={['#007bff', '#6c757d']}
-              series={[
-                { data: dataset.functional, label: 'Functional' },
-                { data: dataset.nonFunctional, label: 'Non Functional' },
-              ]}
-              height={350}
-              xAxis={[{ data: labels, scaleType: 'band' }]}
-              margin={{ top: 50, bottom: 30, left: 40, right: 10 }}
-            />
+            <Typography variant="h6" mb={2}>Water Source Functionality</Typography>
+            <MuiBarChart series={[{ dataKey: 'functional', label: 'Functional', color: '#4CAF50' }, { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#EF5350' }]} xAxis={[{ scaleType: 'band', dataKey: 'type' }]} dataset={dataset} height={350} />
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" mb={2}>Safe Water</Typography>
-            <PieChart
-              colors={['#2e96ff', '#ef5350']} // Use palette
+            <MuiPieChart
               series={[
-                {
-                  data: pieChartData,
-                  arcLabel: (item) => `${item.value}`,
-                  arcLabelMinAngle: 35,
-                  arcLabelRadius: '60%',
-                  innerRadius: 40,
-                  outerRadius: 150,
-                  paddingAngle: 3,
-                  cornerRadius: 5,
-                },
+                { 
+                  data: pieChartData.map(item => ({
+                    ...item,
+                    percentage: ((item.value / filteredData.length) * 100).toFixed(1) // Calculate percentage
+                  })), 
+                  arcLabel: item => `${item.percentage}%`, // Display percentage
+                  innerRadius: 40, 
+                  outerRadius: 100 
+                }
               ]}
               width={600}
               height={350}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              }}
             />
           </Paper>
         </Grid>
       </Grid>
 
-      {/* Table Section */}
-      <Card sx={{ mt: 3, boxShadow: 1 }}>
-        <Box sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, }}>Water Sources Overview</Typography>
-            <DataTable  setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
-        </Box>
-      </Card>
-    </Box>
+      {/* Table */}
+      <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+      </Box>
   );
 };
 
