@@ -106,7 +106,7 @@ const ForgotPassword = () => {
         >
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <img
-              src="/logo.svg"
+              src="./src/assets/img/logo.png"
               alt="Logo"
               style={{ width: "225.28px", height: "55px" }}
             />

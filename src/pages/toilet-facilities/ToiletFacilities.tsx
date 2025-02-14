@@ -7,10 +7,15 @@ import {
   Chip,
   CircularProgress,
   Container,
+  FormControl,
+  InputLabel,
   Grid,
   Paper,
   styled,
-  Typography
+  Typography,
+  MenuItem,
+  Select,
+  Stack
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
@@ -115,14 +120,10 @@ const columns = [
         src={props.row.original.picture}
         alt="toilet facility"
         sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%', // Make avatar round
-          border: '2px solid #e5e7eb', // Add subtle border
+          borderRadius: '100%', // Make avatar round
         }}
       />
     ),
-    size: 80,
   }),
   columnHelper.accessor('ward', {
     header: 'Ward',
@@ -140,29 +141,30 @@ const columns = [
     header: 'Categories',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: info => {
-      const status = info.getValue();
-      let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
-      switch (status) {
-        case 'Improved':
-          color = 'success';
-          break;
-        case 'Unimproved':
-          color = 'error';
-          break;
-        default:
-          color = 'default';
-      }
-      return (
-        <Chip label={status} color={color} />
-      );
-    },
-  }),
   columnHelper.accessor('type', {
-    header: 'Type',
-    cell: info => info.getValue(),
+    header: 'Tags',
+    cell: info => {
+      return (
+        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.type}
+            color={'primary'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Functional' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Drinkable' ? 'info' : 'error'}
+          />
+        </Stack>
+      )
+    },
   }),
 ];
 
@@ -176,6 +178,8 @@ const ToiletFacilities: React.FC = () => {
     queryKey: ['toilet-facilities', { limit, page, search }],
     queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities?limit=${limit}&page=${page}&search=${search}`),
   });
+
+  console.log("toilet", data)
 
   useEffect(() => {
     if (data) {
@@ -222,6 +226,27 @@ const ToiletFacilities: React.FC = () => {
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
   if (!data || data.length === 0) return <NotFoundAlert />;
 
+  const FilterDropdown = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = useState('');
+  
+    const handleChange = (event) => {
+      setSelectedOption(event.target.value);
+    };
+  
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };  
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -233,28 +258,14 @@ const ToiletFacilities: React.FC = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box>
-          <Button
-            startIcon={<FaFilter style={{color: "#1F2937"}} />}
-            variant="outlined"
-            sx={{ mr: 1 }}
-          >
-            <Typography variant="body1" color="#1F2937">Filter</Typography>
-          </Button>
-          <Button
-            startIcon={<FaDownload />}
-            variant="contained"
-            sx={{ bgcolor: '#2CBEEF' }}
-          >
-            Export Report
-          </Button>
-        </Box>
+        <Box sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={['All']} />
+          <FilterDropdown label="Village" options={['All']} />
+          <FilterDropdown label="Hamlet" options={['All']} />
+        </Stack>
       </Box>
-
-      <Typography variant="h6" color='#1F2937' sx={{ mb: 2  }}>
-        Overview
-      </Typography>
-
+      </Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard

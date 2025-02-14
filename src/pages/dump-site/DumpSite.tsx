@@ -9,8 +9,13 @@ import {
   CardContent, // Add this import at the top
   Chip,
   CircularProgress,
+  FormControl,
+  InputLabel,
   Grid,
-  Typography
+  Stack,
+  Typography,
+  MenuItem,
+  Select
 } from "@mui/material";
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -49,8 +54,8 @@ const notificationCards = [
       {
         label: "East End Facility",
         description: "Immediate attention required",
-        leftIcon: <img src="/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
         bgcolor: "#ffebee",
       },
     ],
@@ -63,8 +68,8 @@ const notificationCards = [
       {
         label: "South Gate Site",
         description: "Scheduled for tomorrow",
-        leftIcon: <img src="/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
         bgcolor: "#e3f2fd",
       },
     ],
@@ -77,8 +82,8 @@ const notificationCards = [
       {
         label: "Capacity Report",
         description: "Generated at 09:00 AM",
-        leftIcon: <img src="/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
         bgcolor: "#f5f5f5",
       },
     ],
@@ -95,14 +100,10 @@ const columns = [
         src={props.getValue()}
         alt="Dump Site"
         sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: '2px solid #e5e7eb',
+          borderRadius: '100%',
         }}
       />
     ),
-    size: 80,
   }),
   columnHelper.accessor('ward', {
     cell: info => info.getValue(),
@@ -114,33 +115,67 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
+    header: 'Categories',
     cell: info => info.getValue(),
   }),
-
-  columnHelper.accessor('status', {
-    header: 'Status',
+  columnHelper.accessor('type', {
+    header: 'Tags',
     cell: info => {
-      const status = info.getValue();
-      let color;
-      switch (status) {
-        case 'Improved':
-          color = 'success';
-          break;
-        case 'Unimproved':
-          color = 'error';
-          break;
-        default:
-          color = 'default';
-      }
       return (
-        <Chip label={status} color={color} />
-      );
+        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.evacuationSchedule}
+            color={info.row.original.evacuationSchedule === 'Periodic' ? 'success' : 'error'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Improved' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Maintained' ? 'success' : 'error'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.safetyRisk}
+            color={info.row.original.safetyRisk === 'Closed' ? 'success' : 'error'}
+          />
+        </Stack>
+      )
     },
   }),
-  columnHelper.accessor('capturedAt', {
-    cell: info => new Date(info.getValue()).toLocaleString(),
-  }),
+
+  // columnHelper.accessor('capturedAt', {
+  //   header: 'captured At',
+  //   cell: info => info.getValue(),
+  // }),
 ];
+
+const FilterDropdown = ({ label, options }) => {
+  const [selectedOption, setSelectedOption] = useState('');
+
+  const handleChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  return (
+    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+      <InputLabel>{label}</InputLabel>
+      <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+        {options.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+};
+
 
 const DumpSites = () => {
   const [dumpSites, setDumpSites] = useState({});
@@ -152,6 +187,8 @@ const DumpSites = () => {
     queryKey: ['dump-sites', { limit, page, search }],
     queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
   });
+
+  console.log("dump", data)
 
   useEffect(() => {
     if (data) {
@@ -212,37 +249,13 @@ const DumpSites = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
-        <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                height: 48,
-                color: "#1F2937",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src="/svg/filter.svg"
-                alt="Export"
-                style={{ width: 20, height: 20, marginRight: 8 }}
-              />
-              Filter
-            </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#2CBEEF",
-              height: 48,
-              "&:hover": { bgcolor: "#1993b6" },
-            }}
-          >
-            Add New Site
-          </Button>
-        </Box>
+        <Box sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={['All']} />
+          <FilterDropdown label="Village" options={['All']} />
+          <FilterDropdown label="Hamlet" options={['All']} />
+        </Stack>
+      </Box>
       </Box>
 
       {/* Metric Cards */}
@@ -256,7 +269,7 @@ const DumpSites = () => {
                 justifyContent: "space-between",
                 padding: 2,
                 borderRadius: 2,
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                boxShadow: 2,
                 bgcolor: "#fff",
               }}
             >

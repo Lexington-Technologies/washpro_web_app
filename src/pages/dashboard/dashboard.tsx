@@ -11,7 +11,6 @@ import {
   LocalShipping,
   LocationOn,
   People,
-  Refresh,
   Sanitizer,
   School,
   ShoppingCart,
@@ -25,7 +24,6 @@ import {
   CircularProgress,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -379,12 +377,22 @@ const WashDashboard = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton size="small" aria-label="refresh">
-            <Refresh />
-          </IconButton>
-          <Typography variant="caption" color="text.secondary">
-            Last updated: {new Date().toLocaleString()}
-          </Typography>
+          <Box sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <FilterDropdown
+                label="Ward"
+                options={['All']}
+              />
+              <FilterDropdown
+                label="Village"
+                options={['All']}
+              />
+              <FilterDropdown
+                label="Hamlet"
+                options={['All']}
+              />
+            </Stack>
+          </Box>
         </Stack>
       </Box>
 

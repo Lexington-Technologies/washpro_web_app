@@ -177,7 +177,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <Link to="/">
           <img
-            src="/logo.svg"
+            src="/src/assets/img/logo.png"
             alt="WashPro Logo"
             style={{
               width: isCollapsed ? 50 : 200,
@@ -215,11 +215,15 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <List>
           {/* Main Menu Items */}
-          {mainMenuItems.map(item => (
-            <>
+          {mainMenuItems.map((item, index) => (
+            <div key={item.text}>
               {renderMenuItem(item)}
-              {item.subItems && item.subItems.map(renderMenuItem)}
-            </>
+              {item.subItems && item.subItems.map(subItem => (
+                <div key={subItem.text}>
+                  {renderMenuItem(subItem)}
+                </div>
+              ))}
+            </div>
           ))}
 
           {/* Waste Dropdown */}
@@ -245,7 +249,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
                   }
                 }}
               >
-                <GiHazardSign  style={{fontSize: 25}}/>
+                <GiHazardSign style={{ fontSize: 25 }} />
               </ListItemIcon>
               {!isCollapsed && (
                 <>
@@ -263,7 +267,11 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
           <Collapse in={openWaste} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {wasteSubItems.map(renderMenuItem)}
+              {wasteSubItems.map(item => (
+                <div key={item.text}>
+                  {renderMenuItem(item)}
+                </div>
+              ))}
             </List>
           </Collapse>
 
@@ -308,12 +316,20 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
           <Collapse in={openUsers} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {usersSubItems.map(renderMenuItem)}
+              {usersSubItems.map(item => (
+                <div key={item.text}>
+                  {renderMenuItem(item)}
+                </div>
+              ))}
             </List>
           </Collapse>
 
           {/* Bottom Menu Items */}
-          {bottomMenuItems.map(renderMenuItem)}
+          {bottomMenuItems.map(item => (
+            <div key={item.text}>
+              {renderMenuItem(item)}
+            </div>
+          ))}
         </List>
       </Box>
 
@@ -364,10 +380,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       }}
       sx={{
         display: { xs: 'block', md: 'none' },
-        '& .MuiDrawer-paper': {
-          width: 320,
-          boxSizing: 'border-box',
-        },
+        
       }}
     >
       {sidebarContent}

@@ -4,11 +4,16 @@ import {
   Button,
   Card,
   Chip,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   styled,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
@@ -115,14 +120,10 @@ const columns = [
         src={props.row.original.picture}
         alt="water source"
         sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '20%', // Make avatar round
-          border: '2px solid #e5e7eb', // Add subtle border
+          borderRadius: '100%', // Make avatar round
         }}
       />
     ),
-    size: 80,
   }),
   columnHelper.accessor('ward', {
     header: 'Ward',
@@ -203,6 +204,7 @@ const WaterSourcesDashboard: React.FC = () => {
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
+  
 
   const { data: household } = useQuery({
     queryKey: ['/households', { limit, page, search }],
@@ -343,6 +345,35 @@ const WaterSourcesDashboard: React.FC = () => {
     { id: 'Non Drinkable', label: 'Non Drinkable', value: safeWater.nonDrinkable },
   ];
 
+  const FilterDropdown = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = useState('');
+  
+    const handleChange = (event) => {
+      setSelectedOption(event.target.value);
+    };
+  
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };
+  
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -356,11 +387,25 @@ const WaterSourcesDashboard: React.FC = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box>
-          <Button startIcon={<FaFilter style={{ color: "#000000" }} />} variant="outlined" sx={{ mr: 1, borderColor: '#000000' }}>
-            <Typography variant="body1" color="#000000">Filter</Typography>
-          </Button>
-        </Box>
+               <Stack direction="row" spacing={1} alignItems="center">
+          <Box sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <FilterDropdown 
+                label="Ward" 
+                options={['All']} 
+              />
+              <FilterDropdown 
+                label="Village" 
+                options={['All']} 
+              />
+              <FilterDropdown 
+                label="Hamlet" 
+                options={['All']} 
+              />
+            </Stack>
+          </Box>
+        </Stack>
+
       </Box>
 
       {/* Main Stats */}

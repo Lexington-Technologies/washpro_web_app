@@ -105,6 +105,7 @@ const KnowledgeBase: React.FC = () => {
     'Guidelines',
     'Training',
   ]);
+  const [error, setError] = useState<Error | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -188,10 +189,7 @@ const KnowledgeBase: React.FC = () => {
       // Use mock data instead of API call
       setDocuments(mockDocuments);
     } catch (error) {
-      setAlert({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch documents'
-      });
+      setError(error instanceof Error ? error : new Error('Failed to fetch documents'));
     } finally {
       setIsLoading(false);
     }
@@ -229,6 +227,18 @@ const KnowledgeBase: React.FC = () => {
     fetchDocuments();
   }, []);
 
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error instanceof Error) {
+    return <ErrorAlert message={error.message} />;
+  }
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -261,13 +271,7 @@ const KnowledgeBase: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  <CircularProgress />
-                </TableCell>
-              </TableRow>
-            ) : documents.length === 0 ? (
+            {documents.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                   No documents found

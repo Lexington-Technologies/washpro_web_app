@@ -51,7 +51,7 @@ const LoadingAnimation = () => {
         
         {/* Animated Logo */}
         <img
-          src="/loader.png"
+          src="/src/assets/img/loader.png"
           width={80}
           style={{
             marginTop: 25,
