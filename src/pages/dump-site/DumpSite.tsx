@@ -6,7 +6,7 @@ import {
   Box,
   Button,
   Card,
-  CardContent, // Add this import at the top
+  CardContent,
   Chip,
   CircularProgress,
   FormControl,
@@ -15,11 +15,11 @@ import {
   Stack,
   Typography,
   MenuItem,
-  Select
+  Select,
 } from "@mui/material";
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FaDumpster } from "react-icons/fa";
 import { IoWarning } from "react-icons/io5";
 import { apiController } from '../../axios';
@@ -122,7 +122,6 @@ const columns = [
     header: 'Tags',
     cell: info => {
       return (
-        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             variant='outlined'
@@ -148,81 +147,100 @@ const columns = [
       )
     },
   }),
-
-  // columnHelper.accessor('capturedAt', {
-  //   header: 'captured At',
-  //   cell: info => info.getValue(),
-  // }),
 ];
 
-const FilterDropdown = ({ label, options }) => {
-  const [selectedOption, setSelectedOption] = useState('');
-
-  const handleChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-  return (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-        {options.map((option, index) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
+const FilterDropdown = ({ label, value, options, onChange }) => (
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
 
 const DumpSites = () => {
-  const [dumpSites, setDumpSites] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data, isLoading } = useQuery<DumpSite[], Error>({
     queryKey: ['dump-sites', { limit, page, search }],
     queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  console.log("dump", data)
-
-  useEffect(() => {
-    if (data) {
-      setDumpSites(data)
-    }
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(item => item.ward))];
   }, [data]);
+
+  const villageOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredVillages = data
+      .filter(item => !ward || item.ward === ward)
+      .map(item => item.village);
+    return [...new Set(filteredVillages)];
+  }, [data, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredHamlets = data
+      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
+      .map(item => item.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [data, ward, village]);
+
+  // Filtered data
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet) &&
+      (!search || 
+        item.ward.toLowerCase().includes(search.toLowerCase()) ||
+        item.village.toLowerCase().includes(search.toLowerCase()) ||
+        item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
+        item.publicSpace.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  }, [data, ward, village, hamlet, search]);
 
   const countByProperty = <T extends object>(
     data: T[] | undefined,
     property: keyof T,
     value: T[keyof T]
   ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length.toLocaleString() || 0;
   };
 
   const metricCards = [
     {
       title: "Total Dump Site",
-      value: data?.length,
+      value: filteredData.length.toLocaleString(),
       icon: <FaDumpster style={{ fontSize: '1.8rem', color: '#00B4D8' }}/>,
       bgColor: "#e3f2fd"
     },
     {
       title: "Maintained",
-      value: countByProperty(data, 'condition', 'Maintained'),
+      value: countByProperty(filteredData, 'condition', 'Maintained'),
       icon: <CheckCircleIcon sx={{ fontSize: '1.8rem', color: "#16A34A" }} />,
       bgColor: "#e8f5e9"
     },
     {
-      title: "Unmaintained", value: countByProperty(data, 'condition', 'Unmaintained'),
+      title: "Unmaintained", value: countByProperty(filteredData, 'condition', 'Unmaintained'),
       icon: <IoWarning style={{ fontSize: '1.8rem', color: "#EAB308" }} />, bgColor: "#ffebee"
     },
     {
-      title: "Overfilled", value: countByProperty(data, 'condition', 'Overfilled'),
+      title: "Overfilled", value: countByProperty(filteredData, 'condition', 'Overfilled'),
       icon: <ErrorIcon sx={{ fontSize: '1.8rem', color: "#D32F2F" }} />, bgColor: "#fffde7"
     },
   ];
@@ -250,12 +268,12 @@ const DumpSites = () => {
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown label="Ward" options={['All']} />
-          <FilterDropdown label="Village" options={['All']} />
-          <FilterDropdown label="Hamlet" options={['All']} />
-        </Stack>
-      </Box>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
+        </Box>
       </Box>
 
       {/* Metric Cards */}
@@ -315,7 +333,7 @@ const DumpSites = () => {
               Dump Site Overview
             </Typography>
           </Box>
-          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={filteredData || []} />
         </CardContent>
       </Card>
 

@@ -29,7 +29,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
@@ -97,7 +97,6 @@ const columns = [
     header: 'Tags',
     cell: info => {
       return (
-        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             variant='outlined'
@@ -120,30 +119,74 @@ const columns = [
   }),
 ];
 
+const FilterDropdown = ({ label, value, options, onChange }) => (
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
+
+
 const SoakAways = () => {
-  const [soakAways, setSoakAways] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data, isLoading } = useQuery<SoakAway[], Error>({
     queryKey: ['soak-aways', { limit, page, search }],
     queryFn: () => apiController.get<SoakAway[]>(`/soak-aways?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  console.log("soak", data)
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(item => item.ward))];
+  }, [data]);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
+  const villageOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredVillages = data
+      .filter(item => !ward || item.ward === ward)
+      .map(item => item.village);
+    return [...new Set(filteredVillages)];
+  }, [data, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredHamlets = data
+      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
+      .map(item => item.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [data, ward, village]);
+
+  // Filtered data
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet) &&
+      (!search ||
+        item.ward.toLowerCase().includes(search.toLowerCase()) ||
+        item.village.toLowerCase().includes(search.toLowerCase()) ||
+        item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
+        item.publicSpace.toLowerCase().includes(search.toLowerCase())
+      )
     );
-  }
-  
+    
+  }, [data, ward, village, hamlet, search]);
 
-
-  const countByProperty = <T extends object>(
+  const countByProperty = <T,>(
     data: T[] | undefined,
     property: keyof T,
     value: T[keyof T]
@@ -151,37 +194,13 @@ const SoakAways = () => {
     return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
   };
 
-  const improved = countByProperty(data, 'status', 'Improved');
-  const unimproved = countByProperty(data, 'status', 'Unimproved');
-
-  const totalStatus = improved + unimproved;
-
-  const fairSafety = countByProperty(data, 'safetyRisk', 'Fair');
-  const badSafety = countByProperty(data, 'safetyRisk', 'Bad/Fail');
-
-  const totalSafety = fairSafety + badSafety;
-
-  const FilterDropdown = ({ label, options }) => {
-    const [selectedOption, setSelectedOption] = useState('');
-  
-    const handleChange = (event) => {
-      setSelectedOption(event.target.value);
-    };
-  
+  if (isLoading) {
     return (
-      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-          {options.map((option, index) => (
-            <MenuItem key={index} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
     );
-  };
-  
+  }
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -196,40 +215,39 @@ const SoakAways = () => {
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown label="Ward" options={['All']} />
-          <FilterDropdown label="Village" options={['All']} />
-          <FilterDropdown label="Hamlet" options={['All']} />
-        </Stack>
-      </Box>
-
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
+        </Box>
       </Box>
 
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, width: '100%' }}>
         <StatsCard
           title="Total Soakaways"
-          value={data?.length}
+          value={filteredData.length}
           icon={<Waves />}
           iconColor="#2196f3"
         />
         <StatsCard
           title="Maintained"
-          value={countByProperty(data, 'condition', 'Maintained')}
-          icon={<FaClipboardCheck style={{color: "#16A34A"}}/>}
+          value={countByProperty(filteredData, 'condition', 'Maintained')}
+          icon={<FaClipboardCheck style={{ color: "#16A34A" }} />}
           iconColor="#4caf50"
           valueColor="#16A34A"
         />
         <StatsCard
-          title="Unmaitained"
-          value={countByProperty(data, 'condition', 'Unmaintained')}
-          icon={<FaExclamationTriangle style={{color: "#DC2626"}}/>}
+          title="Unmaintained"
+          value={countByProperty(filteredData, 'condition', 'Unmaintained')}
+          icon={<FaExclamationTriangle style={{ color: "#DC2626" }} />}
           iconColor="#f44336"
           valueColor="#f44336"
         />
         <StatsCard
-          title="Dilapated"
-          value={countByProperty(data, 'condition', 'Dilapidated')}
+          title="Dilapidated"
+          value={countByProperty(filteredData, 'condition', 'Dilapidated')}
           icon={<FaWrench color="#CA8A04" />}
           iconColor="#ff9800"
           valueColor="#ff9800"
@@ -238,30 +256,27 @@ const SoakAways = () => {
 
       {/* Main Content */}
       <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
-
-      {/* Soakaway Overview */}
-      <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              SoakaWay Overview
+        {/* Soakaway Overview */}
+        <Paper sx={{ mt: 3, p: 3, width: '100%' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              Soakaway Overview
             </Typography>
-        </Box>
+          </Box>
 
-        <DataTable
-          setSearch={setSearch}
-          setPage={setPage}
-          setLimit={setLimit}
-          isLoading={isLoading}
-          columns={columns}
-          data={data?.slice(0, limit) || []}
-        />
-
-      </Paper>
+          <DataTable
+            setSearch={setSearch}
+            setPage={setPage}
+            setLimit={setLimit}
+            isLoading={isLoading}
+            columns={columns}
+            data={filteredData || []}
+          />
+        </Paper>
+      </Box>
     </Box>
-  </Box>
   );
-}
-
+};
 
 // Stats Card Component
 interface StatsCardProps {

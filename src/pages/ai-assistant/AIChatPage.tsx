@@ -664,7 +664,7 @@ const AIChatPage: React.FC = () => {
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <CircularProgress size={60} thickness={4} />
       </Box>
     );
   }

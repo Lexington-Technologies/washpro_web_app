@@ -27,6 +27,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, iconCol
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              shadow: 1,
             }}
         >
           <Icon sx={{ color: iconColor, fontSize: 25 }} />

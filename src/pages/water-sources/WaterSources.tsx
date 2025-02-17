@@ -15,8 +15,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState, useEffect } from 'react';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaWrench } from 'react-icons/fa6';
 import { RiWaterFlashFill } from 'react-icons/ri';
 import { apiController } from '../../axios';
@@ -139,7 +138,6 @@ const columns = [
     header: 'Tags',
     cell: info => {
       return (
-        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             variant='outlined'
@@ -170,34 +168,31 @@ const WaterSourcesDashboard: React.FC = () => {
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
+  const [isFiltering, setIsFiltering] = useState(false);
 
-  const { data, isLoading } = useQuery<WaterSource[], Error>({
+  const { data, isLoading, isError, error } = useQuery<WaterSource[], Error>({
     queryKey: ['water-sources', { limit, page, search }],
     queryFn: () => apiController.get<WaterSource[]>(`/water-sources?limit=${limit}&page=${page}&search=${search}`),
   });
-
-  console.log("w/s", data)
 
   // Filter State Initialization
   const [filteredData, setFilteredData] = useState<WaterSource[]>([]);
 
   // Applying Filters in useEffect
   useEffect(() => {
-    if (data) {
-      let filtered = [...data];
-
-      if (ward) filtered = filtered.filter(item => item.ward === ward);
-      if (village) filtered = filtered.filter(item => item.village === village);
-      if (hamlet) filtered = filtered.filter(item => item.hamlet === hamlet);
-
-      setFilteredData(filtered);
-    }
+    setIsFiltering(true);
+    let filtered = data ? [...data] : [];
+    if (ward) filtered = filtered.filter(item => item.ward === ward);
+    if (village) filtered = filtered.filter(item => item.village === village);
+    if (hamlet) filtered = filtered.filter(item => item.hamlet === hamlet);
+    setFilteredData(filtered);
+    setIsFiltering(false);
   }, [data, ward, village, hamlet]);
 
   // Generating Filter Dropdown Options
-  const wardOptions = [...new Set(data?.map(item => item.ward) || [])];
-  const villageOptions = [...new Set(data?.map(item => item.village) || [])];
-  const hamletOptions = [...new Set(data?.map(item => item.hamlet) || [])];
+  const wardOptions = useMemo(() => [...new Set(data?.map(item => item.ward) || [])], [data]);
+  const villageOptions = useMemo(() => [...new Set(data?.map(item => item.village) || [])], [data]);
+  const hamletOptions = useMemo(() => [...new Set(data?.map(item => item.hamlet) || [])], [data]);
 
   // Analytics Count
   const stats = {
@@ -206,20 +201,47 @@ const WaterSourcesDashboard: React.FC = () => {
     maintenanceDue: filteredData.filter(source => source.status === 'Maintenance Due').length.toLocaleString(),
   };
 
- // Bar Chart Data
- const dataset = [
-  { type: 'Protected Dug Wells', functional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Non Functional').length.toLocaleString() },
-  { type: 'Hand Pump Boreholes', functional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Non Functional').length.toLocaleString() },
-  { type: 'Motorized Boreholes', functional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Functional').length.toLocaleString(), nonFunctional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Non Functional').length.toLocaleString() },
-];
+  // Bar Chart Data
+  const dataset = [
+    { 
+      type: 'Protected Dug Wells', 
+      functional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Functional').length, 
+      nonFunctional: filteredData.filter(source => source.type === 'Protected Dug Wells' && source.status === 'Non Functional').length 
+    },
+    { 
+      type: 'Unprotected Dug Wells', 
+      functional: filteredData.filter(source => source.type === 'Unprotected Dug Wells' && source.status === 'Functional').length, 
+      nonFunctional: filteredData.filter(source => source.type === 'Unprotected Dug Wells' && source.status === 'Non Functional').length 
+    },  
+    { 
+      type: 'Hand Pump Boreholes', 
+      functional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Functional').length, 
+      nonFunctional: filteredData.filter(source => source.type === 'Hand Pump Boreholes' && source.status === 'Non Functional').length 
+    },
+    { 
+      type: 'Motorized Boreholes', 
+      functional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Functional').length, 
+      nonFunctional: filteredData.filter(source => source.type === 'Motorized Boreholes' && source.status === 'Non Functional').length 
+    },
+  ];
 
-// Pie Chart Data
-const pieChartData = [
-  { id: 'Drinkable', label: 'Drinkable', value: filteredData.filter(item => item.quality === 'Drinkable').length, color: '#40B3E6' },
-  { id: 'Non Drinkable', label: 'Non Drinkable', value: filteredData.filter(item => item.quality === 'Non Drinkable').length, color: '#E4080A' },
-];
+  // Pie Chart Data
+  const pieChartData = [
+    { 
+      id: 'Drinkable', 
+      label: 'Drinkable', 
+      value: filteredData.filter(item => item.quality === 'Drinkable').length || 0, 
+      color: '#40B3E6' 
+    },
+    { 
+      id: 'Non Drinkable', 
+      label: 'Non Drinkable', 
+      value: filteredData.filter(item => item.quality === 'Non Drinkable').length || 0, 
+      color: '#FF9800' 
+    },
+  ];
 
-const FilterDropdown = ({ label, options, value, onChange }) => (
+  const FilterDropdown = ({ label, options, value, onChange }) => (
     <FormControl variant="outlined" sx={{ mb: 2, minWidth: 120 }}>
       <InputLabel>{label}</InputLabel>
       <Select value={value} onChange={(e) => onChange(e.target.value)} label={label}>
@@ -233,10 +255,18 @@ const FilterDropdown = ({ label, options, value, onChange }) => (
     </FormControl>
   );
 
-  if (isLoading) {
+  if (isLoading || isFiltering) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography color="error">Error: {error.message}</Typography>
       </Box>
     );
   }
@@ -265,8 +295,8 @@ const FilterDropdown = ({ label, options, value, onChange }) => (
       <Grid container spacing={2} mb={3}>
         {[ 
           { title: 'Total Sources', value: filteredData.length.toLocaleString(), icon: <RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />, bgColor: '#DBEAFE' },
-          { title: 'Improved', value: stats.functional, icon: <ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }}/>, bgColor: '#E8F5E9' },
-          { title: 'Non-Improved', value: stats.nonFunctional, icon: <ArrowDown style={{ color: '#EF5350', fontSize: '2rem' }}/>, bgColor: '#FFEBEE' },
+          { title: 'Functional', value: stats.functional, icon: <ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }}/>, bgColor: '#E8F5E9' },
+          { title: 'Non-Functional', value: stats.nonFunctional, icon: <ArrowDown style={{ color: '#EF5350', fontSize: '2rem' }}/>, bgColor: '#FFEBEE' },
           { title: 'Due for Maintenance', value: stats.maintenanceDue, icon: <FaWrench style={{ color: '#FFA726', fontSize: '2rem' }}/>, bgColor: '#FFF3E0' },
         ].map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -289,11 +319,11 @@ const FilterDropdown = ({ label, options, value, onChange }) => (
             <MuiPieChart
               series={[
                 { 
-                  data: pieChartData.map(item => ({
-                    ...item,
-                    percentage: ((item.value / filteredData.length) * 100).toFixed(1) // Calculate percentage
-                  })), 
-                  arcLabel: item => `${item.percentage}%`, // Display percentage
+                  data: pieChartData, 
+                  arcLabel: (item) => {
+                    const total = filteredData.length || 1; // Avoid division by zero
+                    return `${((item.value / total) * 100).toFixed(1)}%`;
+                  },
                   innerRadius: 40, 
                   outerRadius: 100 
                 }
@@ -306,7 +336,14 @@ const FilterDropdown = ({ label, options, value, onChange }) => (
       </Grid>
 
       {/* Table */}
-      <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+      <DataTable 
+        setSearch={setSearch} 
+        setPage={setPage} 
+        setLimit={setLimit} 
+        isLoading={isLoading} 
+        columns={columns} 
+        data={filteredData || []} 
+      />
       </Box>
   );
 };

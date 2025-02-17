@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { GiBrickWall, GiRiver, GiSpill, GiSplashyStream } from 'react-icons/gi';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
@@ -77,7 +77,6 @@ const columns = [
     header: 'Tags',
     cell: info => {
       return (
-        // <span>{`${info.row.original.type}, ${info.row.original.status}`}</span>
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             variant='outlined'
@@ -95,13 +94,29 @@ const columns = [
   }),
 ];
 
+// Define FilterDropdown component before using it
+const FilterDropdown = ({ label, value, options, onChange }) => (
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
 
 const GutterDashboard = () => {
   // Add state management
-  const [dgutters, setDGutters ] = useState({})
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   // Add query hook
   const { data: gutters, isLoading } = useQuery<Gutter[], Error>({
@@ -109,52 +124,61 @@ const GutterDashboard = () => {
     queryFn: () => apiController.get<Gutter[]>(`/gutters?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  console.log("guter", gutters)
-
-  useEffect(() => {
-    if (gutters) {
-      setDGutters(gutters)
-    }
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!gutters) return [];
+    return [...new Set(gutters.map(item => item.ward))];
   }, [gutters]);
 
-  const countByProperty = <T extends object>(
+  const villageOptions = useMemo(() => {
+    if (!gutters) return [];
+    const filteredVillages = gutters
+      .filter(item => !ward || item.ward === ward)
+      .map(item => item.village);
+    return [...new Set(filteredVillages)];
+  }, [gutters, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!gutters) return [];
+    const filteredHamlets = gutters
+      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
+      .map(item => item.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [gutters, ward, village]);
+
+  // Filtered data
+  const filteredData = useMemo(() => {
+    if (!gutters) return [];
+    return gutters.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet) &&
+      (!search ||
+        item.ward.toLowerCase().includes(search.toLowerCase()) ||
+        item.village.toLowerCase().includes(search.toLowerCase()) ||
+        item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
+        item.publicSpace.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+
+
+  }, [gutters, ward, village, hamlet, search]);
+
+  // Fixed countByProperty function
+  const countByProperty = <T,>(
     data: T[] | undefined,
     property: keyof T,
     value: T[keyof T]
   ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length.toLocaleString() || 0;
   };
-
-
-
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
-  const FilterDropdown = ({ label, options }) => {
-    const [selectedOption, setSelectedOption] = useState('');
-  
-    const handleChange = (event) => {
-      setSelectedOption(event.target.value);
-    };
-  
-    return (
-      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-          {options.map((option, index) => (
-            <MenuItem key={index} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
-  
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#2C3E50', fontWeight: 600, mb: 0.5 }}>
             Gutters
@@ -164,107 +188,108 @@ const GutterDashboard = () => {
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown label="Ward" options={['All']} />
-          <FilterDropdown label="Village" options={['All']} />
-          <FilterDropdown label="Hamlet" options={['All']} />
-        </Stack>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
+        </Box>
       </Box>
-          </Box>
+
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-  {/* Total Site Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow:2 }}>
-    <Box>
-      <Typography color="text.secondary">Total Gutters</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>{gutters?.length}</Typography>
-    </Box>
-    <Box
-      sx={{
-        bgcolor: '#E0F2FE',
-        p: 1.5,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <GiRiver style={{ color: '#3B82F6', fontSize: '2rem' }}/>
-    </Box>
-  </Card>
-
-  {/* Maintained Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow:2 }}>
-    <Box>
-      <Typography color="text.secondary">Constructed with Block</Typography>
-        <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>
-          {countByProperty(gutters, 'type', 'Constructed with Block')}
-        </Typography>
-    </Box>
-    <Box
-      sx={{
-        bgcolor: '#E8F5E9',
-        p: 1.5,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-      <GiBrickWall style={{color: '#4CAF50', fontSize: '2rem'}} />
-    </Box>
-  </Card>
-
-  {/* Overfilled Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow:2 }}>
-    <Box>
-      <Typography color="text.secondary">Locally Dug</Typography>
-        <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>
-        {countByProperty(gutters, 'type', 'Locally Dug')}
-        </Typography>
-    </Box>
-    <Box
-      sx={{
-        bgcolor: '#FEE2E2',
-        p: 1.5,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+        {/* Total Site Card */}
+        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
+          <Box>
+            <Typography color="text.secondary">Total Gutters</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 600 }}>{filteredData.length.toLocaleString()}</Typography>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: '#E0F2FE',
+              p: 1.5,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-      <GiSplashyStream style={{ color: '#EF4444', fontSize: '2rem'}} />
-    </Box>
-  </Card>
+            <GiRiver style={{ color: '#3B82F6', fontSize: '2rem' }} />
+          </Box>
+        </Card>
 
-  {/* Unmaintained Card */}
-  <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow:2 }}>
-    <Box>
-      <Typography color="text.secondary">Surfaced Gutter</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
-      {countByProperty(gutters, 'type', 'Surface Gutter')}
-      </Typography>
-    </Box>
-    <Box
-      sx={{
-        bgcolor: '#FEF3C7',
-        p: 1.5,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <GiSpill style={{color: '#F59E0B', fontSize: '2rem'}}/>
-    </Box>
-  </Card>
-</Box>
+        {/* Maintained Card */}
+        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
+          <Box>
+            <Typography color="text.secondary">Constructed with Block</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>
+              {countByProperty(filteredData, 'type', 'Constructed with Block')}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: '#E8F5E9',
+              p: 1.5,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <GiBrickWall style={{ color: '#4CAF50', fontSize: '2rem' }} />
+          </Box>
+        </Card>
+
+        {/* Overfilled Card */}
+        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
+          <Box>
+            <Typography color="text.secondary">Locally Dug</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>
+              {countByProperty(filteredData, 'type', 'Locally Dug')}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: '#FEE2E2',
+              p: 1.5,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <GiSplashyStream style={{ color: '#EF4444', fontSize: '2rem' }} />
+          </Box>
+        </Card>
+
+        {/* Unmaintained Card */}
+        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
+          <Box>
+            <Typography color="text.secondary">Surfaced Gutter</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
+              {countByProperty(filteredData, 'type', 'Surface Gutter')}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              bgcolor: '#FEF3C7',
+              p: 1.5,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <GiSpill style={{ color: '#F59E0B', fontSize: '2rem' }} />
+          </Box>
+        </Card>
+      </Box>
 
       {/* Maintenance Table */}
       <Paper sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Gutter Overview
-            </Typography>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            Gutter Overview
+          </Typography>
         </Box>
 
         <DataTable
@@ -273,10 +298,9 @@ const GutterDashboard = () => {
           setLimit={setLimit}
           isLoading={isLoading}
           columns={columns}
-          data={gutters || []}
+          data={filteredData || []}
         />
       </Paper>
-
     </Box>
   );
 };

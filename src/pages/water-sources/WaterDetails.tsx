@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Chip,
   CircularProgress,
   Container,
@@ -8,16 +7,14 @@ import {
   Grid,
   IconButton,
   Modal,
-  Stack,
   Tab,
   Tabs,
-  Typography,
   Tooltip, // Added Tooltip import
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
@@ -39,6 +36,7 @@ import {
 } from 'recharts';
 import { apiController } from '../../axios';
 import { PinDrop, Map, Streetview } from '@mui/icons-material';
+import { Box, Typography, Stack } from '@mui/material';
 
 // Define types for the water source and quality test
 interface WaterSource {
@@ -82,6 +80,45 @@ interface QualityTest {
   _id: string;
 }
 
+interface MapCardProps {
+  latitude: number;
+  longitude: number;
+  hamlet: string;
+  village: string;
+  ward: string;
+}
+
+const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
+  <Box
+    sx={{
+      position: 'absolute', // Position the card absolutely
+      top: 16, // Distance from the top of the map
+      left: '50%', // Center horizontally
+      transform: 'translateX(-50%)', // Adjust for centering
+      zIndex: 1000, // Ensure it appears above the map
+      bgcolor: 'background.paper', // Background color
+      p: 2, // Padding
+      borderRadius: 2, // Rounded corners
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', // Shadow for depth
+      display: 'flex', // Arrange content horizontally
+      gap: 3, // Space between items
+      alignItems: 'center', // Center items vertically
+      width: '60%', // Set the width to 80% of the parent container
+      maxWidth: 1000, // Increase the maximum width (adjust as needed)
+    }}
+  >
+    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
+    <DetailItem icon={Home} label="Village" value={village} />
+    <DetailItem icon={Home} label="Ward" value={ward} />
+    <DetailItem
+      icon={Compass}
+      label="Coordinates"
+      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
+    />
+  </Box>
+);
+
+
 const WaterSourceDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [isWaterSourceImageOpen, setIsWaterSourceImageOpen] = useState(false); // For water source image
@@ -96,6 +133,8 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // console.log("w/d", waterSource)
+
   // Click handlers for each image
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
@@ -103,7 +142,7 @@ const WaterSourceDetails: React.FC = () => {
   if (isLoading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <CircularProgress size={60} thickness={4} />
       </Box>
     );
   if (error || !waterSource) {
@@ -349,6 +388,22 @@ const OverviewTab = ({
               }
             />
           </Grid>
+            <Grid item xs={6}>
+            <DetailItem 
+              icon={Compass} 
+              label="Coordinate (Lat/Long)" 
+              value={
+                <a 
+                  href={`https://www.google.com/maps?q=${waterSource?.geolocation?.coordinates[1]},${waterSource?.geolocation?.coordinates[0]}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'blue', fontWeight: 'bold' }}
+                >
+                  {`${waterSource?.geolocation?.coordinates[1] || 'N/A'}, ${waterSource?.geolocation?.coordinates[0] || 'N/A'}`}
+                </a>
+              }
+            />
+          </Grid>
         </Grid>
       </Box>
     </Grid>
@@ -439,16 +494,24 @@ const OverviewTab = ({
 
     {/* Map */}
     <Grid item xs={12}>
-      <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', mb: 4 }}>
-        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={position}>
-            <Popup>
-              {waterSource?.type} at {waterSource?.ward}
-            </Popup>
-          </Marker>
-        </MapContainer>
-      </Box>
+    <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', mb: 4, position: 'relative' }}>
+          <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <Marker position={position}>
+              <Popup>
+                {waterSource?.type} at {waterSource?.ward}
+              </Popup>
+            </Marker>
+            {/* Floating MapCard */}
+            <MapCard
+              latitude={waterSource?.geolocation.coordinates[1]}
+              longitude={waterSource?.geolocation.coordinates[0]}
+              hamlet={waterSource?.hamlet}
+              village={waterSource?.village}
+              ward={waterSource?.ward}
+            />
+          </MapContainer>
+        </Box>
     </Grid>
   </Grid>
 );

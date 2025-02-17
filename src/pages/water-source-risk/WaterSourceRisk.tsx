@@ -1,20 +1,11 @@
-import { Waves, WaterDrop, LocationOn, Business } from '@mui/icons-material';
+import { Waves } from '@mui/icons-material';
 import ErrorIcon from '@mui/icons-material/Error';
-import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Card,
   Grid,
   Paper,
   Typography,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Chip,
-  Divider,
-  Avatar,
-  Modal,
   FormControl,
   InputLabel,
   MenuItem,
@@ -22,15 +13,16 @@ import {
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { ZoomIn, X, HomeIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import WaterSourceDetailsDialog from './WaterSourceDetailsDialog';
 
+// Interfaces
 interface Location {
   ward: string;
   village: string;
@@ -73,15 +65,45 @@ interface WaterSourceRiskData {
   summary: Summary;
 }
 
-// interface summaryData {
-//   id: string;
-// }
 
+// Function to create an SVG-based Leaflet map marker
+const createSvgMarker = (color: string, iconSymbol: string) => {
+  return new L.DivIcon({
+    html: `
+      <svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
+        <!-- Marker Background (Pin Shape) -->
+        <path fill="${color}" stroke="#fff" stroke-width="3"
+          d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/>
+        <!-- Inner Circle -->
+        <circle cx="25" cy="25" r="10" fill="#fff"/>
+        <!-- Icon/Text in the Center -->
+        <text x="25" y="30" font-size="14" text-anchor="middle" fill="${color}" font-weight="bold">
+          ${iconSymbol}
+        </text>
+      </svg>
+    `,
+    iconSize: [50, 70], // Adjust marker size
+    iconAnchor: [25, 70], // Align bottom-center
+    popupAnchor: [0, -70], // Position popup above the marker
+    className: 'custom-svg-marker'
+  });
+};
 
+// Define SVG markers for different risk levels
+const criticalIcon = createSvgMarker('#ef4444', '⚠'); // Red with warning symbol
+const moderateIcon = createSvgMarker('#f59e0b', '⚠'); // Orange with warning symbol
+const safeIcon = createSvgMarker('#22c55e', '✓'); // Green with checkmark
+
+// Helper function to determine marker icon based on risk levels
+
+// Main Component
 const WaterSourceRisk = () => {
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data: waterRisks, error, isLoading } = useQuery<WaterSourceRiskData[], Error>({
     queryKey: ['waterSourceRisk'],
@@ -90,455 +112,225 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
-  console.log("risk",waterRisks )
 
-  // summary
-  // const { data: summary } = useQuery<summaryData[], Error>({
-  //   queryKey: ['summary'],
-  //   queryFn: async () => {
-  //     const response = await apiController.get<summaryData[]>('/analysis/summary');
-  //     return response;
-  //   },
-  // });
-  // console.log("summary",summary )
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!waterRisks) return [];
+    return [...new Set(waterRisks.map(item => item.location.ward))];
+  }, [waterRisks]);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
+  const villageOptions = useMemo(() => {
+    if (!waterRisks) return [];
+    const filteredVillages = waterRisks
+      .filter(item => !ward || item.location.ward === ward)
+      .map(item => item.location.village);
+    return [...new Set(filteredVillages)];
+  }, [waterRisks, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!waterRisks) return [];
+    const filteredHamlets = waterRisks
+      .filter(item => (!ward || item.location.ward === ward) && (!village || item.location.village === village))
+      .map(item => item.location.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [waterRisks, ward, village]);
+
+  // Filtered water risks
+  const filteredWaterRisks = useMemo(() => {
+    if (!waterRisks) return [];
+    return waterRisks.filter(item =>
+      (!ward || item.location.ward === ward) &&
+      (!village || item.location.village === village) &&
+      (!hamlet || item.location.hamlet === hamlet)
     );
-  }
+  }, [waterRisks, ward, village, hamlet]);
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3, color: 'error.main' }}>
-        <Typography variant="h6">Error loading data</Typography>
-      </Box>
-    );
-  }
-
-  const handleMarkerClick = (waterRisk: WaterSourceRiskData) => {
-    setSelectedSource(waterRisk);
-    setModalOpen(true);
-  };
-
-  // Define custom icons
-  const criticalIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
+// Calculate statistics
+const { criticalCount, moderateCount, safeCount, totalCount } = useMemo(() => {
+  let critical = 0, moderate = 0, safe = 0, total = 0;
+  
+  filteredWaterRisks?.forEach(risk => {
+    critical += risk.summary.toilets.critical + risk.summary.soakAways.critical + 
+               risk.summary.openDefecation.critical + risk.summary.gutters.critical;
+    moderate += risk.summary.toilets.moderate + risk.summary.soakAways.moderate + 
+                risk.summary.openDefecation.moderate + risk.summary.gutters.moderate;
+    safe += risk.summary.toilets.good + risk.summary.soakAways.good + 
+            risk.summary.openDefecation.good + risk.summary.gutters.good;
+    total += risk.summary.toilets.total + risk.summary.soakAways.total + 
+             risk.summary.openDefecation.total + risk.summary.gutters.total;
   });
 
-  const moderateIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+  return { criticalCount: critical, moderateCount: moderate, safeCount: safe, totalCount: total };
+}, [filteredWaterRisks]);
 
-  const safeIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
-
-  // Calculate the center position based on the first water source or use default
-  const defaultPosition: [number, number] = waterRisks && waterRisks.length > 0
-    ? [waterRisks[0].location.coordinates[1], waterRisks[0].location.coordinates[0]]
-    : [11.2832241, 7.6644755];
-
-  // Helper function to determine marker icon based on risk levels
-  const getMarkerIcon = (waterRisk: WaterSourceRiskData) => {
-    const hasCritical = waterRisk.facilities.toilets.some(t => t.riskLevel === 'critical');
-    const hasModerate = waterRisk.facilities.toilets.some(t => t.riskLevel === 'moderate');
-    
-    if (hasCritical) return criticalIcon;
-    if (hasModerate) return moderateIcon;
-    return safeIcon;
-  };
-
-  const FilterDropdown = ({ label, options }) => {
-    const [selectedOption, setSelectedOption] = useState('');
-  
-    const handleChange = (event) => {
-      setSelectedOption(event.target.value);
-    };
-  
-    return (
-      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-          {options.map((option, index) => (
-            <MenuItem key={index} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
-  
-
-  return (
-    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600, mb: 0.5 }}>
-            Distance Monitoring for Risks
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {waterRisks?.length || 0} Water Sources Monitored
-          </Typography>
-        </Box>
-        <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown label="Ward" options={['All']} />
-          <FilterDropdown label="Village" options={['All']} />
-          <FilterDropdown label="Hamlet" options={['All']} />
-        </Stack>
-      </Box>
-      </Box>
-
-      {/* Stats Cards */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <StatsCard
-          title="Critical Risks"
-          value={"798"}
-          icon={<ErrorIcon />}
-          iconColor="#f44336"
-        />
-        <StatsCard
-          title="Moderate Risks"
-          value={"198"}
-          icon={<FaWrench style={{ color: "#CA8A04" }} />}
-          iconColor="#ff9800"
-        />
-        <StatsCard
-          title="Safe Facilities"
-          value={"670"}
-          icon={<FaClipboardCheck style={{ color: "#4caf50" }} />}
-          iconColor="#4caf50"
-        />
-        <StatsCard
-          title="Total Facilities"
-          value={"1,666"}
-          icon={<Waves style={{ color: "#2196f3" }} />}
-          iconColor="#2196f3"
-        />
-      </Box>
-
-      {/* Main Content */}
-      <Box sx={{ display: 'flex', gap: 2, backgroundColor: '#f0f0f0' }}>
-        <Paper sx={{ p: 2, borderRadius: 2, width: '100%' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Risk Heatmap</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#f44336' }} />
-                <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Critical Risk (&lt;10m)</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />
-                <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Moderate Risk (10-30m)</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#4caf50' }} />
-                <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Safe Distance (&gt;30m)</Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box sx={{ height: 600, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
-            <MapContainer
-              center={defaultPosition}
-              zoom={15}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
-              {waterRisks?.map((waterRisk) => (
-                <Marker 
-                  key={waterRisk.waterSourceId}
-                  position={[waterRisk.location.coordinates[1], waterRisk.location.coordinates[0]]}
-                  icon={getMarkerIcon(waterRisk)}
-                  eventHandlers={{
-                    click: () => handleMarkerClick(waterRisk)
-                  }}
-                />
-              ))}
-            </MapContainer>
-          </Box>
-        </Paper>
-      </Box>
-
-      <Dialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ m: 0, p: 2, bgcolor: '#f8f9fa' }}>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-            Water Source Details
-          </Typography>
-          <IconButton
-            onClick={() => setModalOpen(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedSource && (
-            <Box sx={{ p: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      '&:hover .zoom-icon': { opacity: 1 },
-                      height: '100%',
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=800&q=80"
-                      alt="Water source"
-                      onClick={() => setIsImageOpen(true)}
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
-                      }}
-                    />
-                    <IconButton
-                      className="zoom-icon"
-                      onClick={() => setIsImageOpen(true)}
-                      sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        opacity: 0,
-                        transition: 'opacity 0.2s',
-                        '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-                        color: 'white'
-                      }}
-                    >
-                      <ZoomIn />
-                    </IconButton>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ mb: 3, height: '100%' }}>
-                    <Typography variant="h6" gutterBottom>Risk Summary</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#fee2e2', borderRadius: 1 }}>
-                          <Typography variant="body2" color="error">Critical Risks</Typography>
-                          <Typography variant="h4">{selectedSource.summary.toilets.critical}</Typography>
-                        </Box>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#fef3c7', borderRadius: 1 }}>
-                          <Typography variant="body2" color="warning.main">Moderate Risks</Typography>
-                          <Typography variant="h4">{selectedSource.summary.toilets.moderate}</Typography>
-                        </Box>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#dcfce7', borderRadius: 1 }}>
-                          <Typography variant="body2" color="success.main">Safe Facilities</Typography>
-                          <Typography variant="h4">{selectedSource.summary.toilets.good}</Typography>
-                        </Box>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: '#dbeafe', borderRadius: 1 }}>
-                          <Typography variant="body2" color="info.main">Total Facilities</Typography>
-                          <Typography variant="h4">{selectedSource.summary.toilets.total}</Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={12}>
-                  <Box
-                    sx={{
-                      bgcolor: '#fff',
-                      p: 3,
-                      borderRadius: 2,
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      height: '100%', // Ensure the height matches the adjacent container
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between', // Distribute content evenly
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                      <WaterDrop sx={{ color: 'primary.main', fontSize: 28 }} />
-                      <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                        {selectedSource.waterSourceType}
-                      </Typography>
-                    </Box>
-
-                    <Divider sx={{ mb: 3 }} />
-
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'primary.light', width: 40, height: 40 }}>
-                          <LocationOn sx={{ color: 'primary.main' }} />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Ward
-                          </Typography>
-                          <Typography variant="subtitle1" fontWeight="500">
-                            {selectedSource.location.ward}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'success.light', width: 40, height: 40 }}>
-                          <Business sx={{ color: 'success.main' }} />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Village
-                          </Typography>
-                          <Typography variant="subtitle1" fontWeight="500">
-                            {selectedSource.location.village}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'warning.light', width: 40, height: 40 }}>
-                          <HomeIcon color="warning" />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Hamlet
-                          </Typography>
-                          <Typography variant="subtitle1" fontWeight="500">
-                            {selectedSource.location.hamlet}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ mt: 2 }}>
-                      <Chip
-                        icon={<LocationOn />}
-                        label={`${selectedSource.location.coordinates[1].toFixed(6)}, ${selectedSource.location.coordinates[0].toFixed(6)}`}
-                        variant="outlined"
-                        color="primary"
-                        sx={{ width: '100%', justifyContent: 'flex-start', px: 1 }}
-                      />
-                    </Box>
-                  </Box>
-                </Grid>                
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>Nearby Facilities</Typography>
-                  <Grid container spacing={2}>
-                    {['toilets', 'soakAways', 'openDefecation', 'gutters'].map((facilityType) => (
-                      <Grid item xs={12} sm={6} md={3} key={facilityType}>
-                        <Card sx={{ p: 2 }}>
-                          <Typography variant="subtitle2" gutterBottom sx={{ textTransform: 'capitalize' }}>
-                            {facilityType.replace(/([A-Z])/g, ' $1').trim()}
-                          </Typography>
-                          <Typography variant="h5">
-                            {selectedSource.facilities[facilityType as keyof Facilities].length}
-                          </Typography>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Grid>                
-              </Grid>
-            </Box>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Modal */}
-      <Modal
-        open={isImageOpen}
-        onClose={() => setIsImageOpen(false)}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
-          <IconButton
-            onClick={() => setIsImageOpen(false)}
-            sx={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              bgcolor: 'rgba(0, 0, 0, 0.5)',
-              color: 'white',
-              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-            }}
-          >
-            <X />
-          </IconButton>
-          <Box
-            component="img"
-            src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=800&q=80"
-            alt="Water Source"
-            sx={{
-              maxWidth: '100%',
-              maxHeight: '90vh',
-              objectFit: 'contain',
-              borderRadius: 2,
-            }}
-          />
-        </Box>
-      </Modal>
-    </Box>
+// Helper function to determine marker icon based on risk levels
+const getMarkerIcon = (waterRisk: WaterSourceRiskData) => {
+  const hasCritical = Object.values(waterRisk.facilities).some(facilities => 
+    facilities.some(f => f.riskLevel === 'critical')
   );
+  const hasModerate = Object.values(waterRisk.facilities).some(facilities => 
+    facilities.some(f => f.riskLevel === 'moderate')
+  );
+  
+  if (hasCritical) return criticalIcon;
+  if (hasModerate) return moderateIcon;
+  return safeIcon;
 };
 
-// Stats Card Component
-interface StatsCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactElement;
-  iconColor: string;
+// Default position for the map
+const defaultPosition: [number, number] = waterRisks && waterRisks.length.toLocaleString() > 0
+  ? [waterRisks[0].location.coordinates[1], waterRisks[0].location.coordinates[0]]
+  : [11.2832241, 7.6644755]; // Fallback position
+
+if (isLoading) {
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <CircularProgress size={60} thickness={4} />
+    </Box>
+  );
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) => (
-  <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-      {title}
-    </Typography>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>
-        {value}
+if (error) {
+  return (
+    <Box sx={{ p: 3, textAlign: 'center' }}>
+      <ErrorIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
+      <Typography variant="h6" color="error.main">
+        Failed to load water source data
       </Typography>
-      <Box sx={{
-        bgcolor: `${iconColor}15`,
-        p: 1,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {React.cloneElement(icon, { sx: { color: iconColor } })}
-      </Box>
     </Box>
-  </Card>
+  );
+}
+
+const handleMarkerClick = (waterRisk: WaterSourceRiskData) => {
+  setSelectedSource(waterRisk);
+  setModalOpen(true); // Open the modal
+};
+
+return (
+  <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+    {/* Header Section */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box>
+        <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+          Water Risk Monitoring
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          {filteredWaterRisks.length.toLocaleString()} water sources monitored
+        </Typography>
+      </Box>
+      <Stack direction="row" spacing={1}>
+        <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+        <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+        <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+      </Stack>
+    </Box>
+
+    {/* Statistics Cards */}
+    <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatsCard title="Critical Risks" value={criticalCount.toString()} icon={<ErrorIcon />} iconColor="#ef4444" />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatsCard title="Moderate Risks" value={moderateCount.toString()} icon={<FaWrench />} iconColor="#f59e0b" />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatsCard title="Safe Facilities" value={safeCount.toString()} icon={<FaClipboardCheck />} iconColor="#22c55e" />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatsCard title="Total Facilities" value={totalCount.toString()} icon={<Waves />} iconColor="#3b82f6" />
+      </Grid>
+    </Grid>
+
+    {/* Enhanced Map Section */}
+    <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Risk Distribution Map
+        </Typography>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <MapLegendItem color="#ef4444" label="Critical Risk (<10m)" />
+          <MapLegendItem color="#f59e0b" label="Moderate Risk (10-30m)" />
+          <MapLegendItem color="#22c55e" label="Safe Distance (>30m)" />
+        </Stack>
+      </Box>
+
+      <Box sx={{ height: '70vh', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+        <MapContainer center={defaultPosition} zoom={14} style={{ height: '100%', width: '100%' }} attributionControl={false}>
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+          {filteredWaterRisks?.map((waterRisk) => (
+            <Marker
+              key={waterRisk.waterSourceId}
+              position={[waterRisk.location.coordinates[1], waterRisk.location.coordinates[0]]}
+              icon={getMarkerIcon(waterRisk)}
+              eventHandlers={{ click: () => handleMarkerClick(waterRisk) }}
+            />
+          ))}
+        </MapContainer>
+      </Box>
+    </Paper>
+
+    {/* Dialog and Modal */}
+    {selectedSource && (
+      <WaterSourceDetailsDialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        waterSource={selectedSource}
+        isImageOpen={isImageOpen}
+        onImageOpen={() => setIsImageOpen(true)}
+        onImageClose={() => setIsImageOpen(false)}
+      />
+    )}
+  </Box>
 );
+};
+
+// Reusable Components
+const FilterDropdown = ({ label, value, options, onChange }) => (
+<FormControl variant="outlined" sx={{ minWidth: 140, mx: 1 }}>
+  <InputLabel>{label}</InputLabel>
+  <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 40 }}>
+    <MenuItem value="">All {label}</MenuItem>
+    {options.map((option, index) => (
+      <MenuItem key={index} value={option}>{option}</MenuItem>
+    ))}
+  </Select>
+</FormControl>
+);
+
+const StatsCard = React.memo(({ title, value, icon, iconColor }: StatsCardProps) => (
+<Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
+  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+    {title}
+  </Typography>
+  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Typography variant="h4" sx={{ fontWeight: 600 }}>
+  {Number(value).toLocaleString()}
+    </Typography>
+    <Box sx={{ bgcolor: `${iconColor}15`, p: 1, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {React.cloneElement(icon, { sx: { color: iconColor } })}
+    </Box>
+  </Box>
+</Card>
+));
+
+const MapLegendItem = React.memo(({ color, label }) => (
+<Stack direction="row" alignItems="center" spacing={1}>
+  <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: color }} />
+  <Typography variant="caption" sx={{ fontWeight: 500, color: '#4b5563' }}>
+    {label}
+  </Typography>
+</Stack>
+));
+
+// Interfaces for reusable components
+interface StatsCardProps {
+title: string;
+value: string;
+icon: React.ReactElement;
+iconColor: string;
+}
 
 export default WaterSourceRisk;
