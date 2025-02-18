@@ -32,6 +32,7 @@ import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
+import {Logo} from "../assets/svg/index";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -114,6 +115,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
           justifyContent: isCollapsed ? "center" : "flex-start",
           "&.active": {
             backgroundColor: "#25306B",
+            borderRadius: "20px 20px ",
             color: "white",
             "&:hover": {
               bgcolor: "#25306B",
@@ -127,7 +129,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
         <ListItemIcon
           sx={{
             minWidth: 40,
-            color: "#25306B",
+            color: "#4B5563",
             justifyContent: "center",
             "& svg": {
               fontSize: 20
@@ -162,6 +164,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
         display: "flex",
         flexDirection: "column",
         transition: "width 0.3s",
+        px: 1,
       }}
     >
       {/* Logo and Close Button for Mobile */}
@@ -177,7 +180,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <Link to="/">
           <img
-            src="/src/assets/img/logo.png"
+            src={Logo}
             alt="WashPro Logo"
             style={{
               width: isCollapsed ? 50 : 200,
@@ -242,7 +245,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "#25306B",
+                  color: "#4B5563",
                   justifyContent: "center",
                   "& svg": {
                     fontSize: 24
@@ -291,7 +294,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "#25306B",
+                  color: "#4B5563",
                   justifyContent: "center",
                   "& svg": {
                     fontSize: 24

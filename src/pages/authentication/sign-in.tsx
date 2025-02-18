@@ -17,6 +17,7 @@ import { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useAuthStore, useSnackStore } from "../../store";
+import { Ellipse, Ellipse2, Polygon, Polygon2, Rectangle, Logo } from "../../assets/svg/index";
 
 interface LoginResponse {
   user: {
@@ -106,7 +107,7 @@ const SignInPage: FC = function () {
           </Box>
           {/* Decorative Elements */}
           <img
-            src="/src/assets/img/svg/Polygon 2.svg"
+            src={Polygon2}
             alt="Polygon"
             style={{
               width: 70,
@@ -114,39 +115,55 @@ const SignInPage: FC = function () {
               position: "absolute",
               top: -10,
               left: 270,
+              opacity: 0.5,
             }}
           />
           <img
-            src="/src/assets/img/svg/Ellipse 5.svg"
-            alt="Ellipse"
+            src={Ellipse2}
+            alt="Polygon"
             style={{
-              width: 105,
-              height: 105,
+              width: 100,
+              height: 89,
               position: "absolute",
-              top: 90,
-              left: 380,
+              top: 120,
+              left: 510,
+              opacity: 0.5,
             }}
           />
           <img
-            src="/src/assets/img/svg/Ellipse 5.svg"
-            alt="Ellipse"
+            src={Polygon}
+            alt="Polygon"
             style={{
-              width: 105,
-              height: 105,
+              width: 120,
+              height: 400,
+              position: "absolute",
+              top: 80,
+              left: 390,
+              opacity: 0.5,
+            }}
+          />
+          <img
+            src={Rectangle}
+            alt="Polygon"
+            style={{
+              width: 60,
+              height: 400,
               position: "absolute",
               top: 300,
-              left: 380,
+              left: 240,
+              opacity: 0.5,
             }}
           />
           <img
-            src="/src/assets/img/svg/Ellipse 5.svg"
-            alt="Ellipse"
+            src={Ellipse}
+            alt="Polygon"
             style={{
-              width: 105,
-              height: 105,
+              width: 300,
+              height: 250,
               position: "absolute",
-              top: 650,
-              left: 50,
+              top: 500,
+              left: 0,
+              opacity: 0.5,
             }}
           />
         </Box>
@@ -177,7 +194,7 @@ const SignInPage: FC = function () {
           {/* Logo and Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <img
-              src="./src/assets/img/logo.png"
+              src={Logo}
               alt="Logo"
               style={{ width: isMobile ? 200 : 300 }}
             />

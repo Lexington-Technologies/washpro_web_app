@@ -262,8 +262,7 @@ const OpenDefication = () => {
     }));
   }, [filteredData]);
 
-  const COLORS = ['#ef4444', '#f59e0b', '#22c55e']; // Colors for critical, moderate, good
-
+  const COLORS = ['#22c55e', '#ef4444', '#f59e0b']; // Colors for critical (yellow), moderate (orange), good (green)
   // Custom Tooltip for Pie Chart
   const CustomPieTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

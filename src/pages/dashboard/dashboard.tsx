@@ -188,7 +188,25 @@ const WashDashboard = () => {
     nonDrinkable: filteredWaterSource.filter((source) => source.quality === 'Non Drinkable').length,
   };
 
-  // Toilet Metrics
+  // Facilities Overview Metrics
+  const facilitiesMetrics = {
+    totalWaterSources: filteredWaterSource.length,
+    totalToiletFacilities: filteredToiletFacilities.length,
+    totalDumpSites: filteredDumpSites.length,
+    totalGutters: filteredGutters.length,
+    totalSoakAways: filteredSoakAways.length,
+    totalOpenDefecations: filteredOpenDefecations.length,
+  };
+
+  // Chart Data
+  const facilitiesPieChartData = [
+    { id: 0, value: facilitiesMetrics.totalWaterSources, label: 'WaterSources', color: '#1976d2' },
+    { id: 1, value: facilitiesMetrics.totalToiletFacilities, label: 'Toilet', color: '#7b1fa2' },
+    { id: 2, value: facilitiesMetrics.totalDumpSites, label: 'DumpSites', color: '#ed6c02' },
+    { id: 3, value: facilitiesMetrics.totalGutters, label: 'Gutters', color: '#2e7d32' },
+    { id: 4, value: facilitiesMetrics.totalSoakAways, label: 'SoakAways', color: '#e91e63' },
+    { id: 5, value: facilitiesMetrics.totalOpenDefecations, label: 'Open Defecations', color: '#d32f2f' },
+  ];
 
   // Summary Data
   const SUMMARY_DATA = [
@@ -274,7 +292,6 @@ const WashDashboard = () => {
   ];
 
   // Bar Chart Data
-
   const WATER_SOURCE_METRICS = [
     {
       label: 'Functional Water Sources',
@@ -305,7 +322,6 @@ const WashDashboard = () => {
       bgColor: '#FF9800',
     },
   ];
-
 
   // Loading state
   const isLoading =
@@ -419,6 +435,144 @@ const WashDashboard = () => {
                   </Grid>
                 ))}
               </Grid>
+              {/* Charts Section */}
+              <Grid container spacing={3} sx={{ mt: 2, mb: 3 }}>
+                {/* Pie Chart */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Facility Distribution
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Percentage breakdown by facility type
+                    </Typography>
+                  </Typography>
+                  <PieChart
+                    series={[{
+                      data: facilitiesPieChartData,
+                      arcLabel: (item) => {
+                        const total = facilitiesPieChartData.reduce((sum, d) => sum + d.value, 0);
+                        return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
+                      },
+                      outerRadius: 150,
+                      innerRadius: 50,
+                      cornerRadius: 4,
+                      paddingAngle: 2,
+                      highlightScope: { highlighted: 'item', faded: 'global' },
+                    }]}
+                    width={500}
+                    height={400}
+                    sx={{
+                      [`& .${pieArcLabelClasses.root}`]: {
+                        fill: '#2d3436',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        pointerEvents: 'none',
+                      },
+                      '& .MuiPieArc-root': {
+                        transition: 'transform 0.2s, filter 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                          filter: 'brightness(1.1)',
+                        }
+                      }
+                    }}
+                    slotProps={{
+                      legend: {
+                        direction: 'row',
+                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        padding: { top: 20 },
+                        labelStyle: {
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          fill: '#2d3436',
+                        },
+                        itemMarkWidth: 12,
+                        itemMarkHeight: 12,
+                        markGap: 5,
+                        itemGap: 15,
+                      }
+                    }}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+                  />
+                </Grid>
+                {/* Bar Chart */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Facility Count by Type
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Distribution breakdown by facility type
+                    </Typography>
+                  </Typography>
+                  <BarChart
+                    xAxis={[{
+                      scaleType: 'band',
+                      data: facilitiesPieChartData.map(d => d.label),
+                      tickLabelStyle: {
+                        angle: 15,
+                        textAnchor: 'start',
+                        fontSize: 10, // Smaller font size for x-axis labels
+                      },
+                    }]}
+                    series={facilitiesPieChartData.map((d, index) => ({
+                      data: [d.value], // Wrap the value in an array
+                      color: d.color, // Use the color from facilitiesPieChartData
+                      barThickness: 20, // Reduced bar thickness
+                    }))}
+                    grid={{ vertical: false, horizontal: true }}
+                    width={600} // Reduced width
+                    height={400} // Reduced height
+                    margin={{ left: 100, right: 100, top: 100, bottom: 100 }} // Reduced margins
+                    sx={{
+                      '& .MuiBarElement-root': {
+                        transition: 'transform 0.2s, filter 0.2s',
+                        '&:hover': {
+                          transform: 'scaleY(1.03)',
+                          filter: 'brightness(1.1)',
+                        }
+                      }
+                    }}
+                  />
+                </Grid>
+              </Grid>
             </Box>
           )}
           {currentTab === 1 && (
@@ -441,35 +595,111 @@ const WashDashboard = () => {
               <Grid container spacing={3}>
                 {/* Pie Chart */}
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mb: 2, textAlign: 'center', marginTop: 2, fontWeight: 'bold' }}>
-                    Functional vs Non-Functional Water Sources
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '10px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Water Source Status
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Functional vs Non-Functional Distribution
+                    </Typography>
                   </Typography>
                   <PieChart
                     series={[{
                       data: pieChartData,
                       arcLabel: (item) => {
-                        const total = filteredWaterSource.length || 1; // Avoid division by zero
-                        return `${item.value.toLocaleString()} (${((item.value / total) * 100).toFixed(1)}%)`;
+                        const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
+                        return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
                       },
-                      arcLabelMinAngle: 30,
-                      outerRadius: 150,
+                      outerRadius: 140,
+                      innerRadius: 50,
+                      cornerRadius: 4,
+                      paddingAngle: 2,
+                      highlightScope: { highlighted: 'item', faded: 'global' },
                     }]}
-                    width={600}
-                    height={300}
+                    width={500}
+                    height={350}
                     sx={{
                       [`& .${pieArcLabelClasses.root}`]: {
-                        fontWeight: 'bold',
-                        fill: 'white',
+                        fill: '#2d3436',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        pointerEvents: 'none',
                       },
+                      '& .MuiPieArc-root': {
+                        transition: 'transform 0.2s, filter 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                          filter: 'brightness(1.1)',
+                        }
+                      }
                     }}
+                    slotProps={{
+                      legend: {
+                        direction: 'row',
+                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        padding: { top: 20 },
+                        labelStyle: {
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          fill: '#2d3436',
+                        },
+                        itemMarkWidth: 12,
+                        itemMarkHeight: 12,
+                        markGap: 5,
+                        itemGap: 15,
+                      }
+                    }}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
                   />
                 </Grid>
 
                 {/* Bar Chart - Drinkable vs Non-Drinkable */}
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ mb: 2, textAlign: 'center', fontWeight: 'bold', marginTop: 2 }}>
-                    Drinkable vs Non-Drinkable Water Sources
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Water Source Distribution
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Drinkable vs Non-Drinkable Water Sources
+                    </Typography>
                   </Typography>
+
                   <BarChart
                     xAxis={[{
                       scaleType: 'band',
