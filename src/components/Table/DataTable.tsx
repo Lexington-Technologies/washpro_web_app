@@ -333,8 +333,6 @@ export function DataTable<T extends object>({
                                                 fontSize: '0.875rem',
                                                 borderBottom: '1px solid',
                                                 borderColor: 'divider',
-                                                py: 2,
-                                                px: 3,
                                                 textTransform: 'capitalize',
                                             }}
                                         >

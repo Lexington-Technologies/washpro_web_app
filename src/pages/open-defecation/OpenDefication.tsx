@@ -128,73 +128,62 @@ const OpenDefication = () => {
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  // Fix Leaflet's default icon path issues
-  React.useEffect(() => {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: markerIconUrl,
-      iconRetinaUrl: markerIconRetina,
-      shadowUrl: markerShadow,
-    });
-  }, []);
+// Memoized risk assessment function
+const assessRisk = useMemo(() => (item) => {
+  const footTraffic = item.footTraffic.toLowerCase();
+  const isPeakTimeNight = item.peakTime.some((time) => time.toLowerCase().includes('night'));
+  const isNearWater = item.environmentalCharacteristics.some((char) =>
+    char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
+  );
 
-  const criticalIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+  if (footTraffic === 'high' && isPeakTimeNight) {
+    return { level: 'critical', cause: 'High foot traffic during night hours' };
+  } else if (isNearWater) {
+    return { level: 'critical', cause: 'Proximity to water sources' };
+  } else if (footTraffic === 'medium') {
+    return { level: 'moderate', cause: 'Moderate foot traffic' };
+  }
+  return { level: 'good', cause: 'Low risk area' };
+}, []);
 
-  const moderateIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+// Custom marker icons from WaterSourceRisk
+const criticalIcon = L.divIcon({
+  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#ef4444" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#ef4444" font-weight="bold">⚠</text></svg>',
+  iconSize: [50, 70],
+  iconAnchor: [25, 70],
+  popupAnchor: [0, -70],
+  className: 'custom-svg-marker',
+});
 
-  const safeIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+const moderateIcon = L.divIcon({
+  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#f59e0b" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#f59e0b" font-weight="bold">⚠</text></svg>',
+  iconSize: [50, 70],
+  iconAnchor: [25, 70],
+  popupAnchor: [0, -70],
+  className: 'custom-svg-marker',
+});
 
-  // Function to determine risk level and cause
-  const assessRisk = (item: OpenDefecation): RiskAssessment => {
-    const footTraffic = item.footTraffic.toLowerCase();
-    const isPeakTimeNight = item.peakTime.some(time => time.toLowerCase().includes('night'));
-    const isNearWater = item.environmentalCharacteristics.some(char => 
-      char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
-    );
+const safeIcon = L.divIcon({
+  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#22c55e" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#22c55e" font-weight="bold">✓</text></svg>',
+  iconSize: [50, 70],
+  iconAnchor: [25, 70],
+  popupAnchor: [0, -70],
+  className: 'custom-svg-marker',
+});
 
-    if (footTraffic === 'high' && isPeakTimeNight) {
-      return { level: 'critical', cause: 'High foot traffic during night hours' };
-    } else if (isNearWater) {
-      return { level: 'critical', cause: 'Proximity to water sources' };
-    } else if (footTraffic === 'medium') {
-      return { level: 'moderate', cause: 'Moderate foot traffic' };
-    }
-    return { level: 'good', cause: 'Low risk area' };
-  };
+// Function to determine marker icon based on risk assessment
+const getMarkerIcon = (item) => {
+  const risk = assessRisk(item);
+  return risk.level === 'critical' ? criticalIcon : risk.level === 'moderate' ? moderateIcon : safeIcon;
+};
 
-  const getMarkerIcon = (item: OpenDefecation) => {
-    const risk = assessRisk(item);
-    switch (risk.level) {
-      case 'critical':
-        return criticalIcon;
-      case 'moderate':
-        return moderateIcon;
-      default:
-        return safeIcon;
-    }
-  };
+// Handle marker click
+const handleMarkerClick = (item) => {
+  setSelectedLocation(item);
+  setModalOpen(true);
+};
 
-  const handleMarkerClick = (item: OpenDefecation) => {
-    setSelectedLocation(item);
-    setModalOpen(true);
-  };
-
-  // Generate filter options
+// Generate filter options
   const wardOptions = useMemo(() => {
     if (!data) return ['All'];
     return ['All', ...new Set(data.map(item => item.ward))];
@@ -401,27 +390,20 @@ const OpenDefication = () => {
         </Box>
 
         <Box sx={{ height: '70vh', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-          <MapContainer
-            center={defaultPosition}
-            zoom={15}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap contributors'
-            />
-            {filteredData.map((item) => (
-              <Marker
-                key={item._id}
-                position={[item.geolocation.coordinates[1], item.geolocation.coordinates[0]]}
-                icon={getMarkerIcon(item)}
-                eventHandlers={{
-                  click: () => handleMarkerClick(item)
-                }}
-              />
-            ))}
-          </MapContainer>
-        </Box>
+        <MapContainer center={defaultPosition} zoom={14} style={{ height: '70vh', width: '100%' }}>
+      <TileLayer
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
+      {data?.map((item) => (
+        <Marker
+          key={item._id}
+          position={[item.geolocation.coordinates[1], item.geolocation.coordinates[0]]}
+          icon={getMarkerIcon(item)}
+          eventHandlers={{ click: () => handleMarkerClick(item) }}
+        />
+      ))}
+    </MapContainer>        </Box>
       </Paper>
 
       {/* Location Details Modal */}

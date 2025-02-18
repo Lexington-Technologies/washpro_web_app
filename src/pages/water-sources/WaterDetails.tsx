@@ -9,15 +9,12 @@ import {
   Modal,
   Tab,
   Tabs,
-  Tooltip, // Added Tooltip import
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Bar,
@@ -35,10 +32,10 @@ import {
   YAxis,
 } from 'recharts';
 import { apiController } from '../../axios';
-import { PinDrop, Map, Streetview } from '@mui/icons-material';
 import { Box, Typography, Stack } from '@mui/material';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 
-// Define types for the water source and quality test
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 interface WaterSource {
   geolocation: {
     type: string;
@@ -80,49 +77,12 @@ interface QualityTest {
   _id: string;
 }
 
-interface MapCardProps {
-  latitude: number;
-  longitude: number;
-  hamlet: string;
-  village: string;
-  ward: string;
-}
-
-const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
-  <Box
-    sx={{
-      position: 'absolute', // Position the card absolutely
-      top: 16, // Distance from the top of the map
-      left: '50%', // Center horizontally
-      transform: 'translateX(-50%)', // Adjust for centering
-      zIndex: 1000, // Ensure it appears above the map
-      bgcolor: 'background.paper', // Background color
-      p: 2, // Padding
-      borderRadius: 2, // Rounded corners
-      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', // Shadow for depth
-      display: 'flex', // Arrange content horizontally
-      gap: 3, // Space between items
-      alignItems: 'center', // Center items vertically
-      width: '60%', // Set the width to 80% of the parent container
-      maxWidth: 1000, // Increase the maximum width (adjust as needed)
-    }}
-  >
-    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
-    <DetailItem icon={Home} label="Village" value={village} />
-    <DetailItem icon={Home} label="Ward" value={ward} />
-    <DetailItem
-      icon={Compass}
-      label="Coordinates"
-      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
-    />
-  </Box>
-);
 
 
 const WaterSourceDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isWaterSourceImageOpen, setIsWaterSourceImageOpen] = useState(false); // For water source image
-  const [isPersonImageOpen, setIsPersonImageOpen] = useState(false); // For person image
+  const [isWaterSourceImageOpen, setIsWaterSourceImageOpen] = useState(false);
+  const [isPersonImageOpen, setIsPersonImageOpen] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -133,16 +93,13 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // console.log("w/d", waterSource)
-
-  // Click handlers for each image
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
 
   if (isLoading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <CircularProgress size={60} thickness={4} />
+        <CircularProgress size={60} thickness={4} />
       </Box>
     );
   if (error || !waterSource) {
@@ -299,9 +256,20 @@ const OverviewTab = ({
   position: [number, number];
   onWaterSourceImageClick: () => void;
   onPersonImageClick: () => void;
-}) => (
-  <Grid container spacing={4}>
-    <Grid item xs={12} md={8}>
+}) => {
+  // Load Google Maps
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: ['places'], // Optional: Add libraries if needed
+  });
+
+  // Handle loading and errors
+  if (loadError) return <Typography>Error loading Google Maps</Typography>;
+  if (!isLoaded) return <CircularProgress />;
+
+  return (
+    <Grid container spacing={4}>
+        <Grid item xs={12} md={8}>
       <Box
         sx={{
           p: 3,
@@ -363,7 +331,7 @@ const OverviewTab = ({
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
+        {/* <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem
               icon={PinDrop}
@@ -388,23 +356,7 @@ const OverviewTab = ({
               }
             />
           </Grid>
-            <Grid item xs={6}>
-            <DetailItem 
-              icon={Compass} 
-              label="Coordinate (Lat/Long)" 
-              value={
-                <a 
-                  href={`https://www.google.com/maps?q=${waterSource?.geolocation?.coordinates[1]},${waterSource?.geolocation?.coordinates[0]}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none', color: 'blue', fontWeight: 'bold' }}
-                >
-                  {`${waterSource?.geolocation?.coordinates[1] || 'N/A'}, ${waterSource?.geolocation?.coordinates[0] || 'N/A'}`}
-                </a>
-              }
-            />
-          </Grid>
-        </Grid>
+        </Grid> */}
       </Box>
     </Grid>
 
@@ -491,30 +443,31 @@ const OverviewTab = ({
         </Box>
       )}
     </Grid>
-
-    {/* Map */}
+    {/* Google Maps Section */}
     <Grid item xs={12}>
-    <Box sx={{ height: 400, borderRadius: 2, overflow: 'hidden', boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)', mb: 4, position: 'relative' }}>
-          <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <Marker position={position}>
-              <Popup>
-                {waterSource?.type} at {waterSource?.ward}
-              </Popup>
-            </Marker>
-            {/* Floating MapCard */}
-            <MapCard
-              latitude={waterSource?.geolocation.coordinates[1]}
-              longitude={waterSource?.geolocation.coordinates[0]}
-              hamlet={waterSource?.hamlet}
-              village={waterSource?.village}
-              ward={waterSource?.ward}
+        <Box
+          sx={{
+            height: 500,
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+            mb: 4,
+          }}
+        >
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={{ lat: position[0], lng: position[1] }}
+            zoom={15}
+          >
+            <MarkerF
+              position={{ lat: position[0], lng: position[1] }}
             />
-          </MapContainer>
-        </Box>
-    </Grid>
-  </Grid>
-);
+          </GoogleMap>
+          </Box>
+          </Grid>
+          </Grid>
+  );
+}
 
 const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   const barData = [
@@ -596,18 +549,35 @@ const QualityTab = ({ qualityTest }: { qualityTest: QualityTest }) => {
   );
 };
 
-const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
-  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-    <Icon size={20} style={{ color: '#666', marginTop: 4 }} />
-    <Box>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        {label}
-      </Typography>
-      <Typography variant="body1">
-        {value}
-      </Typography>
+const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => {
+  const iconColorMap: { [key: string]: string } = {
+    MapPin: '#ff6b6b',
+    GiWell: '#4dabf7',
+    HeartPulse: '#ff8787',
+    Cog: '#495057',
+    Calendar: '#f783ac',
+    User: '#69db7c',
+    Phone: '#4dabf7',
+    Home: '#ffa94d',
+    Users: '#20c997',
+    PinDrop: '#ff6b6b',
+    Compass: '#4dabf7',
+    ZoomIn: '#495057',
+  };
+
+  const iconColor = iconColorMap[Icon.displayName || Icon.name] || '#666';
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Icon size={20} style={{ color: iconColor, marginTop: 4 }} />
+      <Box>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {label}
+        </Typography>
+        <Typography variant="body1">{value}</Typography>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default WaterSourceDetails;

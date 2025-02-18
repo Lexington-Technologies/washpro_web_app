@@ -12,6 +12,7 @@ import {
   Select,
   Stack,
   CircularProgress,
+  Avatar,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import L from 'leaflet';
@@ -21,7 +22,8 @@ import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import WaterSourceDetailsDialog from './WaterSourceDetailsDialog';
-
+import { createColumnHelper } from '@tanstack/react-table';
+import { DataTable } from '../../components/Table/DataTable';
 // Interfaces
 interface Location {
   ward: string;
@@ -94,7 +96,142 @@ const criticalIcon = createSvgMarker('#ef4444', '⚠'); // Red with warning symb
 const moderateIcon = createSvgMarker('#f59e0b', '⚠'); // Orange with warning symbol
 const safeIcon = createSvgMarker('#22c55e', '✓'); // Green with checkmark
 
-// Helper function to determine marker icon based on risk levels
+// mock data
+const waterRisksmock = [
+  {
+    picture: "https://example.com/images/source1.jpg",
+    ward: "Ward A",
+    village: "Village X",
+    hamlet: "Hamlet 1",
+    type: "Borehole",
+    critical: 5,
+    moderate: 10,
+    good: 20
+  },
+  {
+    picture: "https://example.com/images/source2.jpg",
+    ward: "Ward B",
+    village: "Village Y",
+    hamlet: "Hamlet 2",
+    type: "Well",
+    critical: 2,
+    moderate: 8,
+    good: 15
+  },
+  {
+    picture: "https://example.com/images/source3.jpg",
+    ward: "Ward C",
+    village: "Village Z",
+    hamlet: "Hamlet 3",
+    type: "Hand Pump",
+    critical: 3,
+    moderate: 5,
+    good: 12
+  },
+  {
+    picture: "https://example.com/images/source4.jpg",
+    ward: "Ward A",
+    village: "Village W",
+    hamlet: "Hamlet 4",
+    type: "Spring",
+    critical: 1,
+    moderate: 4,
+    good: 18
+  },
+  {
+    picture: "https://example.com/images/source5.jpg",
+    ward: "Ward D",
+    village: "Village Q",
+    hamlet: "Hamlet 5",
+    type: "River",
+    critical: 7,
+    moderate: 12,
+    good: 25
+  }
+];
+
+// Define your row shape
+const columnHelper = createColumnHelper()
+
+// Make some columns!
+import { Chip } from '@mui/material';
+
+// Updated Columns
+const columns = [
+  columnHelper.accessor('picture', {
+    header: 'Picture',
+    cell: props => (
+      <Avatar
+        src={props.row.original.picture}
+        alt="water source"
+        sx={{
+          borderRadius: '100%', // Make avatar round
+        }}
+      />
+    ),
+  }),
+  columnHelper.accessor('ward', {
+    header: 'Ward',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('village', {
+    header: 'Village',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('hamlet', {
+    header: 'Hamlet',
+    cell: info => info.getValue(),
+  }),
+  columnHelper.accessor('type', {
+    header: 'Type',
+    cell: info => info.getValue(),
+  }),
+
+  // **Styled Badge for Critical**
+  columnHelper.accessor('critical', {
+    header: 'Critical',
+    cell: info => (
+      <Chip
+        label={info.getValue().toLocaleString()} // Format number
+        sx={{
+          color: '#ff1744', // Text color
+          backgroundColor: '#fee2e2', // Background color
+          fontWeight: 'bold',
+        }}
+      />
+    ),
+  }),
+
+  // **Styled Badge for Moderate**
+  columnHelper.accessor('moderate', {
+    header: 'Moderate',
+    cell: info => (
+      <Chip
+        label={info.getValue().toLocaleString()} // Format number
+        sx={{
+          color: '#ed6c02', // Text color
+          backgroundColor: 'rgb(242, 221, 204)', // Background color
+          fontWeight: 'bold',
+        }}
+      />
+    ),
+  }),
+
+  // **Styled Badge for Good**
+  columnHelper.accessor('good', {
+    header: 'Good',
+    cell: info => (
+      <Chip
+        label={info.getValue().toLocaleString()} // Format number
+        sx={{
+          color: 'rgb(51, 141, 27)', // Text color
+          backgroundColor: '#8fdf82', // Background color
+          fontWeight: 'bold',
+        }}
+      />
+    ),
+  }),
+];
 
 // Main Component
 const WaterSourceRisk = () => {
@@ -112,6 +249,8 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
+
+  console.log("waterRisks", waterRisks);
 
   // Generate filter options
   const wardOptions = useMemo(() => {
@@ -145,37 +284,50 @@ const WaterSourceRisk = () => {
     );
   }, [waterRisks, ward, village, hamlet]);
 
-// Calculate statistics
+// Calculate statistics using reduce
 const { criticalCount, moderateCount, safeCount, totalCount } = useMemo(() => {
-  let critical = 0, moderate = 0, safe = 0, total = 0;
-  
-  filteredWaterRisks?.forEach(risk => {
-    critical += risk.summary.toilets.critical + risk.summary.soakAways.critical + 
-               risk.summary.openDefecation.critical + risk.summary.gutters.critical;
-    moderate += risk.summary.toilets.moderate + risk.summary.soakAways.moderate + 
-                risk.summary.openDefecation.moderate + risk.summary.gutters.moderate;
-    safe += risk.summary.toilets.good + risk.summary.soakAways.good + 
-            risk.summary.openDefecation.good + risk.summary.gutters.good;
-    total += risk.summary.toilets.total + risk.summary.soakAways.total + 
-             risk.summary.openDefecation.total + risk.summary.gutters.total;
-  });
+  return filteredWaterRisks.reduce(
+    (acc, risk) => ({
+      criticalCount:
+        acc.criticalCount +
+        risk.summary.toilets.critical +
+        risk.summary.soakAways.critical +
+        risk.summary.openDefecation.critical +
+        risk.summary.gutters.critical,
 
-  return { criticalCount: critical, moderateCount: moderate, safeCount: safe, totalCount: total };
+      moderateCount:
+        acc.moderateCount +
+        risk.summary.toilets.moderate +
+        risk.summary.soakAways.moderate +
+        risk.summary.openDefecation.moderate +
+        risk.summary.gutters.moderate,
+
+      safeCount:
+        acc.safeCount +
+        risk.summary.toilets.good +
+        risk.summary.soakAways.good +
+        risk.summary.openDefecation.good +
+        risk.summary.gutters.good,
+
+      totalCount:
+        acc.totalCount + risk.facilities.toilets.length + risk.facilities.soakAways.length + risk.facilities.openDefecation.length + risk.facilities.gutters.length
+      
+      }),
+    { criticalCount: 0, moderateCount: 0, safeCount: 0, totalCount: 0 } // Initial accumulator values
+  );
 }, [filteredWaterRisks]);
+
 
 // Helper function to determine marker icon based on risk levels
 const getMarkerIcon = (waterRisk: WaterSourceRiskData) => {
-  const hasCritical = Object.values(waterRisk.facilities).some(facilities => 
-    facilities.some(f => f.riskLevel === 'critical')
-  );
-  const hasModerate = Object.values(waterRisk.facilities).some(facilities => 
-    facilities.some(f => f.riskLevel === 'moderate')
-  );
+  const hasCritical = waterRisk.facilities.toilets.some(t => t.riskLevel === 'critical');
+  const hasModerate = waterRisk.facilities.toilets.some(t => t.riskLevel === 'moderate');
   
   if (hasCritical) return criticalIcon;
   if (hasModerate) return moderateIcon;
   return safeIcon;
 };
+
 
 // Default position for the map
 const defaultPosition: [number, number] = waterRisks && waterRisks.length.toLocaleString() > 0
@@ -215,7 +367,7 @@ return (
           Water Risk Monitoring
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          {filteredWaterRisks.length.toLocaleString()} water sources monitored
+          water sources monitoring
         </Typography>
       </Box>
       <Stack direction="row" spacing={1}>
@@ -226,20 +378,40 @@ return (
     </Box>
 
     {/* Statistics Cards */}
-    <Grid container spacing={3} sx={{ mb: 3 }}>
-      <Grid item xs={12} sm={6} md={3}>
-        <StatsCard title="Critical Risks" value={criticalCount.toString()} icon={<ErrorIcon />} iconColor="#ef4444" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <StatsCard title="Moderate Risks" value={moderateCount.toString()} icon={<FaWrench />} iconColor="#f59e0b" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <StatsCard title="Safe Facilities" value={safeCount.toString()} icon={<FaClipboardCheck />} iconColor="#22c55e" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <StatsCard title="Total Facilities" value={totalCount.toString()} icon={<Waves />} iconColor="#3b82f6" />
-      </Grid>
-    </Grid>
+<Grid container spacing={3} sx={{ mb: 3 }}>
+  <Grid item xs={12} sm={6} md={3}>
+    <StatsCard 
+      title="Critical Risks" 
+      value={criticalCount} 
+      icon={<ErrorIcon />} 
+      iconColor="#ef4444" 
+    />
+  </Grid>
+  <Grid item xs={12} sm={6} md={3}>
+    <StatsCard 
+      title="Moderate Risks" 
+      value={moderateCount}
+      icon={<FaWrench />} 
+      iconColor="#f59e0b" 
+    />
+  </Grid>
+  <Grid item xs={12} sm={6} md={3}>
+    <StatsCard 
+      title="Safe Facilities" 
+      value={safeCount}
+      icon={<FaClipboardCheck />} 
+      iconColor="#22c55e" 
+    />
+  </Grid>
+  <Grid item xs={12} sm={6} md={3}>
+    <StatsCard 
+      title="Total Facilities" 
+      value={totalCount}
+      icon={<Waves />} 
+      iconColor="#3b82f6" 
+    />
+  </Grid>
+</Grid>
 
     {/* Enhanced Map Section */}
     <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
@@ -271,6 +443,11 @@ return (
         </MapContainer>
       </Box>
     </Paper>
+      <DataTable 
+        isLoading={isLoading} 
+        columns={columns} 
+        data={waterRisksmock}
+      />    
 
     {/* Dialog and Modal */}
     {selectedSource && (
