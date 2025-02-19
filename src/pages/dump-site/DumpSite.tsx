@@ -150,7 +150,7 @@ const columns = [
 ];
 
 const FilterDropdown = ({ label, value, options, onChange }) => (
-  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
     <InputLabel>{label}</InputLabel>
     <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
       <MenuItem value="">All {label}</MenuItem>

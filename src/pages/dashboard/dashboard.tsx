@@ -53,7 +53,7 @@ const StyledCard = ({ ...props }) => {
 };
 
 const FilterDropdown = ({ label, options, value, onChange, disabled }) => (
-  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
     <InputLabel>{label}</InputLabel>
     <Select
       value={value}

@@ -579,7 +579,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   onChange 
 }) => {
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={{ minWidth: 210, height: 40 }}>
       <FormControl fullWidth size="small">
         <InputLabel>{label}</InputLabel>
         <Select
@@ -587,7 +587,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           label={label}
           onChange={(e) => onChange?.(e.target.value)}
           sx={{
-            bgcolor: 'white',
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: 'rgba(0, 0, 0, 0.12)',
             },

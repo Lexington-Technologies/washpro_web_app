@@ -249,9 +249,6 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
-
-  console.log("waterRisks", waterRisks);
-
   // Generate filter options
   const wardOptions = useMemo(() => {
     if (!waterRisks) return [];
@@ -466,7 +463,7 @@ return (
 
 // Reusable Components
 const FilterDropdown = ({ label, value, options, onChange }) => (
-<FormControl variant="outlined" sx={{ minWidth: 140, mx: 1 }}>
+<FormControl variant="outlined" sx={{ mb: 2, minWidth: 210 }}>
   <InputLabel>{label}</InputLabel>
   <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 40 }}>
     <MenuItem value="">All {label}</MenuItem>

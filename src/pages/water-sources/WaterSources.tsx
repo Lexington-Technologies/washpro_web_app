@@ -242,7 +242,7 @@ const WaterSourcesDashboard: React.FC = () => {
   ];
 
   const FilterDropdown = ({ label, options, value, onChange }) => (
-    <FormControl variant="outlined" sx={{ mb: 2, minWidth: 120 }}>
+    <FormControl variant="outlined" sx={{ mb: 2, minWidth: 210 }}>
       <InputLabel>{label}</InputLabel>
       <Select value={value} onChange={(e) => onChange(e.target.value)} label={label}>
         <MenuItem value="">All</MenuItem>
