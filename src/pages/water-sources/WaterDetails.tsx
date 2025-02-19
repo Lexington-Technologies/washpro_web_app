@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Cog, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -77,7 +77,55 @@ interface QualityTest {
   _id: string;
 }
 
+// Add the MapCard component
+interface MapCardProps {
+  latitude: number;
+  longitude: number;
+  hamlet: string;
+  village: string;
+  ward: string;
+}
 
+const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 7,
+      left: 600,
+      transform: 'translateX(-50%)',
+      zIndex: 1000,
+      bgcolor: 'background.paper',
+      p: 1,
+      borderRadius: 2,
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      display: 'flex',
+      gap: 5,
+      alignItems: 'center',
+      width: '60%',
+      maxWidth: 600,
+    }}
+  >
+    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
+    <DetailItem icon={Home} label="Village" value={village} />
+    <DetailItem icon={Home} label="Ward" value={ward} />
+    <DetailItem
+      icon={Compass}
+      label="Coordinates"
+      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
+    />
+    {/* <Tooltip title="View on Street View">
+      <IconButton
+        color="secondary"
+        component="a"
+        href={`https://www.google.com/maps?q=&layer=c&cbll=${latitude},${longitude}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Streetview />
+      </IconButton>
+    </Tooltip> */}
+  </Box>
+);
 
 const WaterSourceDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -92,6 +140,7 @@ const WaterSourceDetails: React.FC = () => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
+  console.log("wd", waterSource)
 
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
@@ -308,14 +357,14 @@ const OverviewTab = ({
               value={format(new Date(waterSource?.updatedAt), 'PPP')}
             />
           </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Captured By" value={`Abdul Ubaid,\n(09118140594)`} />
-          </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+         Contact Person Details
+        </Typography>
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={User} label="Person Name" value={waterSource?.domain?.contactPersonName || 'Not specified'} />
+            <DetailItem icon={User} label="Contact Person Name" value={waterSource?.domain?.contactPersonName || 'Not specified'} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={Phone} label="Phone No" value={waterSource?.domain?.contactPersonPhoneNumber || 'Not specified'} />
@@ -331,6 +380,28 @@ const OverviewTab = ({
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Enumerators Details
+        </Typography>
+        <Grid container spacing={3}>
+        <Grid item xs={6}>
+            <DetailItem icon={User} label="Full Name" value={waterSource?.createdBy?.fullName} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={User} label="Phone no" value={waterSource?.createdBy?.phone} />
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 2 }} />
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <DetailItem icon={Home} label="Email" value={waterSource?.createdBy?.email || 'Not specified'} />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={Users} label="Captured At"               value={format(new Date(waterSource?.createdBy?.createdAt), 'PPP')} />
+          </Grid>
+        </Grid>
+
+
         {/* <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem
@@ -361,111 +432,164 @@ const OverviewTab = ({
     </Grid>
 
     {/* Right Column */}
-    <Grid item xs={12} md={4}>
-      {/* Water Source Image */}
+<Grid item xs={12} md={4}>
+  <Box
+    sx={{
+      p: 2,
+      borderRadius: 2,
+      bgcolor: 'background.paper',
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      mb: 3,
+    }}
+  >
+    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+      Attachments
+    </Typography>
+    
+    {/* Water Source Image */}
+    <Box
+      sx={{
+        position: 'relative',
+        mb: 3,
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        component="img"
+        src={waterSource?.picture}
+        alt="Water Source"
+        onClick={onWaterSourceImageClick}
+        sx={{
+          width: '100%',
+          height: 350,
+          objectFit: 'cover',
+          cursor: 'pointer',
+          transition: 'transform 0.3s ease',
+          '&:hover': {
+            transform: 'scale(1.02)'
+          }
+        }}
+      />
+      <IconButton
+        onClick={onWaterSourceImageClick}
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          bgcolor: 'rgba(255, 255, 255, 0.8)',
+          '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+          color: 'text.primary',
+        }}
+      >
+        <ZoomIn size={20} />
+      </IconButton>
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'block',
+          p: 1,
+          textAlign: 'center',
+          color: 'text.secondary',
+          bgcolor: 'background.default',
+          borderTop: 1,
+          borderColor: 'divider'
+        }}
+      >
+        Water Source Photo
+      </Typography>
+    </Box>
+
+    {/* Person Image */}
+    {waterSource?.domain?.picture && (
       <Box
         sx={{
           position: 'relative',
-          '&:hover .zoom-icon': { opacity: 1 },
-          mb: 2,
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 2,
+          overflow: 'hidden',
         }}
       >
         <Box
           component="img"
-          src={waterSource?.picture}
-          alt="Water Source"
-          onClick={onWaterSourceImageClick}
+          src={waterSource?.domain?.picture}
+          alt="Contact Person"
+          onClick={onPersonImageClick}
           sx={{
             width: '100%',
-            height: 400,
+            height: 200,
             objectFit: 'cover',
-            borderRadius: 2,
             cursor: 'pointer',
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.02)'
+            }
           }}
         />
         <IconButton
-          className="zoom-icon"
-          onClick={onWaterSourceImageClick}
+          onClick={onPersonImageClick}
           sx={{
             position: 'absolute',
-            top: 16,
-            right: 16,
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
-            opacity: 0,
-            transition: 'opacity 0.2s',
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-            color: 'white',
+            top: 8,
+            right: 8,
+            bgcolor: 'rgba(255, 255, 255, 0.8)',
+            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+            color: 'text.primary',
           }}
         >
-          <ZoomIn />
+          <ZoomIn size={20} />
         </IconButton>
-      </Box>
-
-      {/* Person Image */}
-      {waterSource?.domain?.picture && (
-        <Box
+        <Typography
+          variant="caption"
           sx={{
-            position: 'relative',
-            '&:hover .zoom-icon': { opacity: 1 },
+            display: 'block',
+            p: 1,
+            textAlign: 'center',
+            color: 'text.secondary',
+            bgcolor: 'background.default',
+            borderTop: 1,
+            borderColor: 'divider'
           }}
         >
-          <Box
-            component="img"
-            src={waterSource?.domain?.picture}
-            alt="Contact Person"
-            onClick={onPersonImageClick}
-            sx={{
-              width: '100%',
-              height: 150,
-              objectFit: 'cover',
-              borderRadius: 2,
-              cursor: 'pointer',
-              boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-            }}
-          />
-          <IconButton
-            className="zoom-icon"
-            onClick={onPersonImageClick}
-            sx={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              bgcolor: 'rgba(0, 0, 0, 0.5)',
-              opacity: 0,
-              transition: 'opacity 0.2s',
-              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-              color: 'white',
-            }}
-          >
-            <ZoomIn />
-          </IconButton>
-        </Box>
-      )}
-    </Grid>
+          Hosue hold photo
+        </Typography>
+      </Box>
+    )}
+  </Box>
+</Grid>
+
     {/* Google Maps Section */}
     <Grid item xs={12}>
-        <Box
-          sx={{
-            height: 500,
-            borderRadius: 2,
-            overflow: 'hidden',
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-            mb: 4,
-          }}
-        >
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            center={{ lat: position[0], lng: position[1] }}
-            zoom={15}
-          >
-            <MarkerF
-              position={{ lat: position[0], lng: position[1] }}
-            />
-          </GoogleMap>
-          </Box>
-          </Grid>
-          </Grid>
+    <Box
+      sx={{
+        height: 500,
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+        mb: 4,
+        position: 'relative', // Add this for proper positioning
+      }}
+    >
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%' }}
+        center={{ lat: position[0], lng: position[1] }}
+        zoom={15}
+      >
+        <MarkerF position={{ lat: position[0], lng: position[1] }} />
+      </GoogleMap>
+      <MapCard
+        latitude={position[0]}
+        longitude={position[1]}
+        hamlet={waterSource?.hamlet}
+        village={waterSource?.village}
+        ward={waterSource?.ward}
+      />
+    </Box>
+  </Grid>
+        </Grid>
   );
 }
 
