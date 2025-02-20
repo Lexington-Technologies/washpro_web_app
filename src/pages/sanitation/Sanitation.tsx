@@ -3,6 +3,10 @@ import {
   Button,
   Card,
   CardContent,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -130,6 +134,28 @@ const Sanitation: React.FC = () => {
     }
   ];
 
+  const FilterDropdown = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = useState('');
+  
+    const handleChange = (event) => {
+      setSelectedOption(event.target.value);
+    };
+  
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };  
+
+
   return (
     <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
@@ -138,19 +164,13 @@ const Sanitation: React.FC = () => {
           <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
             Sanitation
           </Typography>
-          <Button
-            startIcon={<FaFilter />}
-            variant="contained"
-            sx={{
-              bgcolor: 'white',
-              color: 'text.primary',
-              boxShadow: 1,
-              '&:hover': { bgcolor: '#E5E7EB' },
-              textTransform: 'none',
-            }}
-          >
-            Filter
-          </Button>
+          <Box sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown label="Ward" options={['All']} />
+          <FilterDropdown label="Village" options={['All']} />
+          <FilterDropdown label="Hamlet" options={['All']} />
+        </Stack>
+      </Box>
         </Box>
 
         {/* Stats Cards */}

@@ -2,19 +2,24 @@ import {
   Alert,
   Avatar,
   Box,
-  Button,
   Card,
   Chip,
   CircularProgress,
   Container,
+  FormControl,
+  InputLabel,
   Grid,
   Paper,
   styled,
-  Typography
+  Typography,
+  MenuItem,
+  Select,
+  Stack,
 } from '@mui/material';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaDownload, FaFilter, FaToilet } from 'react-icons/fa';
 import { GiHole } from "react-icons/gi";
 import { LuToilet } from "react-icons/lu";
@@ -85,7 +90,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
           {title}
         </Typography>
         <Typography variant="h4" sx={{ mt: 1, fontWeight: 500 }}>
-          {value.toLocaleString()}
+          {value}
         </Typography>
       </Box>
       {icon && (
@@ -114,14 +119,10 @@ const columns = [
         src={props.row.original.picture}
         alt="toilet facility"
         sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%', // Make avatar round
-          border: '2px solid #e5e7eb', // Add subtle border
+          borderRadius: '100%', // Make avatar round
         }}
       />
     ),
-    size: 80,
   }),
   columnHelper.accessor('ward', {
     header: 'Ward',
@@ -139,61 +140,123 @@ const columns = [
     header: 'Categories',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('status', {
-    header: 'Status',
-    cell: info => {
-      const status = info.getValue();
-      let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
-      switch (status) {
-        case 'Improved':
-          color = 'success';
-          break;
-        case 'Unimproved':
-          color = 'error';
-          break;
-        default:
-          color = 'default';
-      }
-      return (
-        <Chip label={status} color={color} />
-      );
-    },
-  }),
   columnHelper.accessor('type', {
-    header: 'Type',
-    cell: info => info.getValue(),
+    header: 'Tags',
+    cell: info => {
+      return (
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.type}
+            color={'primary'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Functional' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Drinkable' ? 'info' : 'error'}
+          />
+        </Stack>
+      )
+    },
   }),
 ];
 
 const ToiletFacilities: React.FC = () => {
-  const [toilets, setToilets] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data, isLoading, error } = useQuery<ToiletFacility[], Error>({
     queryKey: ['toilet-facilities', { limit, page, search }],
     queryFn: () => apiController.get<ToiletFacility[]>(`/toilet-facilities?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  useEffect(() => {
-    if (data) {
-      setToilets(data)
-    }
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(item => item.ward))];
   }, [data]);
 
-  const countByProperty = <T extends object>(
-    data: T[] | undefined,
-    property: keyof T,
-    value: T[keyof T]
-  ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+  const villageOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredVillages = data
+      .filter(item => !ward || item.ward === ward)
+      .map(item => item.village);
+    return [...new Set(filteredVillages)];
+  }, [data, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredHamlets = data
+      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
+      .map(item => item.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [data, ward, village]);
+
+  // Filtered data
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet)
+    );
+  }, [data, ward, village, hamlet]);
+
+  // Count toilet types
+  const toiletTypeCounts = useMemo(() => {
+    if (!filteredData) return { pitLatrine: 0, wcSitting: 0, wcSquatting: 0 };
+    return {
+      pitLatrine: filteredData.filter(item => item.type === 'Pit Latrine').length.toLocaleString(),
+      wcSitting: filteredData.filter(item => item.type === 'WC Sitting').length.toLocaleString(),
+      wcSquatting: filteredData.filter(item => item.type === 'WC Squatting').length.toLocaleString(),
+    };
+  }, [filteredData]);
+
+  // Format data for Toilet Facility Types PieChart
+  const toiletTypeChartData = [
+    { id: 0, label: 'Pit Latrine', value: toiletTypeCounts.pitLatrine, color: '#4CAF50' },
+    { id: 1, label: 'WC Sitting', value: toiletTypeCounts.wcSitting, color: '#FF9800' },
+    { id: 2, label: 'WC Squatting', value: toiletTypeCounts.wcSquatting, color: '#2196F3' },
+  ];
+
+  // Count hand washing facilities
+  const safetyRisk = {
+    yes: filteredData.filter(item => item.handWashingFacility === 'yes').length,
+    no: filteredData.filter(item => item.handWashingFacility === 'no').length,
   };
 
+  // Format data for Hand Washing Facility PieChart
+  const safetyRiskChartData = [
+    { id: 0, label: 'Handwash', value: safetyRisk.yes, color: '#4CAF50' },
+    { id: 1, label: 'No Handwash', value: safetyRisk.no, color: '#F44336' },
+  ];
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
   if (!data || data.length === 0) return <NotFoundAlert />;
+
+  const FilterDropdown = ({ label, value, options, onChange }) => (
+    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
+      <InputLabel>{label}</InputLabel>
+      <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
+        <MenuItem value="">All {label}</MenuItem>
+        {options.map((option, index) => (
+          <MenuItem key={index} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -206,33 +269,19 @@ const ToiletFacilities: React.FC = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box>
-          <Button
-            startIcon={<FaFilter style={{color: "#1F2937"}} />}
-            variant="outlined"
-            sx={{ mr: 1 }}
-          >
-            <Typography variant="body1" color="#1F2937">Filter</Typography>
-          </Button>
-          <Button
-            startIcon={<FaDownload />}
-            variant="contained"
-            sx={{ bgcolor: '#2CBEEF' }}
-          >
-            Export Report
-          </Button>
+        <Box sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
         </Box>
       </Box>
-
-      <Typography variant="h6" color='#1F2937' sx={{ mb: 2  }}>
-        Overview
-      </Typography>
-
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
             title="Total Toilet Facility"
-            value={data?.length || 0}
+            value={filteredData.length.toLocaleString() || 0}
             icon={<LuToilet style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
@@ -240,7 +289,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Pit Latrine"
-            value={countByProperty(data, 'type', 'Pit Latrine') || 0}
+            value={toiletTypeCounts.pitLatrine || 0}
             icon={<GiHole style={{ color: '#4CAF50', fontSize: '1.8rem' }} />}
             bgColor="#E8F5E9"
           />
@@ -248,7 +297,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="WC Sitting"
-            value={countByProperty(data, 'type', 'WC Sitting') || 0}
+            value={toiletTypeCounts.wcSitting || 0}
             icon={<FaToilet style={{ color: '#FF9800', fontSize: '2rem' }} />}
             bgColor="#FFF3E0"
           />
@@ -256,10 +305,65 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="WC Squatting"
-            value={countByProperty(data, 'type', 'WC Squatting') || 0}
+            value={toiletTypeCounts.wcSquatting || 0}
             icon={<PiToiletFill style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Toilet Facility Types</Typography>
+            <PieChart
+              series={[
+                {
+                  data: toiletTypeChartData,
+                  arcLabel: (item) => {
+                    const total = filteredData.length || 1; // Avoid division by zero
+                    return `${item.value.toLocaleString()} (${((item.value / total) * 100).toFixed(1)}%)`;
+                  },
+                  arcLabelMinAngle: 10, // Reduced to ensure small segments show labels
+                  outerRadius: 150,
+                }
+              ]}
+              width={600}
+              height={300}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Hand Washing Facility</Typography>
+            <PieChart
+              series={[
+                {
+                  data: safetyRiskChartData,
+                  arcLabel: (item) => {
+                    const total = filteredData.length || 1; // Avoid division by zero
+                    return `${item.value.toLocaleString()} (${((item.value / total) * 100).toFixed(1)}%)`;
+                  },
+                  arcLabelMinAngle: 10, // Reduced to ensure small segments show labels
+                  outerRadius: 150,
+                }
+              ]}
+              width={600}
+              height={300}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: 'white',
+                },
+              }}
+            />
+          </Paper>
         </Grid>
       </Grid>
 
@@ -269,7 +373,7 @@ const ToiletFacilities: React.FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, }}>Toilet Facilities Overview</Typography>
           </Box>
-          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={filteredData || []} />
         </Box>
       </Card>
     </Box>

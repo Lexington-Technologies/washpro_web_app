@@ -660,6 +660,15 @@ const AIChatPage: React.FC = () => {
     }
   };
 
+  // Add loading state check
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ height: '100%', backgroundColor: '#f8f9fa', p: 3, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

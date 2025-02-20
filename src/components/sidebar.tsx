@@ -32,6 +32,7 @@ import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
+import {Logo} from "../assets/svg/index";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -74,7 +75,9 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
     // { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
     // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
-    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources" },
+    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources", subItems: [
+        { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
+    ]},
     { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
     { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
@@ -93,7 +96,6 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   ];
 
   const bottomMenuItems = [
-    { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
     { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
     // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
     { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
@@ -113,6 +115,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
           justifyContent: isCollapsed ? "center" : "flex-start",
           "&.active": {
             backgroundColor: "#25306B",
+            borderRadius: "20px 20px ",
             color: "white",
             "&:hover": {
               bgcolor: "#25306B",
@@ -126,10 +129,10 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
         <ListItemIcon
           sx={{
             minWidth: 40,
-            color: "#25306B",
+            color: "#4B5563",
             justifyContent: "center",
             "& svg": {
-              fontSize: 24
+              fontSize: 20
             },
             ".active &": {
               color: "white"
@@ -154,13 +157,14 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   const sidebarContent = (
     <Box
       sx={{
-        width: isCollapsed ? 100 : 320,
+        width: isCollapsed ? 100 : 270,
         bgcolor: "white",
         height: "100%",
         boxShadow: 1,
         display: "flex",
         flexDirection: "column",
         transition: "width 0.3s",
+        px: 1,
       }}
     >
       {/* Logo and Close Button for Mobile */}
@@ -176,10 +180,10 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <Link to="/">
           <img
-            src="/logo.svg"
+            src={Logo}
             alt="WashPro Logo"
             style={{
-              width: isCollapsed ? 50 : 270,
+              width: isCollapsed ? 50 : 200,
               height: isCollapsed ? 50 : "auto",
               objectFit: "fill",
               transition: "width 0.3s, height 0.3s",
@@ -214,7 +218,16 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       >
         <List>
           {/* Main Menu Items */}
-          {mainMenuItems.map(renderMenuItem)}
+          {mainMenuItems.map((item, index) => (
+            <div key={item.text}>
+              {renderMenuItem(item)}
+              {item.subItems && item.subItems.map(subItem => (
+                <div key={subItem.text}>
+                  {renderMenuItem(subItem)}
+                </div>
+              ))}
+            </div>
+          ))}
 
           {/* Waste Dropdown */}
           <ListItem disablePadding>
@@ -232,14 +245,14 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "#25306B",
+                  color: "#4B5563",
                   justifyContent: "center",
                   "& svg": {
                     fontSize: 24
                   }
                 }}
               >
-                <GiHazardSign  style={{fontSize: 25}}/>
+                <GiHazardSign style={{ fontSize: 25 }} />
               </ListItemIcon>
               {!isCollapsed && (
                 <>
@@ -257,7 +270,11 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
           <Collapse in={openWaste} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {wasteSubItems.map(renderMenuItem)}
+              {wasteSubItems.map(item => (
+                <div key={item.text}>
+                  {renderMenuItem(item)}
+                </div>
+              ))}
             </List>
           </Collapse>
 
@@ -277,7 +294,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
               <ListItemIcon
                 sx={{
                   minWidth: 40,
-                  color: "#25306B",
+                  color: "#4B5563",
                   justifyContent: "center",
                   "& svg": {
                     fontSize: 24
@@ -302,12 +319,20 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
           <Collapse in={openUsers} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {usersSubItems.map(renderMenuItem)}
+              {usersSubItems.map(item => (
+                <div key={item.text}>
+                  {renderMenuItem(item)}
+                </div>
+              ))}
             </List>
           </Collapse>
 
           {/* Bottom Menu Items */}
-          {bottomMenuItems.map(renderMenuItem)}
+          {bottomMenuItems.map(item => (
+            <div key={item.text}>
+              {renderMenuItem(item)}
+            </div>
+          ))}
         </List>
       </Box>
 
@@ -358,10 +383,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       }}
       sx={{
         display: { xs: 'block', md: 'none' },
-        '& .MuiDrawer-paper': {
-          width: 320,
-          boxSizing: 'border-box',
-        },
+        
       }}
     >
       {sidebarContent}
@@ -370,7 +392,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     <Box
       component="nav"
       sx={{
-        width: isCollapsed ? 100 : 320,
+        width: isCollapsed ? 100 : 270,
         flexShrink: 0,
         display: { xs: 'none', md: 'block' },
       }}

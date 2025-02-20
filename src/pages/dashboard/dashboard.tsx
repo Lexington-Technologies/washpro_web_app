@@ -1,373 +1,344 @@
-import { useState } from 'react';
+import {
+  AccessibilityNew,
+  DeleteOutline,
+  Group,
+  Home,
+  Landscape,
+  LocalHospital,
+  LocationOn,
+  Sanitizer,
+  School,
+  Timeline,
+  WaterDrop,
+} from '@mui/icons-material';
 import {
   Box,
   Card,
   CardContent,
-  Typography,
-  Grid,
-  Tab,
-  Tabs,
-  useTheme,
-  IconButton,
-  Stack,
-  Chip,
-  alpha,
+  CircularProgress,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
   Select,
-  styled,
-  CircularProgress,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
 } from '@mui/material';
-import {
-  WaterDrop,
-  Home,
-  Sanitizer,
-  DeleteOutline,
-  Timeline,
-  LocationOn,
-  Refresh,
-  TrendingUp,
-  TrendingDown,
-  PieChart,
-} from '@mui/icons-material';
-import { Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart } from '@mui/x-charts/BarChart';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { IoWater } from 'react-icons/io5';
+import { LiaPoopSolid } from 'react-icons/lia';
+import { MdCleanHands } from 'react-icons/md';
+import { SiCcleaner } from 'react-icons/si';
 import { apiController } from '../../axios';
-
-const SUMMARY_DATA = [
-  { label: 'Total Households', value: '2,178', icon: Home, trend: '+12%', isPositive: true },
-  { label: 'Total Hamlet', value: '57', icon: LocationOn, trend: '+5%', isPositive: true },
-  { label: 'Total Villages', value: '8', icon: LocationOn, trend: '-2%', isPositive: true },
-  { label: 'Total Wards', value: '3', icon: LocationOn, trend: '0%', isPositive: true },
-];
-
-const FACILITY_CARDS = [
-  { title: 'Water Sources', count: '1,666', percentage: '23.2%', icon: WaterDrop, color: '#1976d2' },
-  { title: 'Toilet Facilities', count: '2,124', percentage: '29.6%', icon: Sanitizer, color: '#7b1fa2' },
-  { title: 'Dump Sites', count: '1,459', percentage: '20.3%', icon: DeleteOutline, color: '#ed6c02' },
-  { title: 'Gutters', count: '1,423', percentage: '19.8%', icon: Home, color: '#2e7d32' },
-  { title: 'Soak Aways', count: '317', percentage: '4.4%', icon: Home, color: '#e91e63' },
-  { title: 'Open Defecation Sites', count: '194', percentage: '2.7%', icon: LocationOn, color: '#d32f2f' },
-];
-
-const CHART_DATA = {
-  waterSources: [
-    { name: 'Hand Pump Borehole', value: 10.2, color: '#4caf50' },
-    { name: 'Protected Dug Well', value: 5.5, color: '#ff9800' },
-    { name: 'Unprotected Dug Well', value: 3.0, color: '#9c27b0' },
-    { name: 'Motorized Borehole', value: 2.5, color: '#03a9f4' },
-    { name: 'Pipe Born Water', value: 2.0, color: '#e91e63' },
-  ],
-  waterSourceConditions: [
-    { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-  ],
-  toiletFacilities: [
-    { name: 'Pit Latrine', value: 15.0, color: '#4caf50' },
-    { name: 'WC Squatting', value: 8.0, color: '#ff9800' },
-    { name: 'WC Sitting', value: 6.6, color: '#9c27b0' },
-  ],
-  toiletConditions: [
-    { name: 'Improved', value: 18.0, color: '#4caf50' },
-    { name: 'With Hand Wash', value: 5.2, color: '#f44336' },
-    { name: 'Basic', value: 5.2, color: '#ff9800' },
-  ],
-  dumpsiteStatus: [
-    { name: 'Maintained', value: 18.0, color: '#4caf50' },
-    { name: 'Needs Evacuation', value: 5.2, color: '#f44336' },
-  ],
-  gutterCondition: [
-    { name: 'Clean', value: 18.0, color: '#4caf50' },
-    { name: 'Blocked', value: 5.2, color: '#f44336' },
-  ],
-  soakawayCondition: [
-    { name: 'Functional', value: 18.0, color: '#4caf50' },
-    { name: 'Non-Functional', value: 5.2, color: '#f44336' },
-  ],
-  openDefecationStatus: [
-    { name: 'Active', value: 18.0, color: '#4caf50' },
-    { name: 'Inactive', value: 5.2, color: '#f44336' },
-  ],
-};
+import StatsCard from '../../components/StatsCard';
 
 // Styled Components
-const StyledCard = ({ children, ...props }) => {
+const StyledCard = ({ ...props }) => {
   return (
     <Card
       {...props}
+      sx={{
+        height: '100%',
+        ...props.sx,
+      }}
     >
-      {children}
+      {props.children}
     </Card>
   );
 };
 
-const ProfessionalCard = styled(Card)(({ theme }) => ({
-  borderRadius: 4,
-  boxShadow: theme.shadows[1],
-}));
-
-const ChartCard = ({ children }) => (
-  <ProfessionalCard sx={{ p: 3, mt: 3 }}>
-    {children}
-  </ProfessionalCard>
+const FilterDropdown = ({ label, options, value, onChange, disabled }) => (
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      label={label}
+      sx={{ height: 45 }}
+      disabled={disabled}
+    >
+      <MenuItem value="">All</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
 );
-
-const StatCard = ({ label, value, icon: Icon, trend, isPositive }) => {
-  const theme = useTheme();
-
-  return (
-    <StyledCard>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box
-            sx={{
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              borderRadius: '12px',
-              p: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon sx={{ color: theme.palette.primary.main }} />
-          </Box>
-          <Chip
-            icon={isPositive ? <TrendingUp /> : <TrendingDown />}
-            label={trend}
-            size="small"
-            color={isPositive ? 'success' : 'error'}
-            sx={{ height: 24 }}
-          />
-        </Box>
-        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {value}
-        </Typography>
-        <Typography color="text.secondary" variant="body2">
-          {label}
-        </Typography>
-      </CardContent>
-    </StyledCard>
-  );
-};
-
-const FacilityCard = ({ title, count, percentage, icon: Icon, color }) => {
-  return (
-    <StyledCard>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box
-            sx={{
-              backgroundColor: alpha(color, 0.1),
-              borderRadius: '12px',
-              p: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon sx={{ color }} />
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {percentage}
-          </Typography>
-        </Box>
-        <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {count}
-        </Typography>
-        <Typography color="text.secondary" variant="body2">
-          {title}
-        </Typography>
-      </CardContent>
-    </StyledCard>
-  );
-};
-
-const FilterDropdown = ({ label, options }) => {
-  const [selectedOption, setSelectedOption] = useState('');
-
-  const handleChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
-  return (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-        {options.map((option, index) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
-
-
-const FacilityPieChart = ({ title, data }) => {
-  return (
-    <Box>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        {title}
-      </Typography>
-      <ResponsiveContainer width="100%" height={400}>
-        <RechartsPieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </RechartsPieChart>
-      </ResponsiveContainer>
-    </Box>
-  );
-};
-
-// const DistributionCharts = () => {
-//   const wardData = [
-//     { name: 'S/GARI', value: 3272 },
-//     { name: 'LIKORO', value: 3906 }
-//   ];
-
-//   const villageData = [
-//     { name: 'SIGARIN LILUNKIYI', value: 1098 },
-//     { name: 'LIKORO', value: 3210 },
-//     { name: 'KYAUDAI', value: 230 },
-//     { name: 'JAJA', value: 331 },
-//     { name: 'S / GARIN LIKORO', value: 696 },
-//     { name: 'MUSAWA', value: 992 },
-//     { name: 'KAURAN WALI', value: 621 }
-//   ];
-
-//   return (
-//     <Grid container spacing={3}>
-//       <Grid item xs={12} md={6}>
-//           <CardContent>
-//             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-//               Ward-wise Distribution
-//             </Typography>
-//             <Box sx={{ height: 400 }}>
-//               <ResponsiveContainer width="100%" height="100%">
-//                 <BarChart data={wardData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="name" />
-//                   <YAxis domain={[0, 4000]} />
-//                   <Bar dataKey="value" fill="#4F98FF" />
-//                 </BarChart>
-//               </ResponsiveContainer>
-//             </Box>
-//           </CardContent>
-//       </Grid>
-//       <Grid item xs={12} md={6}>
-//           <CardContent>
-//             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-//               Village-wise Distribution
-//             </Typography>
-//             <Box sx={{ height: 400 }}>
-//               <ResponsiveContainer width="100%" height="100%">
-//                 <BarChart data={villageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-//                   <YAxis domain={[0, 4000]} />
-//                   <Bar dataKey="value" fill="#4F98FF" />
-//                 </BarChart>
-//               </ResponsiveContainer>
-//             </Box>
-//           </CardContent>
-//       </Grid>
-//     </Grid>
-//   );
-// };
-
-// Interfaces
-// interface EnumeratorPerformance {
-//   id: string;
-//   name: string;
-//   totalFacilities: number;
-//   lastActive: string;
-//   villages: string[];
-//   facilities: {
-//     waterSources: number;
-//     toiletFacilities: number;
-//     dumpSites: number;
-//     gutters: number;
-//     soakAways: number;
-//     openDefecationSites: number;
-//   };
-// }
-
-// Define your row shape
-// const columnHelper = createColumnHelper<EnumeratorPerformance>();
-
-// Make some columns!
-// const columns = [
-//   columnHelper.accessor('fullName', {
-//     header: 'Enumerator',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('totalRecords', {
-//     header: 'Total',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('waterSources', {
-//     header: 'W/s',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('openDefecation', {
-//     header: 'Odf',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('soakAways', {
-//     header: 'SoakAways',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('toiletFacilities', {
-//     header: 'ToiletFacilities',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('dumpSites', {
-//     header: 'DumpSites',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('gutters', {
-//     header: 'Gutters',
-//     cell: info => info.getValue(),
-//   }),
-//   columnHelper.accessor('lastLogin', {
-//     header: 'Last Active',
-//     cell: info => new Date(info.getValue() as string).toLocaleString(),
-//   }),
-// ];
 
 // Main Dashboard Component
 const WashDashboard = () => {
   const [currentTab, setCurrentTab] = useState(0);
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const handleTabChange = (e, newValue) => {
     setCurrentTab(newValue);
   };
 
-  const { data, isLoading } = useQuery<[], Error>({
-    queryKey: ['enumerator-performance'],
-    queryFn: () => apiController.get(`/analytics/summary`),
+  // Fetch all data once (without filters)
+  const { data: waterSource, isLoading: isWaterSourceLoading } = useQuery({
+    queryKey: ['waterSource'],
+    queryFn: () => apiController.get('/water-sources'),
   });
 
-  // const enumrators = data?.enumarators;
-  console.log("enu", data);
+  const { data: toiletFacilities, isLoading: isToiletFacilitiesLoading } = useQuery({
+    queryKey: ['toiletFacilities'],
+    queryFn: () => apiController.get('/toilet-facilities'),
+  });
 
+  const { data: dumpSite, isLoading: isDumpSitesLoading } = useQuery({
+    queryKey: ['dumpSites'],
+    queryFn: () => apiController.get('/dump-sites'),
+  });
 
-  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  const { data: gutters, isLoading: isGuttersLoading } = useQuery({
+    queryKey: ['gutters'],
+    queryFn: () => apiController.get('/gutters'),
+  });
+
+  const { data: soakAways, isLoading: isSoakAwaysLoading } = useQuery({
+    queryKey: ['soakAways'],
+    queryFn: () => apiController.get('/soak-aways'),
+  });
+
+  const { data: openDefecations, isLoading: isOpenDefecationsLoading } = useQuery({
+    queryKey: ['openDefecations'],
+    queryFn: () => apiController.get('/open-defecations'),
+  });
+
+  // Generate filter options
+  const wardOptions = useMemo(() => [...new Set(waterSource?.map((item) => item?.ward) || [])], [waterSource]);
+  const villageOptions = useMemo(() => [...new Set(waterSource?.map((item) => item?.village) || [])], [waterSource]);
+  const hamletOptions = useMemo(() => [...new Set(waterSource?.map((item) => item?.hamlet) || [])], [waterSource]);
+
+  // Client-side filtering using useMemo
+  const filteredWaterSource = useMemo(() => {
+    if (!waterSource) return [];
+    return waterSource.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [waterSource, ward, village, hamlet]);
+
+  const filteredToiletFacilities = useMemo(() => {
+    if (!toiletFacilities) return [];
+    return toiletFacilities.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [toiletFacilities, ward, village, hamlet]);
+
+  const filteredDumpSites = useMemo(() => {
+    if (!dumpSite) return [];
+    return dumpSite.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [dumpSite, ward, village, hamlet]);
+
+  const filteredGutters = useMemo(() => {
+    if (!gutters) return [];
+    return gutters.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [gutters, ward, village, hamlet]);
+
+  const filteredSoakAways = useMemo(() => {
+    if (!soakAways) return [];
+    return soakAways.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [soakAways, ward, village, hamlet]);
+
+  const filteredOpenDefecations = useMemo(() => {
+    if (!openDefecations) return [];
+    return openDefecations.filter(
+      (item) =>
+        (!ward || item.ward === ward) &&
+        (!village || item.village === village) &&
+        (!hamlet || item.hamlet === hamlet)
+    );
+  }, [openDefecations, ward, village, hamlet]);
+
+  // Water Source Metrics
+  const waterSourceMetrics = {
+    functional: filteredWaterSource.filter((source) => source.status === 'Functional').length,
+    nonFunctional: filteredWaterSource.filter((source) => source.status === 'Non Functional').length,
+    drinkable: filteredWaterSource.filter((source) => source.quality === 'Drinkable').length,
+    nonDrinkable: filteredWaterSource.filter((source) => source.quality === 'Non Drinkable').length,
+  };
+
+  // Facilities Overview Metrics
+  const facilitiesMetrics = {
+    totalWaterSources: filteredWaterSource.length,
+    totalToiletFacilities: filteredToiletFacilities.length,
+    totalDumpSites: filteredDumpSites.length,
+    totalGutters: filteredGutters.length,
+    totalSoakAways: filteredSoakAways.length,
+    totalOpenDefecations: filteredOpenDefecations.length,
+  };
+
+  // Chart Data
+  const facilitiesPieChartData = [
+    { id: 0, value: facilitiesMetrics.totalWaterSources, label: 'WaterSources', color: '#1976d2' },
+    { id: 1, value: facilitiesMetrics.totalToiletFacilities, label: 'Toilet', color: '#7b1fa2' },
+    { id: 2, value: facilitiesMetrics.totalDumpSites, label: 'DumpSites', color: '#ed6c02' },
+    { id: 3, value: facilitiesMetrics.totalGutters, label: 'Gutters', color: '#2e7d32' },
+    { id: 4, value: facilitiesMetrics.totalSoakAways, label: 'SoakAways', color: '#e91e63' },
+    { id: 5, value: facilitiesMetrics.totalOpenDefecations, label: 'Open Defecations', color: '#d32f2f' },
+  ];
+
+  // Summary Data
+  const SUMMARY_DATA = [
+    {
+      label: 'Total Households',
+      value: filteredWaterSource.length.toLocaleString() || 0,
+      icon: Home,
+      iconColor: '#25306B',
+      bgColor: '#fff',
+    },
+    {
+      label: 'Total Hamlets',
+      value: hamletOptions.length.toLocaleString(),
+      icon: Group,
+      iconColor: '#25306B',
+      bgColor: '#fff',
+    },
+    {
+      label: 'Total Villages',
+      value: villageOptions.length.toLocaleString(),
+      icon: Landscape,
+      iconColor: '#25306B',
+      bgColor: '#fff',
+    },
+    {
+      label: 'Total Wards',
+      value: wardOptions.length.toLocaleString(),
+      icon: LocationOn,
+      iconColor: '#25306B',
+      bgColor: '#fff',
+    },
+  ];
+
+  const FACILITY_CARDS = [
+    {
+      label: 'Water Sources',
+      value: filteredWaterSource.length.toLocaleString() || 0,
+      icon: WaterDrop,
+      iconColor: '#1976d2',
+      bgColor: '#1976d2',
+    },
+    {
+      label: 'Toilet Facilities',
+      value: filteredToiletFacilities.length.toLocaleString() || 0,
+      icon: Sanitizer,
+      iconColor: '#7b1fa2',
+      bgColor: '#7b1fa2',
+    },
+    {
+      label: 'Dump Sites',
+      value: filteredDumpSites.length.toLocaleString() || 0,
+      icon: DeleteOutline,
+      iconColor: '#ed6c02',
+      bgColor: '#ed6c02',
+    },
+    {
+      label: 'Gutters',
+      value: filteredGutters.length.toLocaleString() || 0,
+      icon: Home,
+      iconColor: '#2e7d32',
+      bgColor: '#2e7d32',
+    },
+    {
+      label: 'Soak Aways',
+      value: filteredSoakAways.length.toLocaleString() || 0,
+      icon: Home,
+      iconColor: '#e91e63',
+      bgColor: '#e91e63',
+    },
+    {
+      label: 'Open Defecation Sites',
+      value: filteredOpenDefecations.length.toLocaleString() || 0,
+      icon: LocationOn,
+      iconColor: '#d32f2f',
+      bgColor: '#d32f2f',
+    },
+  ];
+
+  // Pie Chart Data
+  const pieChartData = [
+    { id: 0, value: waterSourceMetrics.functional, label: 'Functional', color: '#4CAF50' },
+    { id: 1, value: waterSourceMetrics.nonFunctional, label: 'Non-Functional', color: '#F44336' },
+  ];
+
+  // Bar Chart Data
+  const WATER_SOURCE_METRICS = [
+    {
+      label: 'Functional Water Sources',
+      value: waterSourceMetrics.functional.toLocaleString(),
+      icon: WaterDrop,
+      iconColor: '#4CAF50',
+      bgColor: '#4CAF50',
+    },
+    {
+      label: 'Non-Functional Water Sources',
+      value: waterSourceMetrics.nonFunctional.toLocaleString(),
+      icon: WaterDrop,
+      iconColor: '#F44336',
+      bgColor: '#F44336',
+    },
+    {
+      label: 'Drinkable Water Sources',
+      value: waterSourceMetrics.drinkable.toLocaleString(),
+      icon: WaterDrop,
+      iconColor: '#2196F3',
+      bgColor: '#2196F3',
+    },
+    {
+      label: 'Non-Drinkable Water Sources',
+      value: waterSourceMetrics.nonDrinkable.toLocaleString(),
+      icon: WaterDrop,
+      iconColor: '#FF9800',
+      bgColor: '#FF9800',
+    },
+  ];
+
+  // Loading state
+  const isLoading =
+    isWaterSourceLoading ||
+    isToiletFacilitiesLoading ||
+    isDumpSitesLoading ||
+    isGuttersLoading ||
+    isSoakAwaysLoading ||
+    isOpenDefecationsLoading;
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -381,26 +352,50 @@ const WashDashboard = () => {
             Comprehensive WASH facilities overview
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton size="small" aria-label="refresh">
-            <Refresh />
-          </IconButton>
-          <Typography variant="caption" color="text.secondary">
-            Last updated: {new Date().toLocaleString()}
-          </Typography>
+        <Stack direction="row" spacing={2}>
+          <FilterDropdown
+            label="Ward"
+            options={wardOptions}
+            value={ward}
+            onChange={setWard}
+            disabled={isLoading}
+          />
+          <FilterDropdown
+            label="Village"
+            options={villageOptions}
+            value={village}
+            onChange={setVillage}
+            disabled={isLoading}
+          />
+          <FilterDropdown
+            label="Hamlet"
+            options={hamletOptions}
+            value={hamlet}
+            onChange={setHamlet}
+            disabled={isLoading}
+          />
         </Stack>
       </Box>
 
       {/* Summary Stats */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {SUMMARY_DATA.map((stat) => (
-          <Grid item xs={12} sm={6} md={3} key={stat.label}>
-            <StatCard {...stat} />
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {SUMMARY_DATA.map(({ label, value, icon, iconColor, bgColor }, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <StatsCard
+              title={label}
+              value={value}
+              icon={icon}
+              iconColor={iconColor}
+              bgColor={bgColor}
+              sx={{
+                boxShadow: 20,
+                borderRadius: 2,
+              }}
+            />
           </Grid>
         ))}
       </Grid>
 
-      {/* Main Content */}
       <StyledCard>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
@@ -416,94 +411,337 @@ const WashDashboard = () => {
               },
             }}
           >
-            
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
-            <Tab icon={<PieChart />} label="Distribution Analysis" iconPosition="start" key="Distribution Analysis" />
-            {/* <Tab icon={<LocationOn />} label="Geographic Analysis" iconPosition="start" key="Geographic Analysis" /> */}
-            {/* <Tab icon={<Assessment />} label="Enumerator Performance" iconPosition="start" key="Enumerator Performance" /> */}
+            <Tab icon={<IoWater />} label="Water Source Overview" iconPosition="start" key="Water Source Overview" />
+            {/* <Tab icon={<SiCcleaner />} label="Toilet Overview" iconPosition="start" key="Toilet" />
+            <Tab icon={<MdCleanHands style={{ fontSize: 15 }} />} label="Hygiene" iconPosition="start" key="Hygiene" />
+            <Tab icon={<LiaPoopSolid />} label="Open Defecation" iconPosition="start" key="Open Defecation" /> */}
           </Tabs>
         </Box>
 
         <CardContent>
           {currentTab === 0 && (
-            <>
-              <Box sx={{ mb: 3 }}>
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['All']} />
-                <FilterDropdown label="Village" options={['All']} />
-                <FilterDropdown label="Hamlet" options={['All']} />
-              </Grid>
-              </Box>
+            <Box>
               <Grid container spacing={3}>
-                {FACILITY_CARDS.map((facility) => (
-                  <Grid item xs={12} sm={6} md={4} key={facility.title}>
-                    <FacilityCard {...facility} />
+                {FACILITY_CARDS.map(({ label, value, icon, iconColor, bgColor }, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={index}>
+                    <StatsCard
+                      title={label}
+                      value={value}
+                      icon={icon}
+                      iconColor={iconColor}
+                      bgColor={bgColor}
+                    />
                   </Grid>
                 ))}
               </Grid>
-              {/* <Box sx={{ mt: 15 }}>
-                <FacilityBarChart />
-              </Box> */}
-            </>
+              {/* Charts Section */}
+              <Grid container spacing={3} sx={{ mt: 2, mb: 3 }}>
+                {/* Pie Chart */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Facility Distribution
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Percentage breakdown by facility type
+                    </Typography>
+                  </Typography>
+                  <PieChart
+                    series={[{
+                      data: facilitiesPieChartData,
+                      arcLabel: (item) => {
+                        const total = facilitiesPieChartData.reduce((sum, d) => sum + d.value, 0);
+                        return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
+                      },
+                      outerRadius: 140,
+                      innerRadius: 50,
+                      cornerRadius: 4,
+                      paddingAngle: 2,
+                      highlightScope: { highlighted: 'item', faded: 'global' },
+                    }]}
+                    width={500}
+                    height={350}
+                    sx={{
+                      [`& .${pieArcLabelClasses.root}`]: {
+                        fill: '#2d3436',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        pointerEvents: 'none',
+                      },
+                      '& .MuiPieArc-root': {
+                        transition: 'transform 0.2s, filter 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                          filter: 'brightness(1.1)',
+                        }
+                      }
+                    }}
+                    slotProps={{
+                      legend: {
+                        direction: 'row',
+                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        padding: { top: 20 },
+                        labelStyle: {
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          fill: '#2d3436',
+                        },
+                        itemMarkWidth: 12,
+                        itemMarkHeight: 12,
+                        markGap: 5,
+                        itemGap: 15,
+                      }
+                    }}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+                  />
+                </Grid>
+                {/* Bar Chart */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Facility Count by Type
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Distribution breakdown by facility type
+                    </Typography>
+                  </Typography>
+                  <BarChart
+                    xAxis={[{
+                      scaleType: 'band',
+                      data: facilitiesPieChartData.map(d => d.label),
+                      tickLabelProps: () => ({
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        fill: '#333',
+                      }),
+                    }]}
+                    series={[{
+                      data: facilitiesPieChartData.map(d => d.value),
+                      label: 'Facilities',
+                      color: '#2196F3', // Blue color
+                      barThickness: 40,
+                    }]}
+                    grid={{ vertical: false, horizontal: true }}
+                    width={600}
+                    height={400}
+                    margin={{ top: 50, right: 30, left: 40, bottom: 50 }}
+                    legend={{ 
+                      position: 'bottom', 
+                      itemTextStyle: { 
+                        fontSize: 12, 
+                        fontWeight: 'bold' 
+                      } 
+                    }}
+                    tooltip={{ enabled: true }}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
           )}
           {currentTab === 1 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
-                <FilterDropdown label="Ward" options={['All']} />
-                <FilterDropdown label="Village" options={['All']} />
-                <FilterDropdown label="Hamlet" options={['All']} />
+            <Box>
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                {WATER_SOURCE_METRICS.map(({ label, value, icon, iconColor, bgColor }, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <StatsCard
+                      title={label}
+                      value={value}
+                      icon={icon}
+                      iconColor={iconColor}
+                      bgColor={bgColor}
+                    />
+                  </Grid>
+                ))}
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Water Source Types" data={CHART_DATA.waterSources} />
-                </ChartCard>
+              {/* Charts Section */}
+              <Grid container spacing={3}>
+                {/* Pie Chart */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '10px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Water Source Status
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Functional vs Non-Functional Distribution
+                    </Typography>
+                  </Typography>
+                  <PieChart
+                    series={[{
+                      data: pieChartData,
+                      arcLabel: (item) => {
+                        const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
+                        return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
+                      },
+                      outerRadius: 140,
+                      innerRadius: 50,
+                      cornerRadius: 4,
+                      paddingAngle: 2,
+                      highlightScope: { highlighted: 'item', faded: 'global' },
+                    }]}
+                    width={500}
+                    height={350}
+                    sx={{
+                      [`& .${pieArcLabelClasses.root}`]: {
+                        fill: '#2d3436',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        pointerEvents: 'none',
+                      },
+                      '& .MuiPieArc-root': {
+                        transition: 'transform 0.2s, filter 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.02)',
+                          filter: 'brightness(1.1)',
+                        }
+                      }
+                    }}
+                    slotProps={{
+                      legend: {
+                        direction: 'row',
+                        position: { vertical: 'bottom', horizontal: 'middle' },
+                        padding: { top: 20 },
+                        labelStyle: {
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          fill: '#2d3436',
+                        },
+                        itemMarkWidth: 12,
+                        itemMarkHeight: 12,
+                        markGap: 5,
+                        itemGap: 15,
+                      }
+                    }}
+                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+                  />
+                </Grid>
+
+                {/* Bar Chart - Drinkable vs Non-Drinkable */}
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" sx={{ 
+                    textAlign: 'center', 
+                    mb: 2, 
+                    fontWeight: 'bold',
+                    color: '#2d3436',
+                    fontSize: '1.25rem',
+                    position: 'relative',
+                    '&:after': {
+                      content: '""',
+                      display: 'block',
+                      width: '60px',
+                      height: '3px',
+                      backgroundColor: '#1976d2',
+                      margin: '8px auto 0',
+                      borderRadius: '2px'
+                    }
+                  }}>
+                    Water Source Distribution
+                    <Typography variant="subtitle2" sx={{ 
+                      color: '#636e72', 
+                      fontSize: '0.875rem',
+                      mt: 0.5 
+                    }}>
+                      Drinkable vs Non-Drinkable Water Sources
+                    </Typography>
+                  </Typography>
+
+                  <BarChart
+                    xAxis={[{
+                      scaleType: 'band',
+                      data: ['Drinkable/Non-Drinkable',],
+                      tickLabelProps: () => ({
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        fill: '#333',
+                      }),
+                    }]}
+                    series={[
+                      {
+                        data: [waterSourceMetrics.drinkable],
+                        label: 'Drinkable',
+                        color: '#2196F3', // Blue color
+                        barThickness: 40,
+                      },
+                      {
+                        data: [waterSourceMetrics.nonDrinkable],
+                        label: 'Non-Drinkable',
+                        color: '#FF9800', // Orange color
+                        barThickness: 40,
+                      },
+                    ]}
+                    grid={{ vertical: false, horizontal: true }}
+                    width={600}
+                    height={400}
+                    margin={{ top: 50, right: 30, left: 40, bottom: 50 }}
+                    legend={{ 
+                      position: 'bottom', 
+                      itemTextStyle: { 
+                        fontSize: 12, 
+                        fontWeight: 'bold' 
+                      } 
+                    }}
+                    tooltip={{ enabled: true }}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Water Source Conditions" data={CHART_DATA.waterSourceConditions} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Toilet Facility Types" data={CHART_DATA.toiletFacilities} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Toilet Facility Conditions" data={CHART_DATA.toiletConditions} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Dumpsite by Status" data={CHART_DATA.dumpsiteStatus} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Gutter by Condition" data={CHART_DATA.gutterCondition} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Soakaway by Condition" data={CHART_DATA.soakawayCondition} />
-                </ChartCard>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <ChartCard>
-                  <FacilityPieChart title="Open Defecation by Status" data={CHART_DATA.openDefecationStatus} />
-                </ChartCard>
-              </Grid>
-            </Grid>
+            </Box>
           )}
-          {/* {currentTab === 2 && 
-            <DistributionCharts />
-          } */}
-          {/* {currentTab === 3 && (
-            <Card sx={{ mt: 3, boxShadow: 1 }}>
-                <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data?.enumerators || []} />
-            </Card>
-          )} */}
+          {/* Add other tabs (Toilet, Hygiene, Open Defecation) here */}
         </CardContent>
       </StyledCard>
     </Box>

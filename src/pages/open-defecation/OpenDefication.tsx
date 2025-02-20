@@ -1,10 +1,8 @@
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import WarningIcon from '@mui/icons-material/Warning';
 import {
   Avatar,
   Box,
-  Button,
   Card,
   IconButton,
   Paper,
@@ -19,23 +17,20 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FaChartLine } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
-import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { LocationOn, Business } from '@mui/icons-material';
 import { HomeIcon } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 
 interface RiskAssessment {
   level: 'critical' | 'moderate' | 'good';
@@ -99,7 +94,7 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
-    header: 'publicSpace',
+    header: 'Public Space',
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('peakTime', {
@@ -112,119 +107,151 @@ const columns = [
   }),
 ];
 
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
 const OpenDefication = () => {
-  const [openDefications, setOpenDefications] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const defaultPosition: [number, number] = [11.2832241, 7.6644755];
-  const [selectedWard, setSelectedWard] = useState('All');
-  const [selectedVillage, setSelectedVillage] = useState('All');
-  const [selectedHamlet, setSelectedHamlet] = useState('All');
+  const [ward, setWard] = useState('All');
+  const [village, setVillage] = useState('All');
+  const [hamlet, setHamlet] = useState('All');
 
   const { data, isLoading } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecations', { limit, page, search }],
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  useEffect(() => {
-    if (data) {
-      setOpenDefications(data)
-    }
-  }, [data]);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
 
-  // Fix Leaflet's default icon path issues
-  React.useEffect(() => {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: markerIconUrl,
-      iconRetinaUrl: markerIconRetina,
-      shadowUrl: markerShadow,
-    });
+// Memoized risk assessment function
+const assessRisk = useMemo(() => (item) => {
+  const footTraffic = item.footTraffic.toLowerCase();
+  const isPeakTimeNight = item.peakTime.some((time) => time.toLowerCase().includes('night'));
+  const isNearWater = item.environmentalCharacteristics.some((char) =>
+    char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
+  );
+
+  if (footTraffic === 'high' && isPeakTimeNight) {
+    return { level: 'critical', cause: 'High foot traffic during night hours' };
+  } else if (isNearWater) {
+    return { level: 'critical', cause: 'Proximity to water sources' };
+  } else if (footTraffic === 'medium') {
+    return { level: 'moderate', cause: 'Moderate foot traffic' };
+  }
+  return { level: 'good', cause: 'Low risk area' };
+}, []);
+
+// Function to determine the appropriate icon based on risk levels
+const getIcon = (openDefecation: OpenDefecation) => {
+  const riskAssessment = assessRisk(openDefecation);
+  switch (riskAssessment.level) {
+    case 'critical':
+      return 'critical';
+    case 'moderate':
+      return 'moderate';
+    default:
+      return 'good';
+  }
+};
+
+// Custom marker component
+const CustomMarker = ({ openDefecation }: { openDefecation: OpenDefecation }) => {
+  const riskLevel = getIcon(openDefecation);
+  const [animation, setAnimation] = useState<google.maps.Animation | null>(null);
+
+  useEffect(() => {
+    // Start with a bounce animation
+    setAnimation(window.google.maps.Animation.BOUNCE);
+    // Stop animation after 2 seconds
+    const timer = setTimeout(() => setAnimation(null), 2000);
+    return () => clearTimeout(timer);
   }, []);
 
-  const criticalIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+  let iconUrl = '';
+  let label = '';
 
-  const moderateIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+  switch (riskLevel) {
+    case 'critical':
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
+      label = 'C';
+      break;
+    case 'moderate':
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png';
+      label = 'M';
+      break;
+    default:
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png';
+      label = 'G';
+      break;
+  }
 
-  const safeIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+  return (
+    <MarkerF
+      key={openDefecation._id}
+      position={{
+        lat: openDefecation.geolocation.coordinates[1],
+        lng: openDefecation.geolocation.coordinates[0],
+      }}
+      onClick={() => handleMarkerClick(openDefecation)}
+      icon={{
+        url: iconUrl,
+        scaledSize: new window.google.maps.Size(25, 41),
+      }}
+      label={{
+        text: label,
+        color: '#FFFFFF',
+        fontSize: '12px',
+        fontWeight: 'bold',
+      }}
+      animation={animation}
+      title={`${openDefecation.publicSpace} - ${openDefecation.ward}`}
+    />
+  );
+};
 
-  // Function to determine risk level and cause
-  const assessRisk = (item: OpenDefecation): RiskAssessment => {
-    const footTraffic = item.footTraffic.toLowerCase();
-    const isPeakTimeNight = item.peakTime.some(time => time.toLowerCase().includes('night'));
-    const isNearWater = item.environmentalCharacteristics.some(char => 
-      char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
-    );
+// Handle marker click
+const handleMarkerClick = (item: OpenDefecation) => {
+  setSelectedLocation(item);
+  setModalOpen(true);
+};
 
-    if (footTraffic === 'high' && isPeakTimeNight) {
-      return { level: 'critical', cause: 'High foot traffic during night hours' };
-    } else if (isNearWater) {
-      return { level: 'critical', cause: 'Proximity to water sources' };
-    } else if (footTraffic === 'medium') {
-      return { level: 'moderate', cause: 'Moderate foot traffic' };
-    }
-    return { level: 'good', cause: 'Low risk area' };
-  };
+// Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!data) return ['All'];
+    return ['All', ...new Set(data.map(item => item.ward))];
+  }, [data]);
 
-  const getMarkerIcon = (item: OpenDefecation) => {
-    const risk = assessRisk(item);
-    switch (risk.level) {
-      case 'critical':
-        return criticalIcon;
-      case 'moderate':
-        return moderateIcon;
-      default:
-        return safeIcon;
-    }
-  };
+  const villageOptions = useMemo(() => {
+    if (!data) return ['All'];
+    const filteredVillages = data
+      .filter(item => ward === 'All' || item.ward === ward)
+      .map(item => item.village);
+    return ['All', ...new Set(filteredVillages)];
+  }, [data, ward]);
 
-  const handleMarkerClick = (item: OpenDefecation) => {
-    setSelectedLocation(item);
-    setModalOpen(true);
-  };
+  const hamletOptions = useMemo(() => {
+    if (!data) return ['All'];
+    const filteredHamlets = data
+      .filter(item => (ward === 'All' || item.ward === ward) && (village === 'All' || item.village === village))
+      .map(item => item.hamlet);
+    return ['All', ...new Set(filteredHamlets)];
+  }, [data, ward, village]);
 
-  const countByProperty = <T extends object>(
-    data: T[] | undefined,
-    property: keyof T,
-    value: T[keyof T]
-  ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
-  };
-
-  const getUniqueValues = (key: keyof OpenDefecation): string[] => {
-    const values = data?.map(item => item[key] as string) || [];
-    return ['All', ...Array.from(new Set(values))];
-  };
-
-  // Add this filtered data computation
-  const filteredData = React.useMemo(() => {
+  // Filtered data
+  const filteredData = useMemo(() => {
     if (!data) return [];
-    
-    return data.filter(item => {
-      const wardMatch = selectedWard === 'All' || item.ward === selectedWard;
-      const villageMatch = selectedVillage === 'All' || item.village === selectedVillage;
-      const hamletMatch = selectedHamlet === 'All' || item.hamlet === selectedHamlet;
-      return wardMatch && villageMatch && hamletMatch;
-    });
-  }, [data, selectedWard, selectedVillage, selectedHamlet]);
+    return data.filter(item =>
+      (ward === 'All' || item.ward === ward) &&
+      (village === 'All' || item.village === village) &&
+      (hamlet === 'All' || item.hamlet === hamlet)
+    );
+  }, [data, ward, village, hamlet]);
 
   // Update the stats cards to use filtered data
   const getHighRiskCount = (data: OpenDefecation[]) => {
@@ -235,6 +262,67 @@ const OpenDefication = () => {
     const total = data.reduce((sum, item) => sum + parseInt(item.dailyAverage), 0);
     return Math.round(total / (data.length || 1));
   };
+
+  // Data for Bar Chart (Distribution by Ward)
+  const wardDistributionData = useMemo(() => {
+    if (!filteredData) return [];
+    const wardCounts = filteredData.reduce((acc, item) => {
+      acc[item.ward] = (acc[item.ward] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return Object.entries(wardCounts).map(([ward, count]) => ({ ward, count }));
+  }, [filteredData]);
+
+  // Data for Pie Chart (Distribution by Risk Level)
+  const riskLevelDistributionData = useMemo(() => {
+    if (!filteredData) return [];
+    const riskCounts = filteredData.reduce((acc, item) => {
+      const riskLevel = assessRisk(item).level;
+      acc[riskLevel] = (acc[riskLevel] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const total = filteredData.length;
+    return Object.entries(riskCounts).map(([level, count]) => ({
+      level,
+      count,
+      percentage: ((count / total) * 100).toFixed(1) + '%',
+    }));
+  }, [filteredData]);
+
+  const COLORS = ['#22c55e', '#ef4444', '#f59e0b']; // Colors for critical (yellow), moderate (orange), good (green)
+  // Custom Tooltip for Pie Chart
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const { level, count, percentage } = payload[0].payload;
+      return (
+        <Box sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1, boxShadow: 1 }}>
+          <Typography variant="body2">{`${level}: ${count} (${percentage})`}</Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  // Custom Tooltip for Bar Chart
+  const CustomBarTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const { ward, count } = payload[0].payload;
+      return (
+        <Box sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1, boxShadow: 1 }}>
+          <Typography variant="body2">{`${ward}: ${count}`}</Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
@@ -248,22 +336,16 @@ const OpenDefication = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Button
-          startIcon={<FilterAltIcon />}
-          variant="contained"
-          sx={{
-            bgcolor: 'white',
-            color: 'text.primary',
-            boxShadow: 1,
-            '&:hover': { bgcolor: 'grey.100' },
-            textTransform: 'none',
-          }}
-        >
-          Filter
-        </Button>
+        <Box sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
+        </Box>
       </Box>
 
-      {/* Update Stats Cards */}
+      {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <StatsCard
           title="Total Observations"
@@ -285,69 +367,71 @@ const OpenDefication = () => {
         />
       </Box>
 
-      {/* Main Content */}
-      <Box sx={{ display: 'flex', gap: 2, backgroundColor: '#f0f0f0' }}>
-        <Paper sx={{ p: 2, borderRadius: 2, width: '100%' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Open Defecation Risk Map</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#f44336' }} />
-                <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Critical Risk (&lt;30m)</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff9800' }} />
-                <Typography sx={{fontSize: 13, fontWeight: 'bold'}}>Moderate Risk (&gt;30m)</Typography>
-              </Box>
-            </Box>
-            <Box sx={{ mb: 1 }}>
-            <Stack direction="row" spacing={2}>
-              <FilterDropdown 
-                label="Ward" 
-                options={getUniqueValues('ward')}
-                value={selectedWard}
-                onChange={(value) => setSelectedWard(value)}
-              />
-              <FilterDropdown 
-                label="Village" 
-                options={getUniqueValues('village')}
-                value={selectedVillage}
-                onChange={(value) => setSelectedVillage(value)}
-              />
-              <FilterDropdown 
-                label="Hamlet" 
-                options={getUniqueValues('hamlet')}
-                value={selectedHamlet}
-                onChange={(value) => setSelectedHamlet(value)}
-              />
-            </Stack>
-          </Box>
+      {/* Distribution Charts */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Distribution by Ward
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={wardDistributionData}>
+                <XAxis dataKey="ward" />
+                <YAxis />
+                <Tooltip content={<CustomBarTooltip />} />
+                <Legend />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Distribution by Risk Level
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={riskLevelDistributionData}
+                  dataKey="count"
+                  nameKey="level"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  fill="#8884d8"
+                  label={({ level, count, percentage }) => `${level}: ${count} (${percentage})`}
+                >
+                  {riskLevelDistributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomPieTooltip />} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+      </Grid>
 
-          </Box>
-          <Box sx={{ height: 600, bgcolor: '#F8FAFC', borderRadius: 1, overflow: 'hidden' }}>
-            <MapContainer
-              center={defaultPosition}
-              zoom={15}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
-              {filteredData.map((item) => (
-                <Marker
-                  key={item._id}
-                  position={[item.geolocation.coordinates[1], item.geolocation.coordinates[0]]}
-                  icon={getMarkerIcon(item)}
-                  eventHandlers={{
-                    click: () => handleMarkerClick(item)
-                  }}
-                />
-              ))}
-            </MapContainer>
-          </Box>
-        </Paper>
-      </Box>
+      {/* Enhanced Map Section */}
+      <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Risk Distribution Map
+        </Typography>
+
+        {isLoaded && (
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '70vh' }}
+            center={{ lat: 11.2832241, lng: 7.6644755 }}
+            zoom={14}
+          >
+            {filteredData.map(openDefecation => (
+              <CustomMarker openDefecation={openDefecation} />
+            ))}
+          </GoogleMap>
+        )}
+      </Paper>
 
       {/* Location Details Modal */}
       <Dialog
@@ -464,9 +548,9 @@ const OpenDefication = () => {
       </Dialog>
 
       {/* Recent Observations Table */}
-      <Paper sx={{ p: 2, borderRadius: 2 }}>
+      <Paper sx={{ p: 2, borderRadius: 2, mt: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">Recent Observations</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Open Defecation Overview</Typography>
         </Box>
 
         <DataTable
@@ -522,7 +606,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   onChange 
 }) => {
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={{ minWidth: 210, height: 40 }}>
       <FormControl fullWidth size="small">
         <InputLabel>{label}</InputLabel>
         <Select
@@ -530,7 +614,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           label={label}
           onChange={(e) => onChange?.(e.target.value)}
           sx={{
-            bgcolor: 'white',
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: 'rgba(0, 0, 0, 0.12)',
             },
@@ -546,5 +629,14 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
     </Box>
   );
 };
+
+const MapLegendItem = ({ color, label }: { color: string; label: string }) => (
+  <Stack direction="row" alignItems="center" spacing={1}>
+    <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: color }} />
+    <Typography variant="caption" sx={{ fontWeight: 500, color: '#4b5563' }}>
+      {label}
+    </Typography>
+  </Stack>
+);
 
 export default OpenDefication;

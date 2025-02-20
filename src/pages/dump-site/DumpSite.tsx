@@ -6,15 +6,20 @@ import {
   Box,
   Button,
   Card,
-  CardContent, // Add this import at the top
+  CardContent,
   Chip,
   CircularProgress,
+  FormControl,
+  InputLabel,
   Grid,
-  Typography
+  Stack,
+  Typography,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FaDumpster } from "react-icons/fa";
 import { IoWarning } from "react-icons/io5";
 import { apiController } from '../../axios';
@@ -49,8 +54,8 @@ const notificationCards = [
       {
         label: "East End Facility",
         description: "Immediate attention required",
-        leftIcon: <img src="/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
         bgcolor: "#ffebee",
       },
     ],
@@ -63,8 +68,8 @@ const notificationCards = [
       {
         label: "South Gate Site",
         description: "Scheduled for tomorrow",
-        leftIcon: <img src="/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
         bgcolor: "#e3f2fd",
       },
     ],
@@ -77,8 +82,8 @@ const notificationCards = [
       {
         label: "Capacity Report",
         description: "Generated at 09:00 AM",
-        leftIcon: <img src="/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="./src/assets/img/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="./src/assets/img/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
         bgcolor: "#f5f5f5",
       },
     ],
@@ -95,14 +100,10 @@ const columns = [
         src={props.getValue()}
         alt="Dump Site"
         sx={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: '2px solid #e5e7eb',
+          borderRadius: '100%',
         }}
       />
     ),
-    size: 80,
   }),
   columnHelper.accessor('ward', {
     cell: info => info.getValue(),
@@ -114,78 +115,132 @@ const columns = [
     cell: info => info.getValue(),
   }),
   columnHelper.accessor('publicSpace', {
+    header: 'Categories',
     cell: info => info.getValue(),
   }),
-
-  columnHelper.accessor('status', {
-    header: 'Status',
+  columnHelper.accessor('type', {
+    header: 'Tags',
     cell: info => {
-      const status = info.getValue();
-      let color;
-      switch (status) {
-        case 'Improved':
-          color = 'success';
-          break;
-        case 'Unimproved':
-          color = 'error';
-          break;
-        default:
-          color = 'default';
-      }
       return (
-        <Chip label={status} color={color} />
-      );
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip
+            variant='outlined'
+            label={info.row.original.evacuationSchedule}
+            color={info.row.original.evacuationSchedule === 'Periodic' ? 'success' : 'error'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.status}
+            color={info.row.original.status === 'Improved' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Maintained' ? 'success' : 'error'}
+          />
+          <Chip
+            variant='outlined'
+            label={info.row.original.safetyRisk}
+            color={info.row.original.safetyRisk === 'Closed' ? 'success' : 'error'}
+          />
+        </Stack>
+      )
     },
-  }),
-  columnHelper.accessor('capturedAt', {
-    cell: info => new Date(info.getValue()).toLocaleString(),
   }),
 ];
 
+const FilterDropdown = ({ label, value, options, onChange }) => (
+  <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>
+          {option}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
+
 const DumpSites = () => {
-  const [dumpSites, setDumpSites] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
 
   const { data, isLoading } = useQuery<DumpSite[], Error>({
     queryKey: ['dump-sites', { limit, page, search }],
     queryFn: () => apiController.get<DumpSite[]>(`/dump-sites?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  useEffect(() => {
-    if (data) {
-      setDumpSites(data)
-    }
+  // Generate filter options
+  const wardOptions = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(item => item.ward))];
   }, [data]);
+
+  const villageOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredVillages = data
+      .filter(item => !ward || item.ward === ward)
+      .map(item => item.village);
+    return [...new Set(filteredVillages)];
+  }, [data, ward]);
+
+  const hamletOptions = useMemo(() => {
+    if (!data) return [];
+    const filteredHamlets = data
+      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
+      .map(item => item.hamlet);
+    return [...new Set(filteredHamlets)];
+  }, [data, ward, village]);
+
+  // Filtered data
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet) &&
+      (!search || 
+        item.ward.toLowerCase().includes(search.toLowerCase()) ||
+        item.village.toLowerCase().includes(search.toLowerCase()) ||
+        item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
+        item.publicSpace.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  }, [data, ward, village, hamlet, search]);
 
   const countByProperty = <T extends object>(
     data: T[] | undefined,
     property: keyof T,
     value: T[keyof T]
   ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length || 0;
+    return data?.filter(item => item[property] !== undefined && item[property] === value).length.toLocaleString() || 0;
   };
 
   const metricCards = [
     {
       title: "Total Dump Site",
-      value: data?.length,
+      value: filteredData.length.toLocaleString(),
       icon: <FaDumpster style={{ fontSize: '1.8rem', color: '#00B4D8' }}/>,
       bgColor: "#e3f2fd"
     },
     {
       title: "Maintained",
-      value: countByProperty(data, 'condition', 'Maintained'),
+      value: countByProperty(filteredData, 'condition', 'Maintained'),
       icon: <CheckCircleIcon sx={{ fontSize: '1.8rem', color: "#16A34A" }} />,
       bgColor: "#e8f5e9"
     },
     {
-      title: "Unmaintained", value: countByProperty(data, 'condition', 'Unmaintained'),
+      title: "Unmaintained", value: countByProperty(filteredData, 'condition', 'Unmaintained'),
       icon: <IoWarning style={{ fontSize: '1.8rem', color: "#EAB308" }} />, bgColor: "#ffebee"
     },
     {
-      title: "Overfilled", value: countByProperty(data, 'condition', 'Overfilled'),
+      title: "Overfilled", value: countByProperty(filteredData, 'condition', 'Overfilled'),
       icon: <ErrorIcon sx={{ fontSize: '1.8rem', color: "#D32F2F" }} />, bgColor: "#fffde7"
     },
   ];
@@ -212,36 +267,12 @@ const DumpSites = () => {
             Detailed insights about your selected location
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
-        <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                height: 48,
-                color: "#1F2937",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src="/svg/filter.svg"
-                alt="Export"
-                style={{ width: 20, height: 20, marginRight: 8 }}
-              />
-              Filter
-            </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#2CBEEF",
-              height: 48,
-              "&:hover": { bgcolor: "#1993b6" },
-            }}
-          >
-            Add New Site
-          </Button>
+        <Box sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+          </Stack>
         </Box>
       </Box>
 
@@ -256,7 +287,7 @@ const DumpSites = () => {
                 justifyContent: "space-between",
                 padding: 2,
                 borderRadius: 2,
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                boxShadow: 2,
                 bgcolor: "#fff",
               }}
             >
@@ -265,7 +296,7 @@ const DumpSites = () => {
                   {card.title}
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
-                  {card.value.toLocaleString() || 0}
+                  {card.value || 0}
                 </Typography>
               </Box>
               <Box
@@ -302,7 +333,7 @@ const DumpSites = () => {
               Dump Site Overview
             </Typography>
           </Box>
-          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={data || []} />
+          <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={filteredData || []} />
         </CardContent>
       </Card>
 
