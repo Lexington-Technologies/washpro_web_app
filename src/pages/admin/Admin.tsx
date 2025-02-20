@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Chip,
   IconButton,
@@ -19,17 +13,31 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
-  
   TextField,
   Modal,
   Stack,
   CircularProgress,
+  Grid,
+  Card,
 } from '@mui/material';
 import { MoreVert } from '@mui/icons-material';
 import { FaPlus } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
 import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
+import {
+  FaUsers,
+  FaUserPlus,
+  FaUserCheck,
+  FaUserTimes,
+} from 'react-icons/fa'; // Example icons
+import {
+  useReactTable,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+} from '@tanstack/react-table';
+import { DataTable } from '../../components/Table/DataTable';
 
 interface User {
   _id: string;
@@ -61,9 +69,10 @@ const initialFormData: UserFormData = {
   email: '',
   phone: '',
   password: '',
-  role: '', 
+  role: '',
 };
 
+const columnHelper = createColumnHelper<User>();
 
 const UserPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -79,8 +88,14 @@ const UserPage: React.FC = () => {
     fullName: '',
     email: '',
     phone: '',
-    role: ''
+    role: '',
   });
+
+  // Memoized analytics calculations
+  const totalUsers = useMemo(() => users.length, [users]);
+  const activeUsers = useMemo(() => users.filter(user => user.status === 'active').length, [users]);
+  const inactiveUsers = useMemo(() => users.filter(user => user.status === 'inactive').length, [users]);
+  const adminUsers = useMemo(() => users.filter(user => user.role === 'admin').length, [users]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: User) => {
     setAnchorEl(event.currentTarget);
@@ -100,7 +115,7 @@ const UserPage: React.FC = () => {
     if (!selectedUser?._id) {
       setAlert({
         variant: 'error',
-        message: 'No user selected'
+        message: 'No user selected',
       });
       return;
     }
@@ -136,7 +151,7 @@ const UserPage: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -147,7 +162,7 @@ const UserPage: React.FC = () => {
       await apiController.post('/user/register', formData);
       setAlert({
         variant: 'success',
-        message: 'User added successfully'
+        message: 'User added successfully',
       });
       setOpenAddModal(false);
       setFormData(initialFormData);
@@ -155,7 +170,7 @@ const UserPage: React.FC = () => {
     } catch (error) {
       setAlert({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to add user'
+        message: error instanceof Error ? error.message : 'Failed to add user',
       });
     } finally {
       setIsLoading(false);
@@ -170,7 +185,7 @@ const UserPage: React.FC = () => {
     } catch (error) {
       setAlert({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch users'
+        message: error instanceof Error ? error.message : 'Failed to fetch users',
       });
     } finally {
       setIsLoading(false);
@@ -188,9 +203,9 @@ const UserPage: React.FC = () => {
       fullName: selectedUser.fullName,
       email: selectedUser.email,
       phone: selectedUser.phone,
-      role: selectedUser.role || ''
+      role: selectedUser.role || '',
     });
-    
+
     handleMenuClose();
     setOpenEditModal(true);
   };
@@ -199,17 +214,17 @@ const UserPage: React.FC = () => {
     const { name, value } = e.target;
     setEditFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedUser?._id) {
       setAlert({
         variant: 'error',
-        message: 'No user selected'
+        message: 'No user selected',
       });
       return;
     }
@@ -217,12 +232,12 @@ const UserPage: React.FC = () => {
     setIsLoading(true);
     try {
       await apiController.put(`/user/${selectedUser._id}`, editFormData);
-      
+
       setAlert({
         variant: 'success',
-        message: 'User updated successfully'
+        message: 'User updated successfully',
       });
-      
+
       setOpenEditModal(false);
       setSelectedUser(null);
       fetchUsers(); // Refresh the list
@@ -230,7 +245,7 @@ const UserPage: React.FC = () => {
       console.error('Error updating user:', error);
       setAlert({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update user'
+        message: error instanceof Error ? error.message : 'Failed to update user',
       });
     } finally {
       setIsLoading(false);
@@ -246,7 +261,58 @@ const UserPage: React.FC = () => {
       return 'Never';
     }
   };
-  
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('fullName', {
+        header: () => 'Full Name',
+      }),
+      columnHelper.accessor('email', {
+        header: () => 'Email',
+      }),
+      columnHelper.accessor('role', {
+        header: () => 'Role',
+      }),
+      columnHelper.accessor('phone', {
+        header: () => 'Phone',
+      }),
+      columnHelper.accessor('status', {
+        header: () => 'Status',
+        cell: info => (
+          <Chip
+            label={info.getValue()}
+            size="small"
+            sx={{
+              bgcolor: info.getValue() === 'active' ? '#dcfce7' : '#fee2e2',
+              color: info.getValue() === 'active' ? '#16a34a' : '#dc2626',
+              textTransform: 'capitalize',
+            }}
+          />
+        ),
+      }),
+      columnHelper.accessor('lastLogin', {
+        header: () => 'Last Login',
+        cell: info => formatLastLogin(info.getValue() || ''),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => 'Action',
+        cell: info => (
+          <Box
+          onClick={(e) => handleMenuOpen(e, info.row.original)}
+          sx={{ display: 'flex', gap: 1, bgcolor: 'green' }}>
+          <IconButton
+            size="small"
+            color='primary'
+            >
+            <MoreVert />
+          </IconButton>
+            </Box>
+        ),
+      }),
+    ],
+    [handleMenuOpen, formatLastLogin]
+  );
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
@@ -265,68 +331,41 @@ const UserPage: React.FC = () => {
         </Button>
       </Box>
 
-      {/* Table */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ bgcolor: '#1a237e' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>Full Name</TableCell>
-              <TableCell sx={{ color: 'white' }}>Email</TableCell>
-              <TableCell sx={{ color: 'white' }}>Role</TableCell>
-              <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
-              <TableCell sx={{ color: 'white' }}>Last Login</TableCell>
-              <TableCell sx={{ color: 'white' }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                  <CircularProgress size={40} />
-                </TableCell>
-              </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                  No users found
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell>{user.fullName}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.status}
-                      size="small"
-                      sx={{
-                        bgcolor: user.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: user.status === 'active' ? '#16a34a' : '#dc2626',
-                        textTransform: 'capitalize',
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {formatLastLogin(user.lastLogin || '')}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton 
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, user)}
-                    >
-                      <MoreVert />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* Analytics Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Total Users"
+            value={totalUsers}
+            icon={<FaUsers />}
+            iconColor="#3f51b5"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Active Users"
+            value={activeUsers}
+            icon={<FaUserCheck />}
+            iconColor="#4caf50"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Inactive Users"
+            value={inactiveUsers}
+            icon={<FaUserTimes />}
+            iconColor="#f44336"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Admin Users"
+            value={adminUsers}
+            icon={<FaUserPlus />}
+            iconColor="#ff9800"
+          />
+        </Grid>
+      </Grid>
 
       {/* Action Menu */}
       <Menu
@@ -334,10 +373,10 @@ const UserPage: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem 
+        <MenuItem
           onClick={handleSuspendClick}
-          sx={{ 
-            color: selectedUser?.status === 'active' ? '#dc2626' : '#16a34a'
+          sx={{
+            color: selectedUser?.status === 'active' ? '#dc2626' : '#16a34a',
           }}
         >
           {selectedUser?.status === 'active' ? 'Suspend' : 'Activate'}
@@ -357,22 +396,22 @@ const UserPage: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setConfirmDialog(false)}
             disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleStatusChange}
-            color="primary" 
+            color="primary"
             variant="contained"
             disabled={isLoading}
-            sx={{ 
+            sx={{
               bgcolor: selectedUser?.status === 'active' ? '#dc2626' : '#16a34a',
-              '&:hover': { 
-                bgcolor: selectedUser?.status === 'active' ? '#b91c1c' : '#15803d'
-              }
+              '&:hover': {
+                bgcolor: selectedUser?.status === 'active' ? '#b91c1c' : '#15803d',
+              },
             }}
           >
             {isLoading ? (
@@ -384,19 +423,15 @@ const UserPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Pagination */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {users.length} entries
-        </Typography>
-        <Box display="flex" gap={1} alignItems="center">
-          <Button size="small" disabled>
-            Previous
-          </Button>
-          <Chip label="1" color="primary" />
-          <Button size="small">Next</Button>
-        </Box>
-      </Box>
+      <DataTable
+        columns={columns}
+        data={users}
+        isLoading={isLoading}
+        onFetchData={fetchUsers}
+        pageCount={1}
+        pageSize={10}
+        showPagination={false}  
+        />
 
       {/* Add User Modal */}
       <Modal
@@ -404,17 +439,19 @@ const UserPage: React.FC = () => {
         onClose={() => setOpenAddModal(false)}
         aria-labelledby="add-user-modal"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          boxShadow: 24,
-          p: 4,
-        }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
             Add New User
           </Typography>
@@ -460,7 +497,7 @@ const UserPage: React.FC = () => {
                 select
               >
                 {[
-                  { value: 'admin', label: 'Admin', },
+                  { value: 'admin', label: 'Admin' },
                   { value: 'profiler', label: 'Profiler' },
                   { value: 'reviewer', label: 'Reviewer' },
                 ].map((option) => (
@@ -479,14 +516,14 @@ const UserPage: React.FC = () => {
                 required
               /> */}
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 2 }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   onClick={() => setOpenAddModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   variant="contained"
                   disabled={isLoading}
                   sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
@@ -509,17 +546,19 @@ const UserPage: React.FC = () => {
         onClose={() => setOpenEditModal(false)}
         aria-labelledby="edit-user-modal"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          borderRadius: 1,
-          boxShadow: 24,
-          p: 4,
-        }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
             Edit User
           </Typography>
@@ -573,15 +612,15 @@ const UserPage: React.FC = () => {
                 ))}
               </TextField>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 2 }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   onClick={() => setOpenEditModal(false)}
                   disabled={isLoading}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   variant="contained"
                   disabled={isLoading}
                   sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
@@ -600,5 +639,37 @@ const UserPage: React.FC = () => {
     </Box>
   );
 };
+
+interface StatsCardProps {
+  title: string;
+  value: string | number | undefined;
+  icon: React.ReactElement;
+  iconColor: string;
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) => (
+  <Card sx={{ flex: 1, p: 2, borderRadius: 2 }}>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+      {title}
+    </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        {value}
+      </Typography>
+      <Box
+        sx={{
+          bgcolor: `${iconColor}15`,
+          p: 1,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {React.cloneElement(icon, { sx: { color: iconColor } })}
+      </Box>
+    </Box>
+  </Card>
+);
 
 export default UserPage;

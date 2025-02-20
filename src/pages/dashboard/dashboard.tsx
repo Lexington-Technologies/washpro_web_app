@@ -413,9 +413,9 @@ const WashDashboard = () => {
           >
             <Tab icon={<Timeline />} label="Facilities Overview" iconPosition="start" key="Facilities Overview" />
             <Tab icon={<IoWater />} label="Water Source Overview" iconPosition="start" key="Water Source Overview" />
-            <Tab icon={<SiCcleaner />} label="Toilet Overview" iconPosition="start" key="Toilet" />
+            {/* <Tab icon={<SiCcleaner />} label="Toilet Overview" iconPosition="start" key="Toilet" />
             <Tab icon={<MdCleanHands style={{ fontSize: 15 }} />} label="Hygiene" iconPosition="start" key="Hygiene" />
-            <Tab icon={<LiaPoopSolid />} label="Open Defecation" iconPosition="start" key="Open Defecation" />
+            <Tab icon={<LiaPoopSolid />} label="Open Defecation" iconPosition="start" key="Open Defecation" /> */}
           </Tabs>
         </Box>
 
@@ -472,14 +472,14 @@ const WashDashboard = () => {
                         const total = facilitiesPieChartData.reduce((sum, d) => sum + d.value, 0);
                         return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
                       },
-                      outerRadius: 150,
+                      outerRadius: 140,
                       innerRadius: 50,
                       cornerRadius: 4,
                       paddingAngle: 2,
                       highlightScope: { highlighted: 'item', faded: 'global' },
                     }]}
                     width={500}
-                    height={400}
+                    height={350}
                     sx={{
                       [`& .${pieArcLabelClasses.root}`]: {
                         fill: '#2d3436',
@@ -546,30 +546,30 @@ const WashDashboard = () => {
                     xAxis={[{
                       scaleType: 'band',
                       data: facilitiesPieChartData.map(d => d.label),
-                      tickLabelStyle: {
-                        angle: 15,
-                        textAnchor: 'start',
-                        fontSize: 10, // Smaller font size for x-axis labels
-                      },
+                      tickLabelProps: () => ({
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        fill: '#333',
+                      }),
                     }]}
-                    series={facilitiesPieChartData.map((d, index) => ({
-                      data: [d.value], // Wrap the value in an array
-                      color: d.color, // Use the color from facilitiesPieChartData
-                      barThickness: 20, // Reduced bar thickness
-                    }))}
+                    series={[{
+                      data: facilitiesPieChartData.map(d => d.value),
+                      label: 'Facilities',
+                      color: '#2196F3', // Blue color
+                      barThickness: 40,
+                    }]}
                     grid={{ vertical: false, horizontal: true }}
-                    width={600} // Reduced width
-                    height={400} // Reduced height
-                    margin={{ left: 100, right: 100, top: 100, bottom: 100 }} // Reduced margins
-                    sx={{
-                      '& .MuiBarElement-root': {
-                        transition: 'transform 0.2s, filter 0.2s',
-                        '&:hover': {
-                          transform: 'scaleY(1.03)',
-                          filter: 'brightness(1.1)',
-                        }
-                      }
+                    width={600}
+                    height={400}
+                    margin={{ top: 50, right: 30, left: 40, bottom: 50 }}
+                    legend={{ 
+                      position: 'bottom', 
+                      itemTextStyle: { 
+                        fontSize: 12, 
+                        fontWeight: 'bold' 
+                      } 
                     }}
+                    tooltip={{ enabled: true }}
                   />
                 </Grid>
               </Grid>

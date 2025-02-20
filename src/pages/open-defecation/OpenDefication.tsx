@@ -22,20 +22,15 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FaChartLine } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
-import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { LocationOn, Business } from '@mui/icons-material';
 import { HomeIcon } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 
 interface RiskAssessment {
   level: 'critical' | 'moderate' | 'good';
@@ -112,6 +107,8 @@ const columns = [
   }),
 ];
 
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
 const OpenDefication = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -126,6 +123,10 @@ const OpenDefication = () => {
   const { data, isLoading } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecations', { limit, page, search }],
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
+  });
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
 // Memoized risk assessment function
@@ -146,39 +147,76 @@ const assessRisk = useMemo(() => (item) => {
   return { level: 'good', cause: 'Low risk area' };
 }, []);
 
-// Custom marker icons from WaterSourceRisk
-const criticalIcon = L.divIcon({
-  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#ef4444" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#ef4444" font-weight="bold">⚠</text></svg>',
-  iconSize: [50, 70],
-  iconAnchor: [25, 70],
-  popupAnchor: [0, -70],
-  className: 'custom-svg-marker',
-});
+// Function to determine the appropriate icon based on risk levels
+const getIcon = (openDefecation: OpenDefecation) => {
+  const riskAssessment = assessRisk(openDefecation);
+  switch (riskAssessment.level) {
+    case 'critical':
+      return 'critical';
+    case 'moderate':
+      return 'moderate';
+    default:
+      return 'good';
+  }
+};
 
-const moderateIcon = L.divIcon({
-  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#f59e0b" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#f59e0b" font-weight="bold">⚠</text></svg>',
-  iconSize: [50, 70],
-  iconAnchor: [25, 70],
-  popupAnchor: [0, -70],
-  className: 'custom-svg-marker',
-});
+// Custom marker component
+const CustomMarker = ({ openDefecation }: { openDefecation: OpenDefecation }) => {
+  const riskLevel = getIcon(openDefecation);
+  const [animation, setAnimation] = useState<google.maps.Animation | null>(null);
 
-const safeIcon = L.divIcon({
-  html: '<svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg"><path fill="#22c55e" stroke="#fff" stroke-width="3" d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/><circle cx="25" cy="25" r="10" fill="#fff"/><text x="25" y="30" font-size="14" text-anchor="middle" fill="#22c55e" font-weight="bold">✓</text></svg>',
-  iconSize: [50, 70],
-  iconAnchor: [25, 70],
-  popupAnchor: [0, -70],
-  className: 'custom-svg-marker',
-});
+  useEffect(() => {
+    // Start with a bounce animation
+    setAnimation(window.google.maps.Animation.BOUNCE);
+    // Stop animation after 2 seconds
+    const timer = setTimeout(() => setAnimation(null), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-// Function to determine marker icon based on risk assessment
-const getMarkerIcon = (item) => {
-  const risk = assessRisk(item);
-  return risk.level === 'critical' ? criticalIcon : risk.level === 'moderate' ? moderateIcon : safeIcon;
+  let iconUrl = '';
+  let label = '';
+
+  switch (riskLevel) {
+    case 'critical':
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
+      label = 'C';
+      break;
+    case 'moderate':
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png';
+      label = 'M';
+      break;
+    default:
+      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png';
+      label = 'G';
+      break;
+  }
+
+  return (
+    <MarkerF
+      key={openDefecation._id}
+      position={{
+        lat: openDefecation.geolocation.coordinates[1],
+        lng: openDefecation.geolocation.coordinates[0],
+      }}
+      onClick={() => handleMarkerClick(openDefecation)}
+      icon={{
+        url: iconUrl,
+        scaledSize: new window.google.maps.Size(25, 41),
+      }}
+      label={{
+        text: label,
+        color: '#FFFFFF',
+        fontSize: '12px',
+        fontWeight: 'bold',
+      }}
+      animation={animation}
+      title={`${openDefecation.publicSpace} - ${openDefecation.ward}`}
+    />
+  );
 };
 
 // Handle marker click
-const handleMarkerClick = (item) => {
+const handleMarkerClick = (item: OpenDefecation) => {
   setSelectedLocation(item);
   setModalOpen(true);
 };
@@ -378,32 +416,21 @@ const handleMarkerClick = (item) => {
 
       {/* Enhanced Map Section */}
       <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Risk Distribution Map
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <MapLegendItem color="#ef4444" label="Critical Risk (<10m)" />
-            <MapLegendItem color="#f59e0b" label="Moderate Risk (10-30m)" />
-            <MapLegendItem color="#22c55e" label="Safe Distance (>30m)" />
-          </Stack>
-        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Risk Distribution Map
+        </Typography>
 
-        <Box sx={{ height: '70vh', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-        <MapContainer center={defaultPosition} zoom={14} style={{ height: '70vh', width: '100%' }}>
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
-      {data?.map((item) => (
-        <Marker
-          key={item._id}
-          position={[item.geolocation.coordinates[1], item.geolocation.coordinates[0]]}
-          icon={getMarkerIcon(item)}
-          eventHandlers={{ click: () => handleMarkerClick(item) }}
-        />
-      ))}
-    </MapContainer>        </Box>
+        {isLoaded && (
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '70vh' }}
+            center={{ lat: 11.2832241, lng: 7.6644755 }}
+            zoom={14}
+          >
+            {filteredData.map(openDefecation => (
+              <CustomMarker openDefecation={openDefecation} />
+            ))}
+          </GoogleMap>
+        )}
       </Paper>
 
       {/* Location Details Modal */}

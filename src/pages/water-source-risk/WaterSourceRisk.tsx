@@ -15,15 +15,14 @@ import {
   Avatar,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import React, { useState, useMemo } from 'react';
 import { FaClipboardCheck, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import WaterSourceDetailsDialog from './WaterSourceDetailsDialog';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
+
 // Interfaces
 interface Location {
   ward: string;
@@ -66,35 +65,6 @@ interface WaterSourceRiskData {
   facilities: Facilities;
   summary: Summary;
 }
-
-
-// Function to create an SVG-based Leaflet map marker
-const createSvgMarker = (color: string, iconSymbol: string) => {
-  return new L.DivIcon({
-    html: `
-      <svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
-        <!-- Marker Background (Pin Shape) -->
-        <path fill="${color}" stroke="#fff" stroke-width="3"
-          d="M25 1C12 1 1 12 1 25c0 16 24 42 24 42s24-26 24-42C49 12 38 1 25 1z"/>
-        <!-- Inner Circle -->
-        <circle cx="25" cy="25" r="10" fill="#fff"/>
-        <!-- Icon/Text in the Center -->
-        <text x="25" y="30" font-size="14" text-anchor="middle" fill="${color}" font-weight="bold">
-          ${iconSymbol}
-        </text>
-      </svg>
-    `,
-    iconSize: [50, 70], // Adjust marker size
-    iconAnchor: [25, 70], // Align bottom-center
-    popupAnchor: [0, -70], // Position popup above the marker
-    className: 'custom-svg-marker'
-  });
-};
-
-// Define SVG markers for different risk levels
-const criticalIcon = createSvgMarker('#ef4444', '⚠'); // Red with warning symbol
-const moderateIcon = createSvgMarker('#f59e0b', '⚠'); // Orange with warning symbol
-const safeIcon = createSvgMarker('#22c55e', '✓'); // Green with checkmark
 
 // mock data
 const waterRisksmock = [
@@ -149,6 +119,8 @@ const waterRisksmock = [
     good: 25
   }
 ];
+
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 // Define your row shape
 const columnHelper = createColumnHelper()
@@ -249,6 +221,11 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+  });
+
   // Generate filter options
   const wardOptions = useMemo(() => {
     if (!waterRisks) return [];
@@ -314,49 +291,32 @@ const { criticalCount, moderateCount, safeCount, totalCount } = useMemo(() => {
   );
 }, [filteredWaterRisks]);
 
+  const handleMarkerClick = (waterRisk: WaterSourceRiskData) => {
+    setSelectedSource(waterRisk);
+    setModalOpen(true);
+  };
 
-// Helper function to determine marker icon based on risk levels
-const getMarkerIcon = (waterRisk: WaterSourceRiskData) => {
-  const hasCritical = waterRisk.facilities.toilets.some(t => t.riskLevel === 'critical');
-  const hasModerate = waterRisk.facilities.toilets.some(t => t.riskLevel === 'moderate');
-  
-  if (hasCritical) return criticalIcon;
-  if (hasModerate) return moderateIcon;
-  return safeIcon;
-};
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
 
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <ErrorIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
+        <Typography variant="h6" color="error.main">
+          Failed to load water source data
+        </Typography>
+      </Box>
+    );
+  }
 
-// Default position for the map
-const defaultPosition: [number, number] = waterRisks && waterRisks.length.toLocaleString() > 0
-  ? [waterRisks[0].location.coordinates[1], waterRisks[0].location.coordinates[0]]
-  : [11.2832241, 7.6644755]; // Fallback position
-
-if (isLoading) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <CircularProgress size={60} thickness={4} />
-    </Box>
-  );
-}
-
-if (error) {
-  return (
-    <Box sx={{ p: 3, textAlign: 'center' }}>
-      <ErrorIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
-      <Typography variant="h6" color="error.main">
-        Failed to load water source data
-      </Typography>
-    </Box>
-  );
-}
-
-const handleMarkerClick = (waterRisk: WaterSourceRiskData) => {
-  setSelectedSource(waterRisk);
-  setModalOpen(true); // Open the modal
-};
-
-return (
-  <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
     {/* Header Section */}
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
       <Box>
@@ -409,94 +369,74 @@ return (
     />
   </Grid>
 </Grid>
-
-    {/* Enhanced Map Section */}
-    <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+      <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
           Risk Distribution Map
         </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <MapLegendItem color="#ef4444" label="Critical Risk (<10m)" />
-          <MapLegendItem color="#f59e0b" label="Moderate Risk (10-30m)" />
-          <MapLegendItem color="#22c55e" label="Safe Distance (>30m)" />
-        </Stack>
-      </Box>
 
-      <Box sx={{ height: '70vh', borderRadius: 3, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-        <MapContainer center={defaultPosition} zoom={14} style={{ height: '100%', width: '100%' }} attributionControl={false}>
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          {filteredWaterRisks?.map((waterRisk) => (
-            <Marker
-              key={waterRisk.waterSourceId}
-              position={[waterRisk.location.coordinates[1], waterRisk.location.coordinates[0]]}
-              icon={getMarkerIcon(waterRisk)}
-              eventHandlers={{ click: () => handleMarkerClick(waterRisk) }}
-            />
-          ))}
-        </MapContainer>
-      </Box>
-    </Paper>
+        {isLoaded && (
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '70vh' }}
+            center={{ lat: 11.2832241, lng: 7.6644755 }}
+            zoom={14}
+          >
+            {filteredWaterRisks.map(waterRisk => (
+              <MarkerF
+                key={waterRisk.waterSourceId}
+                position={{
+                  lat: waterRisk.location.coordinates[1],
+                  lng: waterRisk.location.coordinates[0]
+                }}
+                onClick={() => handleMarkerClick(waterRisk)}
+              />
+            ))}
+          </GoogleMap>
+        )}
+      </Paper>
       <DataTable 
         isLoading={isLoading} 
         columns={columns} 
         data={waterRisksmock}
-      />    
-
-    {/* Dialog and Modal */}
-    {selectedSource && (
-      <WaterSourceDetailsDialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        waterSource={selectedSource}
-        isImageOpen={isImageOpen}
-        onImageOpen={() => setIsImageOpen(true)}
-        onImageClose={() => setIsImageOpen(false)}
       />
-    )}
-  </Box>
-);
+
+      {selectedSource && (
+        <WaterSourceDetailsDialog
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          waterSource={selectedSource}
+        />
+      )}
+    </Box>
+  );
 };
 
 // Reusable Components
 const FilterDropdown = ({ label, value, options, onChange }) => (
-<FormControl variant="outlined" sx={{ mb: 2, minWidth: 210 }}>
-  <InputLabel>{label}</InputLabel>
-  <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 40 }}>
-    <MenuItem value="">All {label}</MenuItem>
-    {options.map((option, index) => (
-      <MenuItem key={index} value={option}>{option}</MenuItem>
-    ))}
-  </Select>
-</FormControl>
+  <FormControl variant="outlined" sx={{ mb: 2, minWidth: 210 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 40 }}>
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option, index) => (
+        <MenuItem key={index} value={option}>{option}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
 );
 
 const StatsCard = React.memo(({ title, value, icon, iconColor }: StatsCardProps) => (
-<Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
-  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-    {title}
-  </Typography>
-  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <Typography variant="h4" sx={{ fontWeight: 600 }}>
-  {Number(value).toLocaleString()}
+  <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+      {title}
     </Typography>
-    <Box sx={{ bgcolor: `${iconColor}15`, p: 1, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {React.cloneElement(icon, { sx: { color: iconColor } })}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>
+    {Number(value).toLocaleString()}
+      </Typography>
+      <Box sx={{ bgcolor: `${iconColor}15`, p: 1, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {React.cloneElement(icon, { sx: { color: iconColor } })}
+      </Box>
     </Box>
-  </Box>
-</Card>
-));
-
-const MapLegendItem = React.memo(({ color, label }) => (
-<Stack direction="row" alignItems="center" spacing={1}>
-  <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: color }} />
-  <Typography variant="caption" sx={{ fontWeight: 500, color: '#4b5563' }}>
-    {label}
-  </Typography>
-</Stack>
+  </Card>
 ));
 
 // Interfaces for reusable components

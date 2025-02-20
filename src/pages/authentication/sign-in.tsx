@@ -50,8 +50,9 @@ const SignInPage: FC = function () {
 
     // Trim whitespace from the email before submission
     const sanitizedFormData = {
-      ...formData,
       email: formData.email.trim(),
+      password: formData.password.trim(),
+
     };
 
     try {
