@@ -13,6 +13,8 @@ import {
   Stack,
   CircularProgress,
   Avatar,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import React, { useState, useMemo } from 'react';
@@ -21,7 +23,9 @@ import { apiController } from '../../axios';
 import WaterSourceDetailsDialog from './WaterSourceDetailsDialog';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
-import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import { MapPin, Home, Compass } from 'lucide-react';
+import { useJsApiLoader } from '@react-google-maps/api';
 
 // Interfaces
 interface Location {
@@ -30,6 +34,15 @@ interface Location {
   hamlet: string;
   coordinates: [number, number, number];
 }
+
+interface MapCardProps {
+  latitude: number;
+  longitude: number;
+  hamlet: string;
+  village: string;
+  ward: string;
+}
+
 
 interface Facility {
   facilityId: string;
@@ -120,15 +133,12 @@ const waterRisksmock = [
   }
 ];
 
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
 // Define your row shape
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper<WaterSourceRiskData>();
 
 // Make some columns!
-import { Chip } from '@mui/material';
-
-// Updated Columns
 const columns = [
   columnHelper.accessor('picture', {
     header: 'Picture',
@@ -205,11 +215,103 @@ const columns = [
   }),
 ];
 
+const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => {
+  const iconColorMap: { [key: string]: string } = {
+    MapPin: '#ff6b6b',
+    GiWell: '#4dabf7',
+    HeartPulse: '#ff8787',
+    Cog: '#495057',
+    Calendar: '#f783ac',
+    User: '#69db7c',
+    Phone: '#4dabf7',
+    Home: '#ffa94d',
+    Users: '#20c997',
+    PinDrop: '#ff6b6b',
+    Compass: '#4dabf7',
+    ZoomIn: '#495057',
+  };
+
+  const iconColor = iconColorMap[Icon.displayName || Icon.name] || '#666';
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Icon size={20} style={{ color: iconColor, marginTop: 4 }} />
+      <Box>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {label}
+        </Typography>
+        <Typography variant="body1">{value}</Typography>
+      </Box>
+    </Box>
+  );
+};
+
+
+const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 7,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 1000,
+      bgcolor: 'background.paper',
+      p: 1,
+      borderRadius: 2,
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      display: 'flex',
+      gap: 1,
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 600,
+    }}
+  >
+    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
+    <DetailItem icon={Home} label="Village" value={village} />
+    <DetailItem icon={Home} label="Ward" value={ward} />
+    <DetailItem
+      icon={Compass}
+      label="Coordinates"
+      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
+    />
+  </Box>
+);
+
+const CustomMarker = ({ position, tooltip, isActive }: { position: { lat: number; lng: number }; tooltip: string; isActive: boolean }) => {
+  return (
+    <AdvancedMarker position={position}>
+      <Tooltip title={tooltip} arrow>
+        <Box
+          sx={{
+            position: 'relative',
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            backgroundColor: isActive ? '#B71C1C' : '#E53935',
+            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
+            animation: 'pulse 1.5s infinite',
+            '@keyframes pulse': {
+              '0%': { transform: 'scale(0.9)', opacity: 0.7 },
+              '50%': { transform: 'scale(1.1)', opacity: 1 },
+              '100%': { transform: 'scale(0.9)', opacity: 0.7 },
+            },
+          }}
+        >
+          <Pin
+            background={isActive ? '#B71C1C' : '#E53935'}
+            glyphColor="#FFF"
+            borderColor="#7F0000"
+          />
+        </Box>
+      </Tooltip>
+    </AdvancedMarker>
+  );
+};
+
 // Main Component
 const WaterSourceRisk = () => {
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [isImageOpen, setIsImageOpen] = useState(false);
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
@@ -220,10 +322,6 @@ const WaterSourceRisk = () => {
       const response = await apiController.get<WaterSourceRiskData[]>('/analysis');
       return response;
     },
-  });
-
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
   // Generate filter options
@@ -292,8 +390,9 @@ const { criticalCount, moderateCount, safeCount, totalCount } = useMemo(() => {
 }, [filteredWaterRisks]);
 
   const handleMarkerClick = (waterRisk: WaterSourceRiskData) => {
-    setSelectedSource(waterRisk);
-    setModalOpen(true);
+    setSelectedSource(prev => 
+      prev?.waterSourceId === waterRisk.waterSourceId ? null : waterRisk
+    );
   };
 
   if (isLoading) {
@@ -369,29 +468,54 @@ const { criticalCount, moderateCount, safeCount, totalCount } = useMemo(() => {
     />
   </Grid>
 </Grid>
-      <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+      <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden', position: 'relative' }}>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
           Risk Distribution Map
         </Typography>
-
-        {isLoaded && (
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '70vh' }}
-            center={{ lat: 11.2832241, lng: 7.6644755 }}
-            zoom={14}
-          >
-            {filteredWaterRisks.map(waterRisk => (
-              <MarkerF
-                key={waterRisk.waterSourceId}
-                position={{
+        
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden' }}>
+            <Map
+              defaultZoom={14}
+              defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
+              mapId={GOOGLE_MAPS_API_KEY}
+              options={{
+                gestureHandling: 'greedy',
+                disableDefaultUI: false,
+              }}
+            >
+              {filteredWaterRisks.map((waterRisk) => {
+                const position = {
                   lat: waterRisk.location.coordinates[1],
                   lng: waterRisk.location.coordinates[0]
-                }}
-                onClick={() => handleMarkerClick(waterRisk)}
-              />
-            ))}
-          </GoogleMap>
-        )}
+                };
+                const isActive = selectedSource?.waterSourceId === waterRisk.waterSourceId;
+                
+                return (
+                  <React.Fragment key={waterRisk.waterSourceId}>
+                    <div onClick={() => handleMarkerClick(waterRisk)}>
+                      <CustomMarker
+                        position={position}
+                        tooltip={`${waterRisk.location.hamlet} - ${waterRisk.waterSourceType}`}
+                        isActive={isActive}
+                      />
+                    </div>
+                    
+                    {isActive && (
+                      <MapCard
+                        latitude={position.lat}
+                        longitude={position.lng}
+                        hamlet={waterRisk.location.hamlet}
+                        village={waterRisk.location.village}
+                        ward={waterRisk.location.ward}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </Map>
+          </Box>
+        </APIProvider>
       </Paper>
       <DataTable 
         isLoading={isLoading} 
@@ -442,7 +566,7 @@ const StatsCard = React.memo(({ title, value, icon, iconColor }: StatsCardProps)
 // Interfaces for reusable components
 interface StatsCardProps {
 title: string;
-value: string;
+value: number;
 icon: React.ReactElement;
 iconColor: string;
 }

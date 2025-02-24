@@ -1,13 +1,10 @@
 import {
-  AccessibilityNew,
   DeleteOutline,
   Group,
   Home,
   Landscape,
-  LocalHospital,
   LocationOn,
   Sanitizer,
-  School,
   Timeline,
   WaterDrop,
 } from '@mui/icons-material';
@@ -31,9 +28,6 @@ import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 import { IoWater } from 'react-icons/io5';
-import { LiaPoopSolid } from 'react-icons/lia';
-import { MdCleanHands } from 'react-icons/md';
-import { SiCcleaner } from 'react-icons/si';
 import { apiController } from '../../axios';
 import StatsCard from '../../components/StatsCard';
 
@@ -441,7 +435,7 @@ const WashDashboard = () => {
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6" sx={{ 
                     textAlign: 'center', 
-                    mb: 2, 
+                    mb: 9, 
                     fontWeight: 'bold',
                     color: '#2d3436',
                     fontSize: '1.25rem',
@@ -597,7 +591,7 @@ const WashDashboard = () => {
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6" sx={{ 
                     textAlign: 'center', 
-                    mb: 2, 
+                    mb: 4, 
                     fontWeight: 'bold',
                     color: '#2d3436',
                     fontSize: '1.25rem',

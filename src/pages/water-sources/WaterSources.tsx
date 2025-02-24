@@ -12,8 +12,6 @@ import {
   Paper,
   Select,
   Stack,
-  Tab,
-  Tabs,
   Typography,
   styled,
 } from '@mui/material';
@@ -27,7 +25,6 @@ import { DataTable } from '../../components/Table/DataTable';
 import { BarChart, PieChart, pieArcLabelClasses } from '@mui/x-charts';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { IoWater } from 'react-icons/io5';
-import { Timeline } from '@mui/icons-material';
 
 // Interfaces
 interface StatCardProps {
@@ -153,7 +150,7 @@ const columns = [
         src={props.row.original.picture}
         alt="water source"
         sx={{
-          borderRadius: '100%', // Make avatar round
+          borderRadius: '100%',
         }}
       />
     ),
@@ -202,7 +199,6 @@ const columns = [
 
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -282,10 +278,6 @@ const WaterSourcesDashboard: React.FC = () => {
     },
   ];
 
-  const handleTabChange = (e, newValue) => {
-    setCurrentTab(newValue);
-  };
-
   if (isLoading || isFiltering) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -335,126 +327,89 @@ const WaterSourcesDashboard: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Tabs */}
-      <StyledCard>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              px: 2,
-              '& .MuiTab-root': {
-                minHeight: 64,
-                textTransform: 'none',
-              },
-            }}
-          >
-            <Tab icon={<Timeline />} label="Overview" iconPosition="start" />
-            <Tab icon={<IoWater />} label="Water Quality" iconPosition="start" />
-          </Tabs>
-        </Box>
-
-        <CardContent>
-          {currentTab === 0 && (
-            <Box>
-              {/* Bar Chart */}
-              <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ textAlign: 'center', mb: 2, fontWeight: 'bold', color: '#2d3436' }}>
-                    Water Source Functionality
-                  </Typography>
-                  <BarChart
-                    series={[
-                      { dataKey: 'functional', label: 'Functional', color: '#4CAF50' },
-                      { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#EF5350' },
-                    ]}
-                    xAxis={[{ scaleType: 'band', dataKey: 'type' }]}
-                    dataset={dataset}
-                    height={350}
-                  />
-                </Grid>
-
-                {/* Pie Chart */}
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ textAlign: 'center', mb: 2, fontWeight: 'bold', color: '#2d3436' }}>
-                    Water Quality Distribution
-                  </Typography>
-                  <PieChart
-                    series={[
-                      {
-                        data: pieChartData,
-                        arcLabel: (item) => {
-                          const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
-                          return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
-                        },
-                        outerRadius: 140,
-                        innerRadius: 50,
-                        cornerRadius: 4,
-                        paddingAngle: 2,
-                        highlightScope: { highlighted: 'item', faded: 'global' },
-                      },
-                    ]}
-                    width={500}
-                    height={350}
-                    sx={{
-                      [`& .${pieArcLabelClasses.root}`]: {
-                        fill: '#2d3436',
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        pointerEvents: 'none',
-                      },
-                      '& .MuiPieArc-root': {
-                        transition: 'transform 0.2s, filter 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.02)',
-                          filter: 'brightness(1.1)',
-                        },
-                      },
-                    }}
-                    slotProps={{
-                      legend: {
-                        direction: 'row',
-                        position: { vertical: 'bottom', horizontal: 'middle' },
-                        padding: { top: 20 },
-                        labelStyle: {
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          fill: '#2d3436',
-                        },
-                        itemMarkWidth: 12,
-                        itemMarkHeight: 12,
-                        markGap: 5,
-                        itemGap: 15,
-                      },
-                    }}
-                    margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-
-          {currentTab === 1 && (
-            <Box>
+      {/* Charts Section */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        {/* Bar Chart Card */}
+        <Grid item xs={12} md={6}>
+          <StyledCard>
+            <CardContent>
               <Typography variant="h6" sx={{ textAlign: 'center', mb: 2, fontWeight: 'bold', color: '#2d3436' }}>
-                Water Quality Metrics
+                Water Source Functionality
               </Typography>
-              <Grid container spacing={3}>
-                {[
-                  { title: 'Drinkable', value: stats.drinkable, icon: <IoWater style={{ color: '#2196F3', fontSize: '2rem' }} />, bgColor: '#E3F2FD' },
-                  { title: 'Non-Drinkable', value: stats.nonDrinkable, icon: <IoWater style={{ color: '#FF9800', fontSize: '2rem' }} />, bgColor: '#FFF3E0' },
-                ].map((stat, index) => (
-                  <Grid item xs={12} sm={6} md={6} key={index}>
-                    <StatCard title={stat.title} value={stat.value} icon={stat.icon} bgColor={stat.bgColor} />
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-        </CardContent>
-      </StyledCard>
+              <BarChart
+                series={[
+                  { dataKey: 'functional', label: 'Functional', color: '#4CAF50' },
+                  { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#EF5350' },
+                ]}
+                xAxis={[{ scaleType: 'band', dataKey: 'type' }]}
+                dataset={dataset}
+                height={350}
+              />
+            </CardContent>
+          </StyledCard>
+        </Grid>
+
+        {/* Pie Chart Card */}
+        <Grid item xs={12} md={6}>
+          <StyledCard>
+            <CardContent>
+              <Typography variant="h6" sx={{ textAlign: 'center', mb: 2, fontWeight: 'bold', color: '#2d3436' }}>
+                Water Quality Distribution
+              </Typography>
+              <PieChart
+                series={[
+                  {
+                    data: pieChartData,
+                    arcLabel: (item) => {
+                      const total = pieChartData.reduce((sum, d) => sum + d.value, 0);
+                      return total > 0 ? `${Math.round((item.value / total) * 100)}%` : '0%';
+                    },
+                    outerRadius: 140,
+                    innerRadius: 50,
+                    cornerRadius: 4,
+                    paddingAngle: 2,
+                    highlightScope: { highlighted: 'item', faded: 'global' },
+                  },
+                ]}
+                width={500}
+                height={350}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fill: '#2d3436',
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    pointerEvents: 'none',
+                  },
+                  '& .MuiPieArc-root': {
+                    transition: 'transform 0.2s, filter 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      filter: 'brightness(1.1)',
+                    },
+                  },
+                }}
+                slotProps={{
+                  legend: {
+                    direction: 'row',
+                    position: { vertical: 'bottom', horizontal: 'middle' },
+                    padding: { top: 20 },
+                    labelStyle: {
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      fill: '#2d3436',
+                    },
+                    itemMarkWidth: 12,
+                    itemMarkHeight: 12,
+                    markGap: 5,
+                    itemGap: 15,
+                  },
+                }}
+                margin={{ top: 40, right: 40, bottom: 100, left: 40 }}
+              />
+            </CardContent>
+          </StyledCard>
+        </Grid>
+      </Grid>
 
       {/* Table */}
       <DataTable

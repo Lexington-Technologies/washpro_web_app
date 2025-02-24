@@ -10,19 +10,22 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography
+  Tooltip,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Home, MapPin, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Compass, Home, MapPin, X, ZoomIn, User, Phone, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { IoCameraOutline, IoFootstepsOutline, IoMapOutline, IoTimeOutline, IoTodayOutline } from 'react-icons/io5';
 import { PiUsersFour } from 'react-icons/pi';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
-
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import { Email } from '@mui/icons-material';
 
 // Define types for the open defecation site
 interface OpenDefication {
@@ -48,9 +51,73 @@ interface OpenDefication {
   updatedAt: string;
 }
 
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
+
+const CustomMarker = ({ position, tooltip }: { position: { lat: number; lng: number }; tooltip: string }) => {
+  return (
+    <AdvancedMarker position={position}>
+      <Tooltip title={tooltip} arrow>
+        <Box
+          sx={{
+            position: 'relative',
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            backgroundColor: '#FF0000',
+            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
+            animation: 'pulse 1.5s infinite',
+            '@keyframes pulse': {
+              '0%': { transform: 'scale(0.9)', opacity: 0.7 },
+              '50%': { transform: 'scale(1.1)', opacity: 1 },
+              '100%': { transform: 'scale(0.9)', opacity: 0.7 },
+            },
+          }}
+        >
+          <Pin
+            background='#FF0000'
+            glyphColor="#FFF"
+            borderColor="#7F0000"
+          />
+        </Box>
+      </Tooltip>
+    </AdvancedMarker>
+  );
+};
+
+const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 7,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 1000,
+      bgcolor: 'background.paper',
+      p: 1,
+      borderRadius: 2,
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      display: 'flex',
+      gap: 1,
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 600,
+    }}
+  >
+    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
+    <DetailItem icon={Home} label="Village" value={village} />
+    <DetailItem icon={Home} label="Ward" value={ward} />
+    <DetailItem
+      icon={Compass}
+      label="Coordinates"
+      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
+    />
+  </Box>
+);
+
 const OpenDeficationDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // Track which image is clicked
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -72,7 +139,16 @@ const OpenDeficationDetails: React.FC = () => {
     );
   }
 
-  const position: [number, number] = [openDefication.geolocation.coordinates[1], openDefication.geolocation.coordinates[0]];
+  const position = {
+    lat: openDefication.geolocation.coordinates[1],
+    lng: openDefication.geolocation.coordinates[0]
+  };
+
+  // Handle image click
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsImageOpen(true);
+  };
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -101,12 +177,18 @@ const OpenDeficationDetails: React.FC = () => {
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
+          <Tab label="Contact Person Details" />
+          <Tab label="Enumerator" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
-          <OverviewTab openDefication={openDefication} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : (null)}
+          <OverviewTab openDefication={openDefication} position={position} onImageClick={() => handleImageClick(openDefication.picture)} />
+        ) : activeTab === 1 ? (
+          <ContactPersonTab contactPerson={openDefication?.domain || null} onImageClick={handleImageClick} />
+        ) : (
+          <EnumeratorTab enumerator={openDefication?.createdBy || null} onImageClick={handleImageClick} />
+        )}
 
         {/* Image Modal */}
         <Modal
@@ -134,8 +216,8 @@ const OpenDeficationDetails: React.FC = () => {
             </IconButton>
             <Box
               component="img"
-              src={openDefication.picture}
-              alt="Open Defecation Site"
+              src={selectedImage || ''}
+              alt="Selected Image"
               sx={{
                 maxWidth: '100%',
                 maxHeight: '90vh',
@@ -152,12 +234,11 @@ const OpenDeficationDetails: React.FC = () => {
 
 const OverviewTab = ({ openDefication, position, onImageClick }: {
   openDefication: OpenDefication;
-  position: [number, number];
+  position: { lat: number; lng: number };
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
-
-<Grid item xs={12} md={8}>
+    <Grid item xs={12} md={8}>
       <Box sx={{
         p: 3,
         borderRadius: 2,
@@ -203,20 +284,12 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
             <DetailItem icon={IoTodayOutline} label="Daily Average" value={openDefication.dailyAverage} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={IoCameraOutline} label="Captured By" value={'AbdulUbaid'} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
             <DetailItem
               icon={Calendar}
               label="Last Updated"
               value={format(new Date(openDefication.updatedAt), 'PPP')}
             />
           </Grid>
-
         </Grid>
       </Box>
     </Grid>
@@ -267,25 +340,158 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
         borderRadius: 2,
         overflow: 'hidden',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
+        mb: 4,
+        position: 'relative'
       }}>
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{openDefication.publicSpace} at {openDefication.ward}</Popup>
-          </Marker>
-        </MapContainer>
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <Map
+            mapId={GOOGLE_MAPS_API_KEY}
+            defaultZoom={15}
+            defaultCenter={position}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <CustomMarker 
+              position={position}
+              tooltip={`${openDefication.publicSpace} - ${openDefication.ward}`}
+            />
+            <MapCard
+              latitude={position.lat}
+              longitude={position.lng}
+              hamlet={openDefication.hamlet}
+              village={openDefication.village}
+              ward={openDefication.ward}
+            />
+          </Map>
+        </APIProvider>
       </Box>
     </Grid>
   </Grid>
 );
+
+const ContactPersonTab = ({ contactPerson, onImageClick }: { contactPerson: any; onImageClick: (imageUrl: string) => void }) => {
+  if (!contactPerson) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          Not a household
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={8}>
+        <Card sx={{ mb: 2, height: '45%' }}>
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <DetailItem icon={User} label="Contact Person Name" value={contactPerson.contactPersonName || "Not specified"} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Phone} label="Phone Number" value={contactPerson.contactPersonPhoneNumber || "Not specified"} />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Home} label="Address" value={contactPerson.address || "Not specified"} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Users} label="Population" value={contactPerson.population || "Not specified"} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {contactPerson.picture ? (
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%',
+              height: '45%',
+              '&:hover .zoom-icon': { opacity: 1 },
+            }}
+          >
+            <Box
+              component="img"
+              src={contactPerson.picture}
+              alt="Contact Person"
+              onClick={() => onImageClick(contactPerson.picture)}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: 2,
+                cursor: 'pointer',
+                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+              }}
+            />
+            <IconButton
+              className="zoom-icon"
+              onClick={() => onImageClick(contactPerson.picture)}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                opacity: 0,
+                transition: 'opacity 0.2s',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+                color: 'white',
+              }}
+            >
+              <ZoomIn />
+            </IconButton>
+          </Box>
+        ) : (
+          " "
+        )}
+      </Grid>
+    </Grid>
+  );
+};
+
+const EnumeratorTab = ({ enumerator, onImageClick }: { enumerator: any; onImageClick: (imageUrl: string) => void }) => {
+  if (!enumerator) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="body1" color="text.secondary">
+          Not specified
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Card sx={{ mb: 2, height: '100%' }}>
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <DetailItem icon={User} label="Full Name" value={enumerator.fullName || "Not specified"} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Phone} label="Phone Number" value={enumerator.phone || "Not specified"} />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Email} label="Email" value={enumerator.email || "Not specified"} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Calendar} label="Last Login" value={enumerator.lastLogin ? format(new Date(enumerator.lastLogin), 'PPP') : "Not specified"} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+};
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

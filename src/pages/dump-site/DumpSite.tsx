@@ -1,10 +1,8 @@
-import AddIcon from "@mui/icons-material/Add";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import {
   Avatar,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -54,8 +52,8 @@ const notificationCards = [
       {
         label: "East End Facility",
         description: "Immediate attention required",
-        leftIcon: <img src="./src/assets/img/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="./src/assets/img/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="/img/svg/caution2.svg" alt="Critical" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="/img/svg/arrowr.svg" alt="Forward" style={{ width: 20, height: 20 }} />,
         bgcolor: "#ffebee",
       },
     ],
@@ -68,8 +66,8 @@ const notificationCards = [
       {
         label: "South Gate Site",
         description: "Scheduled for tomorrow",
-        leftIcon: <img src="./src/assets/img/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="./src/assets/img/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="/img/svg/clock.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="/img/svg/calanda.svg" alt="Calendar" style={{ width: 20, height: 20 }} />,
         bgcolor: "#e3f2fd",
       },
     ],
@@ -82,8 +80,8 @@ const notificationCards = [
       {
         label: "Capacity Report",
         description: "Generated at 09:00 AM",
-        leftIcon: <img src="./src/assets/img/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
-        rightIcon: <img src="./src/assets/img/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
+        leftIcon: <img src="/img/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
+        rightIcon: <img src="/img/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
         bgcolor: "#f5f5f5",
       },
     ],
@@ -336,75 +334,6 @@ const DumpSites = () => {
           <DataTable setSearch={setSearch} setPage={setPage} setLimit={setLimit} isLoading={isLoading} columns={columns} data={filteredData || []} />
         </CardContent>
       </Card>
-
-      {/* Notifications Section */}
-      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ marginBottom: 4 }}>
-        {notificationCards.map((card, index) => (
-          <Grid item xs={12} sm={4} key={index}>
-            <Card sx={{ borderRadius: 2, boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)" }}>
-              <CardContent>
-                {/* Header */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 2,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: "bold", color: "#25306B" }}
-                  >
-                    {card.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: "bold", color: card.countColor }}
-                  >
-                    {card.count}
-                  </Typography>
-                </Box>
-
-                {/* Items */}
-                {card.items.map((item, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: 2,
-                      borderRadius: 2,
-                      backgroundColor: item.bgcolor,
-                      marginBottom: 1,
-                    }}
-                  >
-                    {/* Left Icon and Content */}
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      {item.leftIcon}
-                      <Box sx={{ marginLeft: 2 }}>
-                        <Typography
-                          variant="body2"
-                          sx={{ fontWeight: "bold", color: "#25306B" }}
-                        >
-                          {item.label}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: "#666" }}>
-                          {item.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Right Icon */}
-                    {item.rightIcon}
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
     </Box>
   );
 };

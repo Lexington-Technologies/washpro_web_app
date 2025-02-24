@@ -35,7 +35,7 @@ import { apiController } from '../../axios';
 import { Box, Typography, Stack } from '@mui/material';
 import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 interface WaterSource {
   geolocation: {
     type: string;
@@ -113,17 +113,6 @@ const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village,
       label="Coordinates"
       value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
     />
-    {/* <Tooltip title="View on Street View">
-      <IconButton
-        color="secondary"
-        component="a"
-        href={`https://www.google.com/maps?q=&layer=c&cbll=${latitude},${longitude}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Streetview />
-      </IconButton>
-    </Tooltip> */}
   </Box>
 );
 
@@ -140,7 +129,6 @@ const WaterSourceDetails: React.FC = () => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
-  console.log("wd", waterSource)
 
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
@@ -397,37 +385,11 @@ const OverviewTab = ({
             <DetailItem icon={Home} label="Email" value={waterSource?.createdBy?.email || 'Not specified'} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Users} label="Captured At"               value={format(new Date(waterSource?.createdBy?.createdAt), 'PPP')} />
+            <DetailItem icon={Users} label="Captured At"               
+            value={format(new Date(waterSource?.createdBy?.createdAt), 'PPP')} />
           </Grid>
         </Grid>
 
-
-        {/* <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem
-              icon={PinDrop}
-              label="View on Map"
-              value={
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Tooltip title="View on Google Maps">
-                    <a href={`https://www.google.com/maps?q=${position[0]},${position[1]}`} target="_blank" rel="noopener noreferrer">
-                      <IconButton color="primary">
-                        <Map />
-                      </IconButton>
-                    </a>
-                  </Tooltip>
-                  <Tooltip title="View on Street View">
-                    <a href={`https://www.google.com/maps?q=&layer=c&cbll=${position[0]},${position[1]}`} target="_blank" rel="noopener noreferrer">
-                      <IconButton color="secondary">
-                        <Streetview />
-                      </IconButton>
-                    </a>
-                  </Tooltip>
-                </Stack>
-              }
-            />
-          </Grid>
-        </Grid> */}
       </Box>
     </Grid>
 

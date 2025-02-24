@@ -15,21 +15,22 @@ import {
   Typography,
   Card,
   CardContent,
-  CardMedia,
+  Tooltip,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Home, MapPin, Phone, Toilet, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Compass, Home, MapPin, Toilet, User, Users, X, ZoomIn } from 'lucide-react';
 import React, { useState } from 'react';
 import { FaChartSimple } from 'react-icons/fa6';
 import { FiAlertOctagon } from "react-icons/fi";
 import { GiSpill } from "react-icons/gi";
 import { MdCleaningServices, MdOutlineWash } from 'react-icons/md';
 import { RiDoorLine } from 'react-icons/ri';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import { Email, Phone } from '@mui/icons-material';
 
 // Define types for the toilet facility
 interface ToiletFacility {
@@ -67,6 +68,93 @@ interface ToiletFacility {
   };
 }
 
+// Define types for the enumerator
+interface Enumerator {
+  _id: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  role: string;
+  status: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLogin: string;
+}
+
+interface MapCardProps {
+  latitude: number;
+  longitude: number;
+  hamlet: string;
+  village: string;
+  ward: string;
+}
+
+
+const CustomMarker = ({ position, tooltip }: { position: { lat: number; lng: number }; tooltip: string }) => {
+  return (
+    <AdvancedMarker position={position}>
+      <Tooltip title={tooltip} arrow>
+        <Box
+          sx={{
+            position: 'relative',
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            backgroundColor: '#FF0000', // Red color
+            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
+            animation: 'pulse 1.5s infinite',
+            '@keyframes pulse': {
+              '0%': { transform: 'scale(0.9)', opacity: 0.7 },
+              '50%': { transform: 'scale(1.1)', opacity: 1 },
+              '100%': { transform: 'scale(0.9)', opacity: 0.7 },
+            },
+          }}
+        >
+          <Pin
+            background='#FF0000' // Red color
+            glyphColor="#FFF"
+            borderColor="#7F0000"
+          />
+        </Box>
+      </Tooltip>
+    </AdvancedMarker>
+  );
+};
+
+
+const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village, ward }) => (
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 7,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 1000,
+      bgcolor: 'background.paper',
+      p: 1,
+      borderRadius: 2,
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+      display: 'flex',
+      gap: 1,
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 600,
+    }}
+  >
+    <DetailItem icon={MapPin} label="Hamlet" value={hamlet} />
+    <DetailItem icon={Home} label="Village" value={village} />
+    <DetailItem icon={Home} label="Ward" value={ward} />
+    <DetailItem
+      icon={Compass}
+      label="Coordinates"
+      value={`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`}
+    />
+  </Box>
+);
+
+
+
 const ToiletFacilitiesDetails: React.FC = () => {
   const [isFacilityImageOpen, setIsFacilityImageOpen] = useState(false);
   const [isPersonImageOpen, setIsPersonImageOpen] = useState(false);
@@ -92,7 +180,10 @@ const ToiletFacilitiesDetails: React.FC = () => {
     );
   }
 
-  const position: [number, number] = [toiletFacility.geolocation.coordinates[1], toiletFacility.geolocation.coordinates[0]];
+  const position = {
+    lat: toiletFacility.geolocation.coordinates[1],
+    lng: toiletFacility.geolocation.coordinates[0]
+  };
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -131,14 +222,17 @@ const ToiletFacilitiesDetails: React.FC = () => {
           sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab label="Overview" />
-          <Tab label="Person Contact" />
+          <Tab label="Contact Person Details" />
+          <Tab label="Enumerator" />
         </Tabs>
 
         {/* Tab Panels */}
         {activeTab === 0 ? (
           <OverviewTab toiletFacility={toiletFacility} position={position} onImageClick={() => setIsFacilityImageOpen(true)} />
-        ) : (
+        ) : activeTab === 1 ? (
           <PersonContactTab toiletFacility={toiletFacility} setIsPersonImageOpen={setIsPersonImageOpen} />
+        ) : (
+          <EnumeratorTab enumerator={toiletFacility?.createdBy} />
         )}
 
         {/* Image Modal for Toilet Facility */}
@@ -223,7 +317,7 @@ const ToiletFacilitiesDetails: React.FC = () => {
 
 const OverviewTab = ({ toiletFacility, position, onImageClick }: {
   toiletFacility: ToiletFacility;
-  position: [number, number];
+  position: { lat: number, lng: number };
   onImageClick: () => void;
 }) => (
   <Grid container spacing={4}>
@@ -255,7 +349,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
             <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependents" value={toiletFacility.dependent || 'Not specified'} />
+            <DetailItem icon={GiSpill} label="Evacuation Status" value={toiletFacility.daysSinceLastEvacuation || 'Not specified'} />
           </Grid>
         </Grid>
 
@@ -283,16 +377,6 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk.join(', ')} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={GiSpill} label="Evacuation Status" value={toiletFacility.daysSinceLastEvacuation || 'Not specified'} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={User} label="Captured By" value={`Abdul Ubaid,\n(09118140594)`} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem
@@ -351,126 +435,177 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
         borderRadius: 2,
         overflow: 'hidden',
         boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4
+        mb: 4,
+        position: 'relative'
       }}>
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap contributors'
-          />
-          <Marker position={position}>
-            <Popup>{toiletFacility.type} at {toiletFacility.ward}</Popup>
-          </Marker>
-        </MapContainer>
+        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ''}>
+          <Map
+            mapId={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+            defaultZoom={15}
+            defaultCenter={position}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <CustomMarker position={position} tooltip="Toilet Facility" />
+            <MapCard
+              latitude={position.lat}
+              longitude={position.lng}
+              hamlet={toiletFacility.hamlet}
+              village={toiletFacility.village}
+              ward={toiletFacility.ward}
+            />
+          </Map>
+        </APIProvider>
       </Box>
     </Grid>
   </Grid>
 );
 
 const PersonContactTab = ({ toiletFacility, setIsPersonImageOpen }: { toiletFacility: ToiletFacility; setIsPersonImageOpen: (open: boolean) => void }) => {
-  // Check if the person contact details are available
-  const contactPersonName = toiletFacility?.domain?.contactPersonName || 'Not Specified';
-  const contactPersonPhoneNumber = toiletFacility?.domain?.contactPersonPhoneNumber || 'Not Specified';
   const address = toiletFacility?.domain?.address || 'Not Specified';
   const population = toiletFacility?.domain?.population || 'Not Specified';
   const contactPersonImage = toiletFacility?.domain?.picture;
+  const contactPersonName = toiletFacility?.domain?.contactPersonName || 'Not Specified';
+  const contactPersonPhoneNumber = toiletFacility?.domain?.contactPersonPhoneNumber || 'Not Specified';
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={8}>
-        <Card sx={{ mb: 2, height: '100%' }}>
-          <CardContent>
-            <Grid container spacing={2}>
-              {/* First Row for Contact Details */}
-              <Grid item xs={6}>
-                <DetailItem icon={User} label="Person Name" value={contactPersonName} />
-              </Grid>
-              <Grid item xs={6}>
-                <DetailItem icon={Phone} label="Phone No" value={contactPersonPhoneNumber} />
-              </Grid>
-                {/* Divider between contact details and image */}
-                <Grid item xs={12}>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
+      <Card sx={{ mb: 2, height: '100%' }}>
+        <CardContent>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+          <DetailItem icon={User} label="Contact Person Name" value={contactPersonName} />
+          </Grid>
+          <Grid item xs={6}>
+          <DetailItem icon={Phone} label="Phone Number" value={contactPersonPhoneNumber} />
+          </Grid>
+          <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          </Grid>
+          <Grid item xs={6}>
+          <DetailItem icon={Home} label="Address" value={address} />
+          </Grid>
+          <Grid item xs={6}>
+          <DetailItem icon={Users} label="Population" value={population} />
+          </Grid>
+        </Grid>
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          </Grid>
 
-              {/* Second Row */}
-              <Grid item xs={6}>
-                <DetailItem icon={Home} label="Address" value={address} />
-              </Grid>
-              <Grid item xs={6}>
-                <DetailItem icon={Users} label="Population" value={population} />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
       </Grid>
-
-      {/* Image positioned outside the card on the right */}
       <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        {contactPersonImage ? (
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%', // Set a fixed width for the image
-              height: '100%', // Set a fixed height for the image
-              '&:hover .zoom-icon': { opacity: 1 },
-            }}
-          >
-            <Box
-              component="img"
-              src={contactPersonImage}
-              alt="Contact Person"
-              onClick={() => setIsPersonImageOpen(true)} // Open the contact person's image modal
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: 2,
-                cursor: 'pointer',
-                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-              }}
-            />
-            <IconButton
-              className="zoom-icon"
-              onClick={() => setIsPersonImageOpen(true)} // Open the contact person's image modal
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
-                opacity: 0,
-                transition: 'opacity 0.2s',
-                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-                color: 'white',
-              }}
-            >
-              <ZoomIn />
-            </IconButton>
-          </Box>
-        ) : (
-          " "
-        )}
+      {contactPersonImage ? (
+        <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          '&:hover .zoom-icon': { opacity: 1 },
+        }}
+        >
+        <Box
+          component="img"
+          src={contactPersonImage}
+          alt="Contact Person"
+          onClick={() => setIsPersonImageOpen(true)}
+          sx={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          borderRadius: 2,
+          cursor: 'pointer',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+          }}
+        />
+        <IconButton
+          className="zoom-icon"
+          onClick={() => setIsPersonImageOpen(true)}
+          sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          bgcolor: 'rgba(0, 0, 0, 0.5)',
+          opacity: 0,
+          transition: 'opacity 0.2s',
+          '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
+          color: 'white',
+          }}
+        >
+          <ZoomIn />
+        </IconButton>
+        </Box>
+      ) : (
+        " "
+      )}
       </Grid>
     </Grid>
   );
 };
 
-const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
-  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-    <Icon size={20} style={{ color: '#666', marginTop: 4 }} />
-    <Box>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        {label}
-      </Typography>
-      <Typography variant="body1">
-        {value}
-      </Typography>
+const EnumeratorTab = ({ enumerator }: { enumerator: Enumerator }) => {
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12}>
+        <Card sx={{ mb: 2, height: '100%' }}>
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <DetailItem icon={User} label="Full Name" value={enumerator.fullName} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Phone} label="Phone Number" value={enumerator.phone} />
+              </Grid>
+              <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          </Grid>
+
+              <Grid item xs={6}>
+                <DetailItem icon={Email} label="Email" value={enumerator.email} />
+              </Grid>
+              <Grid item xs={6}>
+                <DetailItem icon={Calendar} label="Last Login" value={format(new Date(enumerator.lastLogin), 'PPP')} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+};
+
+const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => {
+  const iconColorMap: { [key: string]: string } = {
+    MapPin: '#ff6b6b',
+    GiWell: '#4dabf7',
+    HeartPulse: '#ff8787',
+    Cog: '#495057',
+    Calendar: '#f783ac',
+    User: '#69db7c',
+    Phone: '#4dabf7',
+    Home: '#ffa94d',
+    Users: '#20c997',
+    PinDrop: '#ff6b6b',
+    Compass: '#4dabf7',
+    ZoomIn: '#495057',
+  };
+
+  const iconColor = iconColorMap[Icon.displayName || Icon.name] || '#666';
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Icon size={20} style={{ color: iconColor, marginTop: 4 }} />
+      <Box>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {label}
+        </Typography>
+        <Typography variant="body1">{value}</Typography>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
+
 
 export default ToiletFacilitiesDetails;

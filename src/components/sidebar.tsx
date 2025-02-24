@@ -11,7 +11,9 @@ import {
   Schedule,
   SmartToy,
   Waves,
-  WavesOutlined
+  WavesOutlined,
+  ChevronLeft,
+  ChevronRight,
 } from "@mui/icons-material";
 import {
   Box,
@@ -24,7 +26,9 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useMediaQuery, useTheme,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useState } from "react";
 import { FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
@@ -32,7 +36,7 @@ import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
-import {Logo} from "../assets/svg/index";
+import { Logo } from "../assets/svg/index";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -41,7 +45,7 @@ interface SideBarProps {
   onDrawerToggle: () => void;
 }
 
-const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) => {
+const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBarProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -60,15 +64,11 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   };
 
   const handleClose = () => {
-    if (isMobile) {
-      onDrawerToggle();
-    }
+    if (isMobile) onDrawerToggle();
   };
 
   const handleNavigation = () => {
-    if (isMobile) {
-      onDrawerToggle();
-    }
+    if (isMobile) onDrawerToggle();
   };
 
   const mainMenuItems = [
@@ -104,70 +104,68 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
   ];
 
   const renderMenuItem = (item: any) => (
-    <ListItem key={item.text} disablePadding>
-      <ListItemButton
-        component={NavLink}
-        to={item.path}
-        onClick={handleNavigation}
-        title={item.title}
-        sx={{
-          py: 1.5,
-          justifyContent: isCollapsed ? "center" : "flex-start",
-          "&.active": {
-            backgroundColor: "#25306B",
-            borderRadius: "20px 20px ",
-            color: "white",
-            "&:hover": {
-              bgcolor: "#25306B",
-            },
-          },
-          "&:not(.active):hover": {
-            bgcolor: "rgba(37, 48, 107, 0.04)",
-          },
-        }}
-      >
-        <ListItemIcon
+    <Tooltip title={isCollapsed ? item.title : ""} placement="right" disableHoverListener={!isCollapsed} key={item.text}>
+      <ListItem disablePadding>
+        <ListItemButton
+          component={NavLink}
+          to={item.path}
+          onClick={handleNavigation}
           sx={{
-            minWidth: 40,
-            color: "#4B5563",
-            justifyContent: "center",
-            "& svg": {
-              fontSize: 20
+            py: 1.5,
+            mx: 1,
+            mb: 0.5,
+            justifyContent: isCollapsed ? "center" : "flex-start",
+            borderRadius: "8px",
+            transition: "all 0.2s",
+            "&.active": {
+              backgroundColor: '#25306B',
+              color: "white",
+              "& .MuiListItemIcon-root": { color: "white" },
             },
-            ".active &": {
-              color: "white"
-            }
+            "&:not(.active):hover": {
+              bgcolor: theme.palette.action.hover,
+            },
           }}
         >
-          {item.icon}
-        </ListItemIcon>
-        {!isCollapsed && (
-          <ListItemText
-            primary={item.text}
-            primaryTypographyProps={{
-              fontSize: "0.875rem",
-              fontWeight: item.index === 0 ? 500 : 400,
+          <ListItemIcon
+            sx={{
+              minWidth: "auto",
+              color: theme.palette.text.secondary,
+              mr: isCollapsed ? 0 : 2,
+              justifyContent: "center",
+              transition: "margin-right 0.3s",
             }}
-          />
-        )}
-      </ListItemButton>
-    </ListItem>
+          >
+            {item.icon}
+          </ListItemIcon>
+          {!isCollapsed && (
+            <ListItemText
+              primary={item.text}
+              primaryTypographyProps={{
+                fontSize: "0.875rem",
+                fontWeight: 500,
+              }}
+            />
+          )}
+        </ListItemButton>
+      </ListItem>
+    </Tooltip>
   );
 
   const sidebarContent = (
     <Box
       sx={{
-        width: isCollapsed ? 100 : 270,
+        width: isCollapsed ? 88 : 280,
         bgcolor: "white",
         height: "100%",
-        boxShadow: 1,
         display: "flex",
         flexDirection: "column",
-        transition: "width 0.3s",
+        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.08)",
         px: 1,
       }}
     >
-      {/* Logo and Close Button for Mobile */}
+      {/* Logo and Toggle Section */}
       <Box
         sx={{
           p: 2,
@@ -176,27 +174,54 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          position: "relative",
+          minHeight: 80,
         }}
       >
         <Link to="/">
           <img
             src={Logo}
-            alt="WashPro Logo"
+            alt="Logo"
             style={{
-              width: isCollapsed ? 50 : 200,
+              width: isCollapsed ? 50 : 160,
               height: isCollapsed ? 50 : "auto",
-              objectFit: "fill",
-              transition: "width 0.3s, height 0.3s",
+              objectFit: "contain",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
         </Link>
+        
+        {/* Desktop Toggle Button */}
+        {!isMobile && (
+          <IconButton
+            onClick={onToggle}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 25,
+              bottom: 8,
+              bgcolor: "rgba(37, 48, 107, 0.1)",
+              "&:hover": { bgcolor: "rgba(37, 48, 107, 0.2)" },
+              width: 32,
+              height: 32,
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRight sx={{ fontSize: "1.2rem", color: '#25306B' }} />
+            ) : (
+              <ChevronLeft sx={{ fontSize: "1.2rem", color: '#25306B' }} />
+            )}
+          </IconButton>
+        )}
+
+        {/* Mobile Close Button */}
         {isMobile && (
           <IconButton
             onClick={onDrawerToggle}
             sx={{
               width: 40,
               height: 40,
-              color: "#25306B",
+              color: theme.palette.primary.main,
             }}
           >
             <Close />
@@ -204,16 +229,14 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
         )}
       </Box>
 
-      {/* Scrollable Navigation Items */}
+      {/* Scrollable Menu Items */}
       <Box
         sx={{
           flex: 1,
           overflowY: "auto",
-          paddingY: 1,
+          py: 1,
           scrollbarWidth: "none",
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
+          "&::-webkit-scrollbar": { display: "none" },
         }}
       >
         <List>
@@ -235,32 +258,31 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
               onClick={() => setOpenWaste(!openWaste)}
               sx={{
                 py: 1.5,
+                mx: 1,
+                mb: 0.5,
+                borderRadius: "8px",
                 justifyContent: isCollapsed ? "center" : "flex-start",
-                color: "#666",
-                "&:hover": {
-                  bgcolor: "rgba(37, 48, 107, 0.04)",
-                },
+                color: theme.palette.text.secondary,
+                "&:hover": { bgcolor: theme.palette.action.hover },
               }}
             >
-              <ListItemIcon
-                sx={{
-                  minWidth: 40,
-                  color: "#4B5563",
-                  justifyContent: "center",
-                  "& svg": {
-                    fontSize: 24
-                  }
-                }}
-              >
-                <GiHazardSign style={{ fontSize: 25 }} />
-              </ListItemIcon>
+              <Tooltip title={isCollapsed ? "Waste Management" : ""} placement="right" disableHoverListener={!isCollapsed}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: "auto",
+                    color: "inherit",
+                    mr: isCollapsed ? 0 : 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  <GiHazardSign style={{ fontSize: 24 }} />
+                </ListItemIcon>
+              </Tooltip>
               {!isCollapsed && (
                 <>
                   <ListItemText
-                    primary="Waste"
-                    primaryTypographyProps={{
-                      fontSize: "0.875rem",
-                    }}
+                    primary="Waste Management"
+                    primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
                   />
                   {openWaste ? <ExpandLess /> : <ExpandMore />}
                 </>
@@ -338,34 +360,33 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
 
       {/* Logout Button */}
       <Divider />
-      <ListItem onClick={handleLogout} disablePadding>
+      <ListItem disablePadding>
         <ListItemButton
+          onClick={handleLogout}
           sx={{
             py: 1.5,
+            mx: 1,
+            mb: 1,
             color: "#ef4444",
+            borderRadius: "8px",
             justifyContent: isCollapsed ? "center" : "flex-start",
-            "&:hover": {
-              bgcolor: "rgba(239, 68, 68, 0.04)",
-            },
+            "&:hover": { bgcolor: "rgba(239, 68, 68, 0.04)" },
           }}
         >
-          <ListItemIcon sx={{
-            minWidth: 40,
-            color: "inherit",
-            justifyContent: "center",
-            "& svg": {
-              fontSize: 24
-            }
-          }}>
+          <ListItemIcon
+            sx={{
+              minWidth: "auto",
+              color: "inherit",
+              mr: isCollapsed ? 0 : 2,
+              justifyContent: "center",
+            }}
+          >
             <Logout />
           </ListItemIcon>
           {!isCollapsed && (
             <ListItemText
               primary="Logout"
-              primaryTypographyProps={{
-                fontSize: "0.875rem",
-                color: "inherit",
-              }}
+              primaryTypographyProps={{ fontSize: "0.875rem" }}
             />
           )}
         </ListItemButton>
@@ -378,13 +399,8 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
       variant="temporary"
       open={isDrawerOpen}
       onClose={handleClose}
-      ModalProps={{
-        keepMounted: true,
-      }}
-      sx={{
-        display: { xs: 'block', md: 'none' },
-        
-      }}
+      ModalProps={{ keepMounted: true }}
+      sx={{ "& .MuiDrawer-paper": { boxShadow: theme.shadows[16] } }}
     >
       {sidebarContent}
     </Drawer>
@@ -392,9 +408,10 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle }: SideBarProps) =>
     <Box
       component="nav"
       sx={{
-        width: isCollapsed ? 100 : 270,
+        width: isCollapsed ? 88 : 280,
         flexShrink: 0,
-        display: { xs: 'none', md: 'block' },
+        display: { xs: "none", md: "block" },
+        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
       {sidebarContent}

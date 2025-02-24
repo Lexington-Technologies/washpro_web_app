@@ -52,7 +52,6 @@ const SignInPage: FC = function () {
     const sanitizedFormData = {
       email: formData.email.trim(),
       password: formData.password.trim(),
-
     };
 
     try {
@@ -62,7 +61,6 @@ const SignInPage: FC = function () {
       );
 
       logIn(response.user, response.token, response.refreshToken);
-      // setAlert({ variant: "success", message: "Login successful" });
       navigate("/");
     } catch (error) {
       setAlert({
@@ -111,23 +109,23 @@ const SignInPage: FC = function () {
             src={Polygon2}
             alt="Polygon"
             style={{
-              width: 70,
-              height: 89,
+              width: "10%",
+              height: "auto",
               position: "absolute",
-              top: -10,
-              left: 270,
+              top: "5%",
+              left: "35%",
               opacity: 0.5,
             }}
           />
           <img
             src={Ellipse2}
-            alt="Polygon"
+            alt="Ellipse"
             style={{
-              width: 100,
-              height: 89,
+              width: "15%",
+              height: "auto",
               position: "absolute",
-              top: 120,
-              left: 510,
+              top: "20%",
+              left: "65%",
               opacity: 0.5,
             }}
           />
@@ -135,35 +133,35 @@ const SignInPage: FC = function () {
             src={Polygon}
             alt="Polygon"
             style={{
-              width: 120,
-              height: 400,
+              width: "20%",
+              height: "auto",
               position: "absolute",
-              top: 80,
-              left: 390,
+              top: "15%",
+              left: "50%",
               opacity: 0.5,
             }}
           />
           <img
             src={Rectangle}
-            alt="Polygon"
+            alt="Rectangle"
             style={{
-              width: 60,
-              height: 400,
+              width: "10%",
+              height: "auto",
               position: "absolute",
-              top: 300,
-              left: 240,
+              top: "40%",
+              left: "30%",
               opacity: 0.5,
             }}
           />
           <img
             src={Ellipse}
-            alt="Polygon"
+            alt="Ellipse"
             style={{
-              width: 300,
-              height: 250,
+              width: "40%",
+              height: "auto",
               position: "absolute",
-              top: 500,
-              left: 0,
+              top: "70%",
+              left: "0%",
               opacity: 0.5,
             }}
           />
@@ -197,7 +195,7 @@ const SignInPage: FC = function () {
             <img
               src={Logo}
               alt="Logo"
-              style={{ width: isMobile ? 200 : 300 }}
+              style={{ width: isMobile ? "50%" : "60%" }}
             />
             <Typography variant="h6" sx={{ mt: 2 }}>
               Enter your details to access your account.
