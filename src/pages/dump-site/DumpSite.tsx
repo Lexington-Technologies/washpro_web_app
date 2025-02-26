@@ -243,7 +243,13 @@ const DumpSites = () => {
     },
   ];
 
-  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: { xs: 2, sm: 3 } }}>

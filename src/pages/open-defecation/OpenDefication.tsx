@@ -402,7 +402,7 @@ const handleMarkerClick = (item: OpenDefecation) => {
                   fill="#8884d8"
                   label={({ level, count, percentage }) => `${level}: ${count} (${percentage})`}
                 >
-                  {riskLevelDistributionData.map((entry, index) => (
+                  {riskLevelDistributionData.map((e, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -629,14 +629,5 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
     </Box>
   );
 };
-
-const MapLegendItem = ({ color, label }: { color: string; label: string }) => (
-  <Stack direction="row" alignItems="center" spacing={1}>
-    <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: color }} />
-    <Typography variant="caption" sx={{ fontWeight: 500, color: '#4b5563' }}>
-      {label}
-    </Typography>
-  </Stack>
-);
 
 export default OpenDefication;

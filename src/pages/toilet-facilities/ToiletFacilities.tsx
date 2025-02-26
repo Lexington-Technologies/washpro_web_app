@@ -240,7 +240,14 @@ const ToiletFacilities: React.FC = () => {
     { id: 1, label: 'No Handwash', value: safetyRisk.no, color: '#F44336' },
   ];
 
-  if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+
   if (error instanceof Error) return <ErrorAlert message={error.message} />;
   if (!data || data.length === 0) return <NotFoundAlert />;
 
