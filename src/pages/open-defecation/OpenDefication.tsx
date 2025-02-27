@@ -1,5 +1,4 @@
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import WarningIcon from '@mui/icons-material/Warning';
+import { useState, useMemo } from 'react';
 import {
   Avatar,
   Box,
@@ -22,20 +21,17 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState, useMemo, useEffect } from 'react';
-import { FaChartLine } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { LocationOn, Business } from '@mui/icons-material';
 import { HomeIcon } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
-
-interface RiskAssessment {
-  level: 'critical' | 'moderate' | 'good';
-  cause: string;
-}
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import WarningIcon from '@mui/icons-material/Warning';
+import { FaChartLine } from 'react-icons/fa';
+import React from 'react';
 
 interface OpenDefecation {
   _id: string;
@@ -58,7 +54,6 @@ interface OpenDefecation {
     type: string;
     coordinates: number[];
   };
-  riskAssessment?: RiskAssessment;
 }
 
 interface FilterDropdownProps {
@@ -107,7 +102,7 @@ const columns = [
   }),
 ];
 
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
 const OpenDefication = () => {
   const [page, setPage] = useState(1);
@@ -115,7 +110,6 @@ const OpenDefication = () => {
   const [search, setSearch] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const defaultPosition: [number, number] = [11.2832241, 7.6644755];
   const [ward, setWard] = useState('All');
   const [village, setVillage] = useState('All');
   const [hamlet, setHamlet] = useState('All');
@@ -125,103 +119,31 @@ const OpenDefication = () => {
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?limit=${limit}&page=${page}&search=${search}`),
   });
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
+  // Memoized risk assessment function
+  const assessRisk = useMemo(() => (item: OpenDefecation) => {
+    const footTraffic = item.footTraffic.toLowerCase();
+    const isPeakTimeNight = item.peakTime.some((time) => time.toLowerCase().includes('night'));
+    const isNearWater = item.environmentalCharacteristics.some((char) =>
+      char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
+    );
 
-// Memoized risk assessment function
-const assessRisk = useMemo(() => (item) => {
-  const footTraffic = item.footTraffic.toLowerCase();
-  const isPeakTimeNight = item.peakTime.some((time) => time.toLowerCase().includes('night'));
-  const isNearWater = item.environmentalCharacteristics.some((char) =>
-    char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
-  );
-
-  if (footTraffic === 'high' && isPeakTimeNight) {
-    return { level: 'critical', cause: 'High foot traffic during night hours' };
-  } else if (isNearWater) {
-    return { level: 'critical', cause: 'Proximity to water sources' };
-  } else if (footTraffic === 'medium') {
-    return { level: 'moderate', cause: 'Moderate foot traffic' };
-  }
-  return { level: 'good', cause: 'Low risk area' };
-}, []);
-
-// Function to determine the appropriate icon based on risk levels
-const getIcon = (openDefecation: OpenDefecation) => {
-  const riskAssessment = assessRisk(openDefecation);
-  switch (riskAssessment.level) {
-    case 'critical':
-      return 'critical';
-    case 'moderate':
-      return 'moderate';
-    default:
-      return 'good';
-  }
-};
-
-// Custom marker component
-const CustomMarker = ({ openDefecation }: { openDefecation: OpenDefecation }) => {
-  const riskLevel = getIcon(openDefecation);
-  const [animation, setAnimation] = useState<google.maps.Animation | null>(null);
-
-  useEffect(() => {
-    // Start with a bounce animation
-    setAnimation(window.google.maps.Animation.BOUNCE);
-    // Stop animation after 2 seconds
-    const timer = setTimeout(() => setAnimation(null), 2000);
-    return () => clearTimeout(timer);
+    if (footTraffic === 'high' && isPeakTimeNight) {
+      return { level: 'critical', cause: 'High foot traffic during night hours' };
+    } else if (isNearWater) {
+      return { level: 'critical', cause: 'Proximity to water sources' };
+    } else if (footTraffic === 'medium') {
+      return { level: 'moderate', cause: 'Moderate foot traffic' };
+    }
+    return { level: 'good', cause: 'Low risk area' };
   }, []);
 
-  let iconUrl = '';
-  let label = '';
+  // Handle marker click
+  const handleMarkerClick = (item: OpenDefecation) => {
+    setSelectedLocation(item);
+    setModalOpen(true);
+  };
 
-  switch (riskLevel) {
-    case 'critical':
-      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
-      label = 'C';
-      break;
-    case 'moderate':
-      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png';
-      label = 'M';
-      break;
-    default:
-      iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png';
-      label = 'G';
-      break;
-  }
-
-  return (
-    <MarkerF
-      key={openDefecation._id}
-      position={{
-        lat: openDefecation.geolocation.coordinates[1],
-        lng: openDefecation.geolocation.coordinates[0],
-      }}
-      onClick={() => handleMarkerClick(openDefecation)}
-      icon={{
-        url: iconUrl,
-        scaledSize: new window.google.maps.Size(25, 41),
-      }}
-      label={{
-        text: label,
-        color: '#FFFFFF',
-        fontSize: '12px',
-        fontWeight: 'bold',
-      }}
-      animation={animation}
-      title={`${openDefecation.publicSpace} - ${openDefecation.ward}`}
-    />
-  );
-};
-
-// Handle marker click
-const handleMarkerClick = (item: OpenDefecation) => {
-  setSelectedLocation(item);
-  setModalOpen(true);
-};
-
-// Generate filter options
+  // Generate filter options
   const wardOptions = useMemo(() => {
     if (!data) return ['All'];
     return ['All', ...new Set(data.map(item => item.ward))];
@@ -253,16 +175,6 @@ const handleMarkerClick = (item: OpenDefecation) => {
     );
   }, [data, ward, village, hamlet]);
 
-  // Update the stats cards to use filtered data
-  const getHighRiskCount = (data: OpenDefecation[]) => {
-    return data.filter(item => assessRisk(item).level === 'critical').length;
-  };
-
-  const getAverageDailyCases = (data: OpenDefecation[]) => {
-    const total = data.reduce((sum, item) => sum + parseInt(item.dailyAverage), 0);
-    return Math.round(total / (data.length || 1));
-  };
-
   // Data for Bar Chart (Distribution by Ward)
   const wardDistributionData = useMemo(() => {
     if (!filteredData) return [];
@@ -289,32 +201,7 @@ const handleMarkerClick = (item: OpenDefecation) => {
     }));
   }, [filteredData]);
 
-  const COLORS = ['#22c55e', '#ef4444', '#f59e0b']; // Colors for critical (yellow), moderate (orange), good (green)
-  // Custom Tooltip for Pie Chart
-  const CustomPieTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const { level, count, percentage } = payload[0].payload;
-      return (
-        <Box sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1, boxShadow: 1 }}>
-          <Typography variant="body2">{`${level}: ${count} (${percentage})`}</Typography>
-        </Box>
-      );
-    }
-    return null;
-  };
-
-  // Custom Tooltip for Bar Chart
-  const CustomBarTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const { ward, count } = payload[0].payload;
-      return (
-        <Box sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1, boxShadow: 1 }}>
-          <Typography variant="body2">{`${ward}: ${count}`}</Typography>
-        </Box>
-      );
-    }
-    return null;
-  };
+  const COLORS = ['#22c55e', '#ef4444', '#f59e0b']; // Colors for critical (red), moderate (orange), good (green)
 
   if (isLoading) {
     return (
@@ -355,13 +242,13 @@ const handleMarkerClick = (item: OpenDefecation) => {
         />
         <StatsCard
           title="High Risk Areas"
-          value={getHighRiskCount(filteredData)}
+          value={filteredData.filter(item => assessRisk(item).level === 'critical').length}
           icon={<WarningIcon />}
           iconColor="#f44336"
         />
         <StatsCard
           title="Average Daily Cases"
-          value={getAverageDailyCases(filteredData)}
+          value={Math.round(filteredData.reduce((sum, item) => sum + parseInt(item.dailyAverage), 0) / (filteredData.length || 1))}
           icon={<FaChartLine style={{ color: "#CA8A04" }} />}
           iconColor="#ff9800"
         />
@@ -378,7 +265,7 @@ const handleMarkerClick = (item: OpenDefecation) => {
               <BarChart data={wardDistributionData}>
                 <XAxis dataKey="ward" />
                 <YAxis />
-                <Tooltip content={<CustomBarTooltip />} />
+                <Tooltip />
                 <Legend />
                 <Bar dataKey="count" fill="#3b82f6" />
               </BarChart>
@@ -406,7 +293,7 @@ const handleMarkerClick = (item: OpenDefecation) => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomPieTooltip />} />
+                <Tooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -420,17 +307,39 @@ const handleMarkerClick = (item: OpenDefecation) => {
           Risk Distribution Map
         </Typography>
 
-        {isLoaded && (
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '70vh' }}
-            center={{ lat: 11.2832241, lng: 7.6644755 }}
-            zoom={14}
-          >
-            {filteredData.map(openDefecation => (
-              <CustomMarker openDefecation={openDefecation} />
-            ))}
-          </GoogleMap>
-        )}
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <Box sx={{ height: '70vh', borderRadius: 2, overflow: 'hidden' }}>
+            <Map
+              defaultZoom={14}
+              defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
+              mapId={GOOGLE_MAPS_API_KEY}
+              gestureHandling="greedy"
+              disableDefaultUI={false}
+            >
+              {filteredData.map((openDefecation) => {
+                const position = {
+                  lat: openDefecation.geolocation.coordinates[1],
+                  lng: openDefecation.geolocation.coordinates[0],
+                };
+                const riskLevel = assessRisk(openDefecation).level;
+
+                return (
+                  <AdvancedMarker
+                    key={openDefecation._id}
+                    position={position}
+                    onClick={() => handleMarkerClick(openDefecation)}
+                  >
+                    <Pin
+                      background={riskLevel === 'critical' ? '#B71C1C' : riskLevel === 'moderate' ? '#FFA726' : '#4CAF50'}
+                      glyphColor="#FFF"
+                      borderColor="#7F0000"
+                    />
+                  </AdvancedMarker>
+                );
+              })}
+            </Map>
+          </Box>
+        </APIProvider>
       </Paper>
 
       {/* Location Details Modal */}
