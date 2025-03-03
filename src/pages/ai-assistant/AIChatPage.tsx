@@ -46,8 +46,7 @@ import {
   Search, 
   TrendingUp 
 } from '@mui/icons-material';
-import OpenAI from 'openai';
-import { apiController } from '../../axios';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -152,6 +151,20 @@ interface Thread {
   messages: StreamingMessage[];
 }
 
+// Add generation config
+const generationConfig = {
+  temperature: 0.9,
+  topP: 0.95,
+  topK: 40,
+  maxOutputTokens: 8192,
+  responseMimeType: "text/plain",
+};
+
+// Add system instruction
+const systemInstruction = `You are a helpful AI assistant for WashPro, specializing in water quality monitoring and maintenance tasks. 
+You provide clear, professional, and actionable advice while maintaining a friendly tone. 
+Your responses should be well-structured, accurate, and focused on helping users with their water and sanitation-related queries.`;
+
 const AIChatPage: React.FC = () => {
   const [messages, setMessages] = useState<StreamingMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -166,6 +179,7 @@ const AIChatPage: React.FC = () => {
   const [currentThread, setCurrentThread] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [assistantId, setAssistantId] = useState<string | null>(null);
+  const modelRef = useRef<GenerativeModel | null>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -197,21 +211,33 @@ const AIChatPage: React.FC = () => {
 
   // Scroll to bottom when messages update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'end'
+        });
+      }
+    };
+
+    // Add a small delay to ensure content is rendered before scrolling
+    const timeoutId = setTimeout(scrollToBottom, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
-  // Update the OpenAI client initialization
-  const openai = new OpenAI({
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-    dangerouslyAllowBrowser: true
-  });
-
-  // Add error handling for missing API key
+  // Initialize Gemini model
   useEffect(() => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+    if (import.meta.env.VITE_GEMINI_API_KEY) {
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+      modelRef.current = genAI.getGenerativeModel({ 
+        model: 'gemini-2.0-flash-exp',
+        systemInstruction: systemInstruction
+      });
+    } else {
       setMessages([{
         id: Date.now().toString(),
-        content: 'Error: OpenAI API key is not configured. Please check your environment variables.',
+        content: 'Error: Gemini API key is not configured. Please check your environment variables.',
         sender: 'ai',
         timestamp: new Date(),
         isStreaming: false
@@ -219,39 +245,12 @@ const AIChatPage: React.FC = () => {
     }
   }, []);
 
-  // Update assistant initialization
-  useEffect(() => {
-    const initializeAssistant = async () => {
-      try {
-        // First try to use the ID from environment variable
-        if (import.meta.env.VITE_OPENAI_ASSISTANT_ID) {
-          setAssistantId(import.meta.env.VITE_OPENAI_ASSISTANT_ID);
-          return;
-        }
-
-        // If no ID in env, create new assistant
-        // const assistant = await openai.beta.assistants.create({
-        //   name: 'WashPro AI Assistant',
-        //   instructions: 'You are a helpful assistant that can help with water quality monitoring and maintenance tasks.',
-        //   model: 'gpt-4o-mini',
-        // });
-        
-        // setAssistantId(assistant.id);
-        // console.log('Assistant created:', assistant.id);
-      } catch (error) {
-        console.error('Error creating assistant:', error);
-      }
-    };
-
-    initializeAssistant();
-  }, []);
-
   // Update streamResponse function
   const streamResponse = async (userMessage: string) => {
-    if (!import.meta.env.VITE_OPENAI_API_KEY || !assistantId) {
+    if (!modelRef.current) {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
-        content: 'Error: OpenAI configuration is incomplete.',
+        content: 'Error: Gemini model is not initialized.',
         sender: 'ai',
         timestamp: new Date(),
         isStreaming: false
@@ -263,7 +262,6 @@ const AIChatPage: React.FC = () => {
     setIsTyping(true);
     setIsLoading(true);
 
-    // Add streaming message placeholder
     const streamingMessageId = Date.now().toString();
     setMessages(prev => [...prev, {
       id: streamingMessageId,
@@ -274,68 +272,48 @@ const AIChatPage: React.FC = () => {
     }]);
 
     try {
-      // Create or use existing thread
-      let threadId = currentThread;
-      if (!threadId) {
-        const thread = await openai.beta.threads.create();
-        threadId = thread.id;
-        setCurrentThread(thread.id);
-      }
-
-      // Add the user message to the thread
-      await openai.beta.threads.messages.create(threadId, {
-        role: 'user',
-        content: userMessage
+      // Create chat history for context
+      const chat = modelRef.current.startChat({
+        generationConfig,
+        history: messages.map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }],
+        })),
       });
 
-      // Create a run with the stored assistant ID
-      const run = await openai.beta.threads.runs.create(threadId, {
-        assistant_id: assistantId,
-      });
-
-      // Update the streaming message content as responses come in
-      const updateStreamingMessage = (content: string) => {
+      // Send message and get streaming response
+      const result = await chat.sendMessageStream(userMessage);
+      
+      let fullResponse = '';
+      
+      // Process the stream
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        fullResponse += chunkText;
+        
+        // Update the streaming message content
         setMessages(prev => prev.map(msg => 
           msg.id === streamingMessageId 
-            ? { ...msg, content, isStreaming: true }
+            ? { ...msg, content: fullResponse, isStreaming: true }
             : msg
         ));
-      };
-
-      // Poll and update the streaming message
-      let runStatus = await pollRunStatus(threadId, run.id, updateStreamingMessage);
-
-      // Once complete, finalize the message
-      if (runStatus === 'completed') {
-        const messages = await openai.beta.threads.messages.list(threadId);
-        const lastMessage = messages.data
-          .filter(msg => msg.role === 'assistant')
-          .sort((a, b) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )[0];
-
-        if (lastMessage) {
-          const content = lastMessage.content
-            .filter(item => item.type === 'text')
-            .map(item => item.text?.value || '')
-            .join('\n');
-
-          setMessages(prev => prev.map(msg => 
-            msg.id === streamingMessageId 
-              ? {
-                  id: lastMessage.id,
-                  content: content,
-                  sender: 'ai',
-                  timestamp: new Date(lastMessage.created_at),
-                  isStreaming: false
-                }
-              : msg
-          ));
-        }
       }
 
+      // Finalize the message
+      setMessages(prev => prev.map(msg => 
+        msg.id === streamingMessageId 
+          ? {
+              id: msg.id,
+              content: fullResponse,
+              sender: 'ai',
+              timestamp: new Date(),
+              isStreaming: false
+            }
+          : msg
+      ));
+
     } catch (error: any) {
-      console.error('Assistant API error:', error);
+      console.error('Gemini API error:', error);
       setMessages(prev => prev.map(msg => 
         msg.id === streamingMessageId 
           ? {
@@ -351,48 +329,6 @@ const AIChatPage: React.FC = () => {
       setIsTyping(false);
       setIsLoading(false);
     }
-  };
-
-  // Update pollRunStatus to safely handle message content
-  const pollRunStatus = async (threadId: string, runId: string, onUpdate: (content: string) => void) => {
-    let status = 'in_progress';
-    let lastMessageId = '';
-    
-    while (status === 'in_progress' || status === 'queued') {
-      const run = await openai.beta.threads.runs.retrieve(threadId, runId);
-      status = run.status;
-
-      // Get latest messages while running
-      const messages = await openai.beta.threads.messages.list(threadId);
-      const latestMessage = messages.data[0];
-
-      if (latestMessage && latestMessage.id !== lastMessageId) {
-        lastMessageId = latestMessage.id;
-        // Safely extract text content from the message
-        const content = latestMessage.content
-          .filter(item => item.type === 'text')
-          .map(item => item.text?.value || '')
-          .join('\n');
-        
-        if (content) {
-          onUpdate(content);
-        }
-      }
-
-      if (status === 'failed' || status === 'expired' || status === 'cancelled') {
-        throw new Error(`Run ended with status: ${status}`);
-      }
-
-      if (status === 'requires_action') {
-        console.log('Function call required');
-      }
-
-      if (status !== 'completed') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-
-    return status;
   };
 
   const handleSendMessage = async () => {
@@ -828,79 +764,81 @@ const AIChatPage: React.FC = () => {
       )}
 
       {/* Messages Container */}
-      <Box 
-        sx={{ 
-          flex: 1, 
-          mb: 2, 
-          p: 2, 
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          bgcolor: 'white',
-          border: '1px solid #e0e0e0',
-          borderRadius: 1,
-          transition: 'all 0.2s ease'
-        }}
-      >
-        {messages.length === 0 && !showPrompts && (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              height: '100%',
-              color: 'text.secondary'
-            }}
-          >
-            <SmartToy sx={{ fontSize: 48, mb: 2, color: '#25306B' }} />
-            <Typography variant="h6">
-              Start a New Conversation
-            </Typography>
-            <Typography variant="body2">
-              Type a message or select a prompt to begin
-            </Typography>
-          </Box>
-        )}
-        {messages.map((message) => (
-          <Fade in timeout={500} key={message.id}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                gap: 1,
+      {!showPrompts && (
+        <Box 
+          sx={{ 
+            flex: 1, 
+            mb: 2, 
+            p: 2, 
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            bgcolor: 'white',
+            border: '1px solid #e0e0e0',
+            borderRadius: 1,
+            transition: 'all 0.2s ease'
+          }}
+        >
+          {messages.length === 0 && (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                height: '100%',
+                color: 'text.secondary'
               }}
             >
-              {message.sender === 'ai' && (
-                <Badge
-                  overlap="circular"
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  variant="dot"
-                  sx={{ 
-                    '& .MuiBadge-badge': { 
-                      backgroundColor: '#44b700',
-                      boxShadow: 'none'
-                    }
-                  }}
-                >
-                  <Avatar 
-                    src="/ai-avatar.png" 
-                    sx={{ bgcolor: '#25306B' }}
-                  />
-                </Badge>
-              )}
-              <MessageBubble message={message} />
-              {message.sender === 'user' && (
-                <Avatar sx={{ bgcolor: '#1a237e' }}>
-                  {useAuthStore.getState().user?.name?.[0] || 'U'}
-                </Avatar>
-              )}
+              <SmartToy sx={{ fontSize: 48, mb: 2, color: '#25306B' }} />
+              <Typography variant="h6">
+                Start a New Conversation
+              </Typography>
+              <Typography variant="body2">
+                Type a message or select a prompt to begin
+              </Typography>
             </Box>
-          </Fade>
-        ))}
-        <div ref={messagesEndRef} />
-      </Box>
+          )}
+          {messages.map((message) => (
+            <Fade in timeout={500} key={message.id}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start',
+                  gap: 1,
+                }}
+              >
+                {message.sender === 'ai' && (
+                  <Badge
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    variant="dot"
+                    sx={{ 
+                      '& .MuiBadge-badge': { 
+                        backgroundColor: '#44b700',
+                        boxShadow: 'none'
+                      }
+                    }}
+                  >
+                    <Avatar 
+                      src="/ai-avatar.png" 
+                      sx={{ bgcolor: '#25306B' }}
+                    />
+                  </Badge>
+                )}
+                <MessageBubble message={message} />
+                {message.sender === 'user' && (
+                  <Avatar sx={{ bgcolor: '#1a237e' }}>
+                    {useAuthStore.getState().user?.name?.[0] || 'U'}
+                  </Avatar>
+                )}
+              </Box>
+            </Fade>
+          ))}
+          <div ref={messagesEndRef} />
+        </Box>
+      )}
 
       {/* Input Area */}
       <Box 
