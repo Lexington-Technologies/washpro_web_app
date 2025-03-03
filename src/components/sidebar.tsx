@@ -130,7 +130,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
           <ListItemIcon
             sx={{
               minWidth: "auto",
-              color: theme.palette.text.secondary,
+              color: "#25306B",
               mr: isCollapsed ? 0 : 2,
               justifyContent: "center",
               transition: "margin-right 0.3s",
@@ -262,7 +262,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
                 mb: 0.5,
                 borderRadius: "8px",
                 justifyContent: isCollapsed ? "center" : "flex-start",
-                color: theme.palette.text.secondary,
+                color: "#25306B",
                 "&:hover": { bgcolor: theme.palette.action.hover },
               }}
             >

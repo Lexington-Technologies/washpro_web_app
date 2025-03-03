@@ -205,10 +205,12 @@ const ToiletFacilitiesDetails: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
+              variant="outlined"
               label={toiletFacility.status}
               color={toiletFacility.status === 'Improved' ? 'success' : 'error'}
             />
             <Chip
+                variant="outlined"
               label={toiletFacility.condition}
               color={toiletFacility.condition === 'Maintained' ? 'success' : 'warning'}
             />
@@ -227,13 +229,15 @@ const ToiletFacilitiesDetails: React.FC = () => {
         </Tabs>
 
         {/* Tab Panels */}
-        {activeTab === 0 ? (
-          <OverviewTab toiletFacility={toiletFacility} position={position} onImageClick={() => setIsFacilityImageOpen(true)} />
-        ) : activeTab === 1 ? (
-          <PersonContactTab toiletFacility={toiletFacility} setIsPersonImageOpen={setIsPersonImageOpen} />
-        ) : (
-          <EnumeratorTab enumerator={toiletFacility?.createdBy} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab toiletFacility={toiletFacility} position={position} onImageClick={() => setIsFacilityImageOpen(true)} />
+          ) : activeTab === 1 ? (
+            <PersonContactTab toiletFacility={toiletFacility} setIsPersonImageOpen={setIsPersonImageOpen} />
+          ) : (
+            <EnumeratorTab enumerator={toiletFacility?.createdBy} />
+          )}
+        </Box>
 
         {/* Image Modal for Toilet Facility */}
         <Modal

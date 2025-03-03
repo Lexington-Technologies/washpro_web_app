@@ -173,10 +173,12 @@ const DumpSiteDetails: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
+              variant="outlined"
               label={dumpSite.status || 'Not specified'}
               color={dumpSite.status === 'Improved' ? 'success' : 'error'}
             />
             <Chip
+              variant="outlined"
               label={dumpSite.condition || 'Not specified'}
               color={dumpSite.condition === 'Maintained' ? 'success' : 'error'}
             />
@@ -193,13 +195,15 @@ const DumpSiteDetails: React.FC = () => {
           <Tab label="Enumerator" />
         </Tabs>
 
-        {activeTab === 0 ? (
-          <OverviewTab dumpSite={dumpSite} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : activeTab === 1 ? (
-          <ContactPersonTab contactPerson={dumpSite?.domain || null} />
-        ) : (
-          <EnumeratorTab enumerator={dumpSite?.createdBy || null} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab dumpSite={dumpSite} position={position} onImageClick={() => setIsImageOpen(true)} />
+          ) : activeTab === 1 ? (
+            <ContactPersonTab contactPerson={dumpSite?.domain || null} />
+          ) : (
+            <EnumeratorTab enumerator={dumpSite?.createdBy || null} />
+          )}
+        </Box>
 
         <Modal
           open={isImageOpen}

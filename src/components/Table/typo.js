@@ -384,7 +384,6 @@ const WashDashboard: React.FC = () => {
       return data as EnumeratorPerformance[];
     },
   });
-  console.log("enu", data)
 
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>

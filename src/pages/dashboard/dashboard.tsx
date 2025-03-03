@@ -1,10 +1,13 @@
 import {
+  AccessibilityNew,
   DeleteOutline,
   Group,
   Home,
   Landscape,
+  LocalHospital,
   LocationOn,
   Sanitizer,
+  School,
   Timeline,
   WaterDrop,
 } from '@mui/icons-material';
@@ -28,6 +31,9 @@ import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 import { IoWater } from 'react-icons/io5';
+import { LiaPoopSolid } from 'react-icons/lia';
+import { MdCleanHands } from 'react-icons/md';
+import { SiCcleaner } from 'react-icons/si';
 import { apiController } from '../../axios';
 import StatsCard from '../../components/StatsCard';
 
@@ -335,10 +341,10 @@ const WashDashboard = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ bgcolor: '#f0f0f0', minHeight: '100vh', p: { xs: 2, md: 3 } }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box sx={{ mb: { xs: 2, md: 0 }, textAlign: { xs: 'center', md: 'left' } }}>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Analytics Dashboard
           </Typography>
@@ -346,7 +352,7 @@ const WashDashboard = () => {
             Comprehensive WASH facilities overview
           </Typography>
         </Box>
-        <Stack direction="row" spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FilterDropdown
             label="Ward"
             options={wardOptions}
@@ -430,12 +436,12 @@ const WashDashboard = () => {
                 ))}
               </Grid>
               {/* Charts Section */}
-              <Grid container spacing={3} sx={{ mt: 2, mb: 3 }}>
+              <Grid container spacing={3} sx={{ mt: 2, mb: 3, display: { xs: 'none', md: 'flex' } }}>
                 {/* Pie Chart */}
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6" sx={{ 
                     textAlign: 'center', 
-                    mb: 9, 
+                    mb: 2, 
                     fontWeight: 'bold',
                     color: '#2d3436',
                     fontSize: '1.25rem',
@@ -553,7 +559,7 @@ const WashDashboard = () => {
                       barThickness: 40,
                     }]}
                     grid={{ vertical: false, horizontal: true }}
-                    width={600}
+                    width={500}
                     height={400}
                     margin={{ top: 50, right: 30, left: 40, bottom: 50 }}
                     legend={{ 
@@ -586,12 +592,12 @@ const WashDashboard = () => {
               </Grid>
 
               {/* Charts Section */}
-              <Grid container spacing={3}>
+              <Grid container spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
                 {/* Pie Chart */}
                 <Grid item xs={12} md={6}>
                   <Typography variant="h6" sx={{ 
                     textAlign: 'center', 
-                    mb: 4, 
+                    mb: 2, 
                     fontWeight: 'bold',
                     color: '#2d3436',
                     fontSize: '1.25rem',
@@ -719,7 +725,7 @@ const WashDashboard = () => {
                       },
                     ]}
                     grid={{ vertical: false, horizontal: true }}
-                    width={600}
+                    width={500}
                     height={400}
                     margin={{ top: 50, right: 30, left: 40, bottom: 50 }}
                     legend={{ 

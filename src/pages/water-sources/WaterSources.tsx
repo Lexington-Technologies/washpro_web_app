@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaWrench } from 'react-icons/fa6';
 import { RiWaterFlashFill } from 'react-icons/ri';
 import { apiController } from '../../axios';
@@ -25,6 +25,7 @@ import { DataTable } from '../../components/Table/DataTable';
 import { BarChart, PieChart, pieArcLabelClasses } from '@mui/x-charts';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { IoWater } from 'react-icons/io5';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Interfaces
 interface StatCardProps {
@@ -199,12 +200,17 @@ const columns = [
 
 // Main Component
 const WaterSourcesDashboard: React.FC = () => {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
-  const [ward, setWard] = useState('');
-  const [village, setVillage] = useState('');
-  const [hamlet, setHamlet] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  // Initialize state from URL query parameters
+  const [page, setPage] = useState(Number(queryParams.get('page')) || 1);
+  const [limit, setLimit] = useState(Number(queryParams.get('limit')) || 10);
+  const [search, setSearch] = useState(queryParams.get('search') || '');
+  const [ward, setWard] = useState(queryParams.get('ward') || '');
+  const [village, setVillage] = useState(queryParams.get('village') || '');
+  const [hamlet, setHamlet] = useState(queryParams.get('hamlet') || '');
   const [isFiltering, setIsFiltering] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery<WaterSource[], Error>({
@@ -213,20 +219,16 @@ const WaterSourcesDashboard: React.FC = () => {
   });
 
   // Filter State Initialization
-  const [filteredData, setFilteredData] = useState<WaterSource[]>([]);
   const wardOptions = useMemo(() => [...new Set(data?.map(item => item.ward) || [])], [data]);
   const villageOptions = useMemo(() => [...new Set(data?.map(item => item.village) || [])], [data]);
   const hamletOptions = useMemo(() => [...new Set(data?.map(item => item.hamlet) || [])], [data]);
 
-  // Applying Filters in useEffect
-  useEffect(() => {
-    setIsFiltering(true);
+  const filteredData = useMemo(() => {
     let filtered = data ? [...data] : [];
     if (ward) filtered = filtered.filter(item => item.ward === ward);
     if (village) filtered = filtered.filter(item => item.village === village);
     if (hamlet) filtered = filtered.filter(item => item.hamlet === hamlet);
-    setFilteredData(filtered);
-    setIsFiltering(false);
+    return filtered;
   }, [data, ward, village, hamlet]);
 
   // Analytics Count
@@ -277,6 +279,28 @@ const WaterSourcesDashboard: React.FC = () => {
       color: '#FF9800',
     },
   ];
+
+  // Update URL query parameters when filters change
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    if (page) params.set('page', page.toString());
+    if (limit) params.set('limit', limit.toString());
+    if (search) params.set('search', search);
+    if (ward) params.set('ward', ward);
+    if (village) params.set('village', village);
+    if (hamlet) params.set('hamlet', hamlet);
+    navigate({ search: params.toString() }, { replace: true });
+  };
+
+  // Call updateURL whenever filters change
+  React.useEffect(() => {
+    updateURL();
+  }, [page, limit, search, ward, village, hamlet]);
+
+  // Navigate to WaterSourceDetails with current filters
+  const navigateToDetails = (id: string) => {
+    navigate(`/water-sources/${id}?${queryParams.toString()}`);
+  };
 
   if (isLoading || isFiltering) {
     return (
@@ -419,6 +443,7 @@ const WaterSourcesDashboard: React.FC = () => {
         isLoading={isLoading}
         columns={columns}
         data={filteredData || []}
+        onRowClick={(row) => navigateToDetails(row._id)} // Pass the current filters
       />
     </Box>
   );

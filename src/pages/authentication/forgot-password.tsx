@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useSnackStore } from "../../store";
+import { Logo } from "../../assets/svg";
 
 const ForgotPassword = () => {
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -58,6 +59,7 @@ const ForgotPassword = () => {
         width: "100vw",
         height: "100vh",
         display: "flex",
+        flexDirection: isMobile ? "column" : "row", // Adjust flex direction for mobile
         overflow: "hidden",
       }}
     >
@@ -73,7 +75,7 @@ const ForgotPassword = () => {
             position: "relative",
           }}
         >
-          <Box sx={{ textAlign: "center" }}>
+          <Box sx={{ textAlign: "center", p: 2 }}> {/* Add padding for better spacing */}
             <Typography variant="h3" sx={{ color: "#fff", fontWeight: "bold" }}>
               Forgot Password?
             </Typography>
@@ -88,9 +90,11 @@ const ForgotPassword = () => {
         sx={{
           width: isMobile ? "100%" : "60%",
           display: "flex",
+          height: "100%",
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#D5DAE1",
+          p: isMobile ? 2 : 0, // Add padding for mobile
         }}
       >
         <form
@@ -106,7 +110,7 @@ const ForgotPassword = () => {
         >
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <img
-              src="./src/assets/img/logo.png"
+              src={Logo}
               alt="Logo"
               style={{ width: "225.28px", height: "55px" }}
             />
@@ -134,11 +138,15 @@ const ForgotPassword = () => {
                 borderRadius: 2,
                 height: 48,
                 bgcolor: "#25306B",
-                "&:hover": { bgcolor: "#1a1f4b" }
+                "&:hover": { bgcolor: "#1a1f4b" },
+                position: "relative" // Add position relative for the loading indicator
               }}
             >
               {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
+                <>
+                  <CircularProgress size={24} color="inherit" sx={{ position: "absolute" }} />
+                  <span style={{ visibility: "hidden" }}>Submit</span> {/* Hide text when loading */}
+                </>
               ) : (
                 "Submit"
               )}

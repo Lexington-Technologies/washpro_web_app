@@ -169,10 +169,12 @@ const GutterDetails: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
+            variant='outlined'
               label={gutter.status || 'Not specified'}
               color={gutter.status === 'Maintained' ? 'success' : gutter.status === 'Error' ? 'error' : 'warning'}
             />
             <Chip
+            variant='outlined'
               label={gutter.condition || 'Not specified'}
               color={gutter.condition === 'Good' ? 'success' : gutter.condition === 'Error' ? 'error' : 'warning'}
             />
@@ -189,13 +191,15 @@ const GutterDetails: React.FC = () => {
           <Tab label="Enumerator" />
         </Tabs>
 
-        {activeTab === 0 ? (
-          <OverviewTab gutter={gutter} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : activeTab === 1 ? (
-          <ContactPersonTab contactPerson={gutter?.domain || null} />
-        ) : (
-          <EnumeratorTab enumerator={gutter?.createdBy || null} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab gutter={gutter} position={position} onImageClick={() => setIsImageOpen(true)} />
+          ) : activeTab === 1 ? (
+            <ContactPersonTab contactPerson={gutter?.domain || null} />
+          ) : (
+            <EnumeratorTab enumerator={gutter?.createdBy || null} />
+          )}
+        </Box>
 
         <Modal
           open={isImageOpen}

@@ -344,117 +344,238 @@ const OpenDefication = () => {
 
       {/* Location Details Modal */}
       <Dialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ m: 0, p: 2, bgcolor: '#f8f9fa' }}>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-            Location Details
-          </Typography>
-          <IconButton
-            onClick={() => setModalOpen(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          {selectedLocation && (
-            <Box sx={{ p: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Box
-                    component="img"
-                    src={selectedLocation.picture}
-                    alt="Location"
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: 2,
-                      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
-                    }}
-                  />
+  open={modalOpen}
+  onClose={() => setModalOpen(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle
+    sx={{
+      m: 0,
+      p: 2,
+      bgcolor: '#f8f9fa',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    }}
+  >
+    <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: '#1a237e' }}>
+      Location Details
+    </Typography>
+    <IconButton
+      onClick={() => setModalOpen(false)}
+      sx={{
+        color: '#1a237e',
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        },
+      }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
+    {selectedLocation && (
+      <Box sx={{ p: 2 }}>
+        <Grid container spacing={3}>
+          {/* Image Section */}
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: '#fff',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                height: '60%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {selectedLocation.picture ? (
+                <Box
+                  component="img"
+                  src={selectedLocation.picture}
+                  alt="Location"
+                  sx={{
+                    width: '100%',
+                    height: 'auto',
+                    maxHeight: 300,
+                    borderRadius: 2,
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s ease-in-out',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                    },
+                  }}
+                />
+              ) : (
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ textAlign: 'center', fontStyle: 'italic' }}
+                >
+                  Image not available
+                </Typography>
+              )}
+            </Card>
+
+            {/* Additional Information */}
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                bgcolor: '#fff',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                mt: 3,
+              }}
+            >
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+                Additional Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Public Space
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {selectedLocation.publicSpace}
+                  </Typography>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" gutterBottom>Risk Assessment</Typography>
-                    <Chip
-                      label={assessRisk(selectedLocation).level.toUpperCase()}
-                      color={
-                        assessRisk(selectedLocation).level === 'critical' ? 'error' :
-                        assessRisk(selectedLocation).level === 'moderate' ? 'warning' : 'success'
-                      }
-                      sx={{ mb: 1 }}
-                    />
-                    <Typography variant="body2" color="text.secondary">
-                      {assessRisk(selectedLocation).cause}
-                    </Typography>
-                  </Box>
-
-                  <Divider sx={{ mb: 3 }} />
-
-                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                      <Avatar sx={{ bgcolor: 'primary.light' }}>
-                        <LocationOn />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">Ward</Typography>
-                        <Typography variant="subtitle1">{selectedLocation.ward}</Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                      <Avatar sx={{ bgcolor: 'success.light' }}>
-                        <Business />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">Village</Typography>
-                        <Typography variant="subtitle1">{selectedLocation.village}</Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                      <Avatar sx={{ bgcolor: 'warning.light' }}>
-                        <HomeIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">Hamlet</Typography>
-                        <Typography variant="subtitle1">{selectedLocation.hamlet}</Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ mt: 3 }}>
-                    <Typography variant="subtitle2" gutterBottom>Additional Information</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">Public Space</Typography>
-                        <Typography variant="body2">{selectedLocation.publicSpace}</Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">Foot Traffic</Typography>
-                        <Typography variant="body2">{selectedLocation.footTraffic}</Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="caption" color="text.secondary">Peak Times</Typography>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-                          {selectedLocation.peakTime.map((time, index) => (
-                            <Chip key={index} label={time} size="small" />
-                          ))}
-                        </Box>
-                      </Grid>
-                    </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Foot Traffic
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {selectedLocation.footTraffic}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary">
+                    Peak Times
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
+                    {selectedLocation.peakTime.map((time, index) => (
+                      <Chip
+                      variant='outlined'
+                        key={index}
+                        label={time}
+                        size="small"
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'primary.contrastText',
+                          },
+                        }}
+                      />
+                    ))}
                   </Box>
                 </Grid>
               </Grid>
-            </Box>
-          )}
-        </DialogContent>
-      </Dialog>
+            </Card>
+          </Grid>
+
+          {/* Details Section */}
+          <Grid item xs={12} md={6}>
+            {/* Risk Assessment */}
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                bgcolor: '#fff',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                mb: 3,
+              }}
+            >
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+                Risk Assessment
+              </Typography>
+              <Chip
+                label={assessRisk(selectedLocation).level.toUpperCase()}
+                color={
+                  assessRisk(selectedLocation).level === 'critical'
+                    ? 'error'
+                    : assessRisk(selectedLocation).level === 'moderate'
+                    ? 'warning'
+                    : 'success'
+                }
+                sx={{
+                  mb: 1,
+                  fontWeight: 600,
+                  '&:hover': {
+                    opacity: 0.9,
+                  },
+                }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {assessRisk(selectedLocation).cause}
+              </Typography>
+            </Card>
+
+            {/* Location Details */}
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                bgcolor: '#fff',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                mb: 3,
+              }}
+            >
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+                Location Details
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar sx={{ bgcolor: 'primary.light' }}>
+                    <LocationOn />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Ward
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                      {selectedLocation.ward}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar sx={{ bgcolor: 'success.light' }}>
+                    <Business />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Village
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                      {selectedLocation.village}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar sx={{ bgcolor: 'warning.light' }}>
+                    <HomeIcon />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Hamlet
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                      {selectedLocation.hamlet}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+    )}
+  </DialogContent>
+</Dialog>
 
       {/* Recent Observations Table */}
       <Paper sx={{ p: 2, borderRadius: 2, mt: 4 }}>

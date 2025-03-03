@@ -172,6 +172,7 @@ const SignInPage: FC = function () {
       <Box
         sx={{
           width: isMobile ? "100%" : "60%",
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

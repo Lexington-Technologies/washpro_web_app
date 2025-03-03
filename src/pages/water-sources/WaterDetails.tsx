@@ -192,16 +192,18 @@ const WaterSourceDetails: React.FC = () => {
         </Tabs>
 
         {/* Tab Panels */}
-        {activeTab === 0 ? (
-          <OverviewTab
-            waterSource={waterSource}
-            position={position}
-            onWaterSourceImageClick={handleWaterSourceImageClick}
-            onPersonImageClick={handlePersonImageClick}
-          />
-        ) : (
-          <QualityTab qualityTest={waterSource?.qualityTest[0]} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab
+              waterSource={waterSource}
+              position={position}
+              onWaterSourceImageClick={handleWaterSourceImageClick}
+              onPersonImageClick={handlePersonImageClick}
+            />
+          ) : (
+            <QualityTab qualityTest={waterSource?.qualityTest[0]} />
+          )}
+        </Box>
 
         {/* Water Source Image Modal */}
         <Modal

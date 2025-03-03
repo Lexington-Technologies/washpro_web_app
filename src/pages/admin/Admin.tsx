@@ -300,7 +300,7 @@ const UserPage: React.FC = () => {
         cell: info => (
           <Box
           onClick={(e) => handleMenuOpen(e, info.row.original)}
-          sx={{ display: 'flex', gap: 1, bgcolor: 'green' }}>
+          sx={{ display: 'flex', gap: 1, cursor: 'pointer' }}>
           <IconButton
             size="small"
             color='primary'

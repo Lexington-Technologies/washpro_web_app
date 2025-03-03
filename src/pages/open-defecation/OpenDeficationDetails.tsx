@@ -182,13 +182,15 @@ const OpenDeficationDetails: React.FC = () => {
         </Tabs>
 
         {/* Tab Panels */}
-        {activeTab === 0 ? (
-          <OverviewTab openDefication={openDefication} position={position} onImageClick={() => handleImageClick(openDefication.picture)} />
-        ) : activeTab === 1 ? (
-          <ContactPersonTab contactPerson={openDefication?.domain || null} onImageClick={handleImageClick} />
-        ) : (
-          <EnumeratorTab enumerator={openDefication?.createdBy || null} onImageClick={handleImageClick} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab openDefication={openDefication} position={position} onImageClick={() => handleImageClick(openDefication.picture)} />
+          ) : activeTab === 1 ? (
+            <ContactPersonTab contactPerson={openDefication?.domain || null} onImageClick={handleImageClick} />
+          ) : (
+            <EnumeratorTab enumerator={openDefication?.createdBy || null} onImageClick={handleImageClick} />
+          )}
+        </Box>
 
         {/* Image Modal */}
         <Modal

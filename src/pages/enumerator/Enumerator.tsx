@@ -132,6 +132,8 @@ const Enumerators = () => {
   const [search, setSearch] = useState('');
   const [openAddModal, setOpenAddModal] = useState(false);
   const [formData, setFormData] = useState<EnumeratorFormData>(initialFormData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState<{ variant: 'success' | 'error'; message: string } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -143,23 +145,52 @@ const Enumerators = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      await apiController.post('/enumerator/register', {
-        ...formData,
+      const newFormData = {
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim()
+      };
+
+      console.log('Sending registration data:', newFormData);
+      const response = await apiController.post('/enumerator/register', newFormData);
+      console.log('Registration response:', response);
+
+      setAlert({
+        variant: 'success',
+        message: 'Enumerator registered successfully'
       });
-      // Optionally refresh data or show success message
-      setOpenAddModal(false);
+
+      // Reset form and close modal
       setFormData(initialFormData);
-    } catch (error) {
-      console.error('Error adding enumerator:', error);
-      // Handle error (e.g., show error message)
+      setOpenAddModal(false);
+      
+      // Refresh enumerators list
+      fetchEnumerators();
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setAlert({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to register enumerator'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const { data, isLoading, isError, error } = useQuery({
+  const fetchEnumerators = async () => {
+    const response = await apiController.get(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`);
+    return response;
+  };
+  
+  const { data, isLoading: isQueryLoading, isError, error } = useQuery({
     queryKey: ['enumerator-performance', { limit, page, search }],
-    queryFn: () => 
-      apiController.get(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`),
+    queryFn: async () => {
+      const response = await apiController.get(`/analytics/summary?limit=${limit}&page=${page}&search=${search}`);
+      return response;
+    },
   });
   
 
@@ -173,7 +204,7 @@ const Enumerators = () => {
   }).length;
   const totalCaptures = enumeratorsData.reduce((sum, e) => sum + e.totalRecords, 0);
 
-  if (isLoading) {
+  if (isQueryLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress size={60} thickness={4} />
@@ -320,8 +351,9 @@ const Enumerators = () => {
                   type="submit" 
                   variant="contained"
                   sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
+                  disabled={isLoading}
                 >
-                  Add Enumerator
+                  {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Add Enumerator'}
                 </Button>
               </Box>
             </Stack>

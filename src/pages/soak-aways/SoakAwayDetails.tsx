@@ -173,10 +173,12 @@ const SoakAwayDetails: React.FC = () => {
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
+            variant="outlined"
               label={soakAway.status || 'Not specified'}
               color={soakAway.status === 'Maintained' ? 'success' : 'error'}
             />
             <Chip
+            variant="outlined"
               label={soakAway.condition || 'Not specified'}
               color={soakAway.condition === 'Maintained' ? 'success' : 'warning'}
             />
@@ -193,13 +195,15 @@ const SoakAwayDetails: React.FC = () => {
           <Tab label="Enumerator" />
         </Tabs>
 
-        {activeTab === 0 ? (
-          <OverviewTab soakAway={soakAway} position={position} onImageClick={() => setIsImageOpen(true)} />
-        ) : activeTab === 1 ? (
-          <ContactPersonTab contactPerson={soakAway?.domain || null} />
-        ) : (
-          <EnumeratorTab enumerator={soakAway?.createdBy || null} />
-        )}
+        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          {activeTab === 0 ? (
+            <OverviewTab soakAway={soakAway} position={position} onImageClick={() => setIsImageOpen(true)} />
+          ) : activeTab === 1 ? (
+            <ContactPersonTab contactPerson={soakAway?.domain || null} />
+          ) : (
+            <EnumeratorTab enumerator={soakAway?.createdBy || null} />
+          )}
+        </Box>
 
         <Modal
           open={isImageOpen}

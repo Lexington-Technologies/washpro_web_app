@@ -13,7 +13,6 @@ import {
   Card,
   Avatar,
   Chip,
-  Modal,
   IconButton,
   Dialog,
   DialogTitle,
@@ -30,7 +29,8 @@ import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps
 import React from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
-import { MapPin, Home, Compass, X, Droplet, AlertCircle } from 'lucide-react';
+import { MapPin, Compass, X, Droplet, AlertCircle, HomeIcon, LayersIcon } from 'lucide-react';
+import { CompassCalibration, CompassCalibrationSharp, Home, LocationCity, PinDrop } from '@mui/icons-material';
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
@@ -254,7 +254,6 @@ const WaterSourceRisk = () => {
     },
   });
 
-  console.log("waterRisks", waterRisks);
   // Generate filter options
   const wardOptions = useMemo(() => 
     [...new Set(waterRisks?.map(item => item.location.ward))],
@@ -345,7 +344,8 @@ const WaterSourceRisk = () => {
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <ErrorIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
         <Typography variant="h6" color="error.main">
-          Failed to load water source data: {error.message}
+          Failed to load water source data <br/> try again: 
+          {/* {error.message} */}
         </Typography>
       </Box>
     );
@@ -473,6 +473,13 @@ const WaterSourceRisk = () => {
   );
 };
 
+interface StatsCardProps {
+  title: string;
+  value: number;
+  icon: React.ReactElement;
+  iconColor: string;
+}
+
 const StatsCard = React.memo(({ title, value, icon, iconColor }: StatsCardProps) => (
   <Card sx={{ flex: 1, p: 2, borderRadius: 2, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -512,127 +519,212 @@ const WaterSourceDetailsDialog = ({
   onClose: () => void;
   waterSource: WaterSourceRiskData | null;
 }) => (
-  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-    <DialogTitle sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
+<Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+  <DialogTitle
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       color: '#fff',
       p: 3,
+      bgcolor: '#1a237e',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Droplet size={24} color="#1a237e" />
-        <Typography variant="h6" fontWeight={600} color='#1a237e'>
-          Water Source Details
-        </Typography>
-      </Box>
-      <IconButton onClick={onClose} sx={{ color: '#1a237e' }}>
-        <X size={20} />
-      </IconButton>
-    </DialogTitle>
+    }}
+  >
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Droplet size={24} color="#fff" />
+      <Typography variant="h6" fontWeight={600} color="#fff">
+        Water Source Details
+      </Typography>
+    </Box>
+    <IconButton onClick={onClose} sx={{ color: '#fff' }}>
+      <X size={20} />
+    </IconButton>
+  </DialogTitle>
 
-    <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
-      {waterSource && (
-        <Grid container spacing={3}>
-          {/* Location Details Card */}
-          <Grid item xs={12}>
-            <Card sx={{ 
-              p: 3, 
-              borderRadius: 2, 
+  <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
+    {waterSource && (
+      <Grid container spacing={3}>
+        {/* Image Card */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              p: 2,
+              borderRadius: 2,
               bgcolor: '#fff',
-              mb: 3,
-            }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
-                <MapPin size={20} style={{ marginRight: 8 }} />
-                Location Details
-              </Typography>
-                <Stack spacing={2}>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} sm={4}>
-                  <DetailItem icon={Home} label="Hamlet" value={waterSource.location.hamlet} />
-                  </Grid>
-                  <Grid item xs={6} sm={4}>
-                  <DetailItem icon={Home} label="Village" value={waterSource.location.village} />
-                  </Grid>
-                  <Grid item xs={6} sm={4}>
-                  <DetailItem icon={Home} label="Ward" value={waterSource.location.ward} />
-                  </Grid>
-                  <Grid item xs={6}>
-                  <DetailItem icon={Compass} label="Coordinates" value={`${waterSource.location.coordinates[1]}, ${waterSource.location.coordinates[0]}`} />
-                  </Grid>
-                </Grid>
-                </Stack>
-            </Card>
-          </Grid>
-
-          {/* Risk Summary Card */}
-          <Grid item xs={12}>
-            <Card sx={{ 
-              p: 3, 
-              borderRadius: 2, 
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              bgcolor: '#fff',
-            }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
-                <AlertCircle size={20} style={{ marginRight: 8 }} />
-                Risk Summary
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {waterSource.image ? (
+              <Box
+                component="img"
+                src={waterSource.image}
+                alt="Water Source"
+                sx={{
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: 300,
+                  borderRadius: 2,
+                  objectFit: 'cover',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                  },
+                }}
+              />
+            ) : (
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ textAlign: 'center', fontStyle: 'italic' }}
+              >
+                Image not available
               </Typography>
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Chip
-                    label={`Critical: ${waterSource.summary.toilets.critical}`}
-                    sx={{ 
-                      bgcolor: '#fee2e2', 
-                      color: '#dc2626', 
-                      fontWeight: 600,
-                      borderRadius: 1,
-                    }}
-                  />
-                  <Chip
-                    label={`Moderate: ${waterSource.summary.toilets.moderate}`}
-                    sx={{ 
-                      bgcolor: '#ffedd5', 
-                      color: '#f97316', 
-                      fontWeight: 600,
-                      borderRadius: 1,
-                    }}
-                  />
-                  <Chip
-                    label={`Good: ${waterSource.summary.toilets.good}`}
-                    sx={{ 
-                      bgcolor: '#dcfce7', 
-                      color: '#16a34a', 
-                      fontWeight: 600,
-                      borderRadius: 1,
-                    }}
-                  />
-                </Box>
-              </Stack>
-            </Card>
-          </Grid>
+            )}
+          </Card>
         </Grid>
-      )}
-    </DialogContent>
 
-    <DialogActions sx={{ 
+        {/* Location Details Card */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              bgcolor: '#fff',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}
+            >
+              <MapPin size={20} style={{ marginRight: 8 }} />
+              Location Details
+            </Typography>
+            <Stack spacing={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={6} sm={4}>
+                  <DetailItem
+                    icon={() => <Home color="primary" />}
+                    label="Hamlet"
+                    value={waterSource.location.hamlet}
+                  />
+                </Grid>
+                <Grid item xs={6} sm={4}>
+                  <DetailItem
+                    icon={() => <LocationCity color="success" />}
+                    label="Village"
+                    value={waterSource.location.village}
+                  />
+                </Grid>
+                <Grid item xs={6} sm={4}>
+                  <DetailItem
+                    icon={() => <PinDrop color="error" />}
+                    label="Ward"
+                    value={waterSource.location.ward}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <DetailItem
+                    icon={() => <CompassCalibrationSharp color="info" />}
+                    label="Coordinates"
+                    value={`${waterSource.location.coordinates[1]}, ${waterSource.location.coordinates[0]}`}
+                  />
+                </Grid>
+              </Grid>
+            </Stack>
+          </Card>
+        </Grid>
+
+        {/* Risk Summary Card */}
+        <Grid item xs={12}>
+          <Card
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              bgcolor: '#fff',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}
+            >
+              <AlertCircle size={20} style={{ marginRight: 8 }} />
+              Risk Summary
+            </Typography>
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Chip
+                  label={`Critical: ${waterSource.summary.toilets.critical}`}
+                  sx={{
+                    bgcolor: '#fee2e2',
+                    color: '#dc2626',
+                    fontWeight: 600,
+                    borderRadius: 1,
+                    '&:hover': {
+                      opacity: 0.9,
+                    },
+                  }}
+                />
+                <Chip
+                  label={`Moderate: ${waterSource.summary.toilets.moderate}`}
+                  sx={{
+                    bgcolor: '#ffedd5',
+                    color: '#f97316',
+                    fontWeight: 600,
+                    borderRadius: 1,
+                    '&:hover': {
+                      opacity: 0.9,
+                    },
+                  }}
+                />
+                <Chip
+                  label={`Good: ${waterSource.summary.toilets.good}`}
+                  sx={{
+                    bgcolor: '#dcfce7',
+                    color: '#16a34a',
+                    fontWeight: 600,
+                    borderRadius: 1,
+                    '&:hover': {
+                      opacity: 0.9,
+                    },
+                  }}
+                />
+              </Box>
+            </Stack>
+          </Card>
+        </Grid>
+      </Grid>
+    )}
+  </DialogContent>
+
+  <DialogActions
+    sx={{
       p: 2,
       boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
-    }}>
-      <Button 
-        onClick={onClose} 
-        sx={{ 
-          color: '#1a237e', 
-          fontWeight: 600,
-          '&:hover': { 
-            bgcolor: 'rgba(255, 255, 255, 0.1)',
-          },
-        }}
-      >
-        Close
-      </Button>
-    </DialogActions>
-  </Dialog>
+    }}
+  >
+    <Button
+      onClick={onClose}
+      sx={{
+        color: '#fff',
+        fontWeight: 600,
+        '&:hover': {
+          bgcolor: 'rgba(255, 255, 255, 0.1)',
+        },
+      }}
+    >
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
 );
 
 export default WaterSourceRisk;
