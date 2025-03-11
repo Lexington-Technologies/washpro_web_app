@@ -13,6 +13,13 @@ import RoutineActivies from "../pages/routine-activites/RoutineActivies";
 import ToiletFacilitiesDetails from "../pages/toilet-facilities/ToiletFacilitiesDetails";
 import CalendarPage from '../pages/calendar/CalendarPage';
 import AnalyticsPage from '../pages/analytics/AnalyticsPage';
+import HouseHold from "../pages/household/HouseHold";
+import SchoolDashboard from "../pages/school/School";
+import HealthDashboard from "../pages/health-facilities/Health";
+import TsangayaDashboard from "../pages/tsangaya/Tsangaya";
+import CholeraOutbreak from "../pages/outbreak/CholeraOutbreak";
+import RiskAnalysisDashboard from "../pages/risk/Risk";
+import FinancialSummary from "../pages/finance/Financial";
 // import Wrapper from "../components/wrapper";
 // import Dashboard from "../pages/dashboard/dashboard";
 // import DumpSites from "../pages/dump-site/DumpSite";
@@ -117,6 +124,62 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <Interventions />
+          </Suspense>
+        ),
+      },
+      {
+        path: "household",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <HouseHold />
+          </Suspense>
+        ),
+      },
+      {
+        path: "School",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <SchoolDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "health-facilities",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <HealthDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "tsangaya",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <TsangayaDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "risk-analysis",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <RiskAnalysisDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "financial-summary",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <FinancialSummary />
+          </Suspense>
+        ),
+      },
+      {
+        path: "cholera-outbreak",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <CholeraOutbreak />
           </Suspense>
         ),
       },

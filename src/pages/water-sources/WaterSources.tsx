@@ -24,7 +24,6 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { BarChart, PieChart, pieArcLabelClasses } from '@mui/x-charts';
 import { ArrowDown, ArrowUp } from 'lucide-react';
-import { IoWater } from 'react-icons/io5';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // Interfaces

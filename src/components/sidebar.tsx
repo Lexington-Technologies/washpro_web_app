@@ -1,5 +1,7 @@
 import {
   Book,
+  ChevronLeft,
+  ChevronRight,
   Close,
   Dashboard,
   Delete,
@@ -12,8 +14,6 @@ import {
   SmartToy,
   Waves,
   WavesOutlined,
-  ChevronLeft,
-  ChevronRight,
 } from "@mui/icons-material";
 import {
   Box,
@@ -31,12 +31,17 @@ import {
   useTheme,
 } from "@mui/material";
 import { useState } from "react";
-import { FaPoop, FaToilet, FaUserCog } from "react-icons/fa";
+import { FaCity, FaPoop, FaSchool, FaToilet, FaUserCog } from "react-icons/fa";
 import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store";
-import { Logo } from "../assets/svg/index";
+import { useAuthStore } from "../store"; // Ensure this path is correct
+import { Hospital } from "lucide-react";
+import { FaHouse } from "react-icons/fa6";
+import { Logo } from "../assets/svg";
+import { BsShieldFillPlus } from "react-icons/bs";
+import { RiWaterFlashFill } from "react-icons/ri";
+
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -48,12 +53,15 @@ interface SideBarProps {
 const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBarProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const navigate = useNavigate();
-  const [openWaste, setOpenWaste] = useState(false);
-  const [openUsers, setOpenUsers] = useState(false);
   const { logout } = useAuthStore();
 
+  // State for dropdown menus
+  const [openWash, setOpenWash] = useState(false);
+  const [openWaste, setOpenWaste] = useState(false);
+  const [openUsers, setOpenUsers] = useState(false);
+
+  // Handle logout
   const handleLogout = () => {
     try {
       logout();
@@ -63,46 +71,79 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
     }
   };
 
+  // Close drawer on mobile
   const handleClose = () => {
     if (isMobile) onDrawerToggle();
   };
 
+  // Close drawer on navigation
   const handleNavigation = () => {
     if (isMobile) onDrawerToggle();
   };
 
+  // Main menu items
   const mainMenuItems = [
     { text: "Dashboard", icon: <Dashboard />, path: "/", title: "Dashboard" },
-    // { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
-    // { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
-    { text: "Water Sources", icon: <WavesOutlined />, path: "/water-sources", title: "Water Sources", subItems: [
-        { text: "Water Source Risk", icon: <GiWaterRecycling />, path: "/water-source-risk", title: "Water Source Risk" },
-    ]},
-    { text: "Toilet Facilities", icon: <FaToilet />, path: "/toilet-facilities", title: "Toilet Facilities" },
+    {
+      text: "Water Sources",
+      icon: <WavesOutlined />,
+      path: "/water-sources",
+      title: "Water Sources",
+      subItems: [
+        {
+          text: "Water Source Risk",
+        icon:<GiWaterRecycling style={{ fontSize: 24 }} />,
+          path: "/water-source-risk",
+          title: "Water Source Risk",
+        },
+      ],
+    },
+    {
+      text: "Toilet Facilities",
+      icon: <FaToilet />,
+      path: "/toilet-facilities",
+      title: "Toilet Facilities",
+    },
+    { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
+    { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }}/>, path: "/sanitation", title: "Sanitation" },
     { text: "Calendar", icon: <Schedule />, path: "/calendar", title: "Calendar" },
+    { text: "Intervention", icon: <BsShieldFillPlus />, path: "/interventions", title: "Intervention" },
+    { text: "Wash", icon: <RiWaterFlashFill />, path: "/wash", title: "Wash" },
+    { text: "Routine Activities", icon: <RiWaterFlashFill />, path: "/routine-activities", title: "Routine Activities" },
+    { text: "Financial Summary", icon: <RiWaterFlashFill />, path: "/financial-summary", title: "Financial Summary" },
     { text: "AI Assistant", icon: <SmartToy />, path: "/ai-assistant", title: "AI Assistant" },
     { text: "Knowledge Base", icon: <Book />, path: "/knowledge-base", title: "Knowledge Base" },
   ];
 
+  // Wash submenu items
+  const washSubItems = [
+    { text: "HouseHold", icon: <FaHouse />, path: "/household", title: "HouseHold" },
+    { text: "School", icon: <FaSchool />, path: "/school", title: "School" },
+    { text: "Health Facilities", icon: <Hospital />, path: "/health-facilities", title: "Health Facilities" },
+    { text: "Tsangaya", icon: <FaCity />, path: "/tsangaya", title: "Tsangaya" },
+  ];
+
+  // Waste submenu items
   const wasteSubItems = [
     { text: "Dump Sites", icon: <Delete />, path: "/dump-sites", title: "Dump Sites" },
     { text: "Gutters", icon: <Waves />, path: "/gutters", title: "Gutters" },
     { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
   ];
 
+  // Users submenu items
   const usersSubItems = [
     { text: "Admins", icon: <FaUserCog />, path: "/users", title: "Admins" },
     { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
   ];
 
+  // Bottom menu items
   const bottomMenuItems = [
-    { text: "Open Defecation", icon: <FaPoop />, path: "/open-defecation", title: "Open Defecation" },
-    // { text: "Needs & Maintainers", icon: <FaCog />, path: "/needs-and-maintainers", title: "Needs & Maintainers" },
-    { text: "Sanitation", icon: <MdSanitizer />, path: "/sanitation", title: "Sanitation" },
-    // { text: "Routine Activities", icon: <Schedule />, path: "/routine-activities", title: "Routine Activities" },
-    { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" }
+    { text: "Cholera Outbreak", icon: <GiHazardSign />, path: "/cholera-outbreak", title: "Cholera Outbreak" },
+    { text: "Risk Analysis", icon: <GiHazardSign />, path: "/risk-analysis", title: "Risk Analysis" },
+    { text: "Reports", icon: <Report />, path: "/reports", title: "Reports" },
   ];
 
+  // Render a single menu item
   const renderMenuItem = (item: any) => (
     <Tooltip title={isCollapsed ? item.title : ""} placement="right" disableHoverListener={!isCollapsed} key={item.text}>
       <ListItem disablePadding>
@@ -118,7 +159,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
             borderRadius: "8px",
             transition: "all 0.2s",
             "&.active": {
-              backgroundColor: '#25306B',
+              backgroundColor: "#25306B",
               color: "white",
               "& .MuiListItemIcon-root": { color: "white" },
             },
@@ -152,6 +193,7 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
     </Tooltip>
   );
 
+  // Sidebar content
   const sidebarContent = (
     <Box
       sx={{
@@ -190,7 +232,6 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
             }}
           />
         </Link>
-        
         {/* Desktop Toggle Button */}
         {!isMobile && (
           <IconButton
@@ -207,13 +248,12 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
             }}
           >
             {isCollapsed ? (
-              <ChevronRight sx={{ fontSize: "1.2rem", color: '#25306B' }} />
+              <ChevronRight sx={{ fontSize: "1.2rem", color: "#25306B" }} />
             ) : (
-              <ChevronLeft sx={{ fontSize: "1.2rem", color: '#25306B' }} />
+              <ChevronLeft sx={{ fontSize: "1.2rem", color: "#25306B" }} />
             )}
           </IconButton>
         )}
-
         {/* Mobile Close Button */}
         {isMobile && (
           <IconButton
@@ -244,13 +284,57 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
           {mainMenuItems.map((item, index) => (
             <div key={item.text}>
               {renderMenuItem(item)}
-              {item.subItems && item.subItems.map(subItem => (
-                <div key={subItem.text}>
-                  {renderMenuItem(subItem)}
-                </div>
-              ))}
+              {item.subItems &&
+                item.subItems.map((subItem) => (
+                  <div key={subItem.text}>{renderMenuItem(subItem)}</div>
+                ))}
             </div>
           ))}
+
+          {/* Wash Dropdown */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setOpenWash(!openWash)}
+              sx={{
+                py: 1.5,
+                mx: 1,
+                mb: 0.5,
+                borderRadius: "8px",
+                justifyContent: isCollapsed ? "center" : "flex-start",
+                color: "#25306B",
+                "&:hover": { bgcolor: theme.palette.action.hover },
+              }}
+            >
+              <Tooltip title={isCollapsed ? "Wash Status" : ""} placement="right" disableHoverListener={!isCollapsed}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: "auto",
+                    color: "inherit",
+                    mr: isCollapsed ? 0 : 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  <GiWaterRecycling style={{ fontSize: 24 }} />
+                </ListItemIcon>
+              </Tooltip>
+              {!isCollapsed && (
+                <>
+                  <ListItemText
+                    primary="Wash Status"
+                    primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
+                  />
+                  {openWash ? <ExpandLess /> : <ExpandMore />}
+                </>
+              )}
+            </ListItemButton>
+          </ListItem>
+          <Collapse in={openWash} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {washSubItems.map((item) => (
+                <div key={item.text}>{renderMenuItem(item)}</div>
+              ))}
+            </List>
+          </Collapse>
 
           {/* Waste Dropdown */}
           <ListItem disablePadding>
@@ -289,13 +373,10 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
               )}
             </ListItemButton>
           </ListItem>
-
           <Collapse in={openWaste} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {wasteSubItems.map(item => (
-                <div key={item.text}>
-                  {renderMenuItem(item)}
-                </div>
+              {wasteSubItems.map((item) => (
+                <div key={item.text}>{renderMenuItem(item)}</div>
               ))}
             </List>
           </Collapse>
@@ -306,54 +387,48 @@ const SideBar = ({ isCollapsed, isDrawerOpen, onDrawerToggle, onToggle }: SideBa
               onClick={() => setOpenUsers(!openUsers)}
               sx={{
                 py: 1.5,
+                mx: 1,
+                mb: 0.5,
+                borderRadius: "8px",
                 justifyContent: isCollapsed ? "center" : "flex-start",
-                color: "#666",
-                "&:hover": {
-                  bgcolor: "rgba(37, 48, 107, 0.04)",
-                },
+                color: "#25306B",
+                "&:hover": { bgcolor: theme.palette.action.hover },
               }}
             >
-              <ListItemIcon
-                sx={{
-                  minWidth: 40,
-                  color: "#4B5563",
-                  justifyContent: "center",
-                  "& svg": {
-                    fontSize: 24
-                  }
-                }}
-              >
-                <People />
-              </ListItemIcon>
+              <Tooltip title={isCollapsed ? "Accounts" : ""} placement="right" disableHoverListener={!isCollapsed}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: "auto",
+                    color: "inherit",
+                    mr: isCollapsed ? 0 : 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  <People />
+                </ListItemIcon>
+              </Tooltip>
               {!isCollapsed && (
                 <>
                   <ListItemText
                     primary="Accounts"
-                    primaryTypographyProps={{
-                      fontSize: "0.875rem",
-                    }}
+                    primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
                   />
                   {openUsers ? <ExpandLess /> : <ExpandMore />}
                 </>
               )}
             </ListItemButton>
           </ListItem>
-
           <Collapse in={openUsers} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {usersSubItems.map(item => (
-                <div key={item.text}>
-                  {renderMenuItem(item)}
-                </div>
+              {usersSubItems.map((item) => (
+                <div key={item.text}>{renderMenuItem(item)}</div>
               ))}
             </List>
           </Collapse>
 
           {/* Bottom Menu Items */}
-          {bottomMenuItems.map(item => (
-            <div key={item.text}>
-              {renderMenuItem(item)}
-            </div>
+          {bottomMenuItems.map((item) => (
+            <div key={item.text}>{renderMenuItem(item)}</div>
           ))}
         </List>
       </Box>
