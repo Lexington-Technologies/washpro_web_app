@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -16,17 +16,10 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Pagination,
-  IconButton,
-  Menu,
-  Divider,
-  Card,
-  CardContent
-} from '@mui/material';
+  IconButton} from '@mui/material';
 import { 
   MdAdd, 
   MdKeyboardArrowDown, 
-  MdAssignment, 
   MdPeople,
   MdAssignmentLate,
   MdArrowDropDown
