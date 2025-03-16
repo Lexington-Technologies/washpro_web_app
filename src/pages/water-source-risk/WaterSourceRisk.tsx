@@ -29,8 +29,8 @@ import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps
 import React from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
-import { MapPin, Compass, X, Droplet, AlertCircle, HomeIcon, LayersIcon } from 'lucide-react';
-import { CompassCalibration, CompassCalibrationSharp, Home, LocationCity, PinDrop } from '@mui/icons-material';
+import { MapPin, X, Droplet, AlertCircle } from 'lucide-react';
+import { CompassCalibrationSharp, Home, LocationCity, PinDrop } from '@mui/icons-material';
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
