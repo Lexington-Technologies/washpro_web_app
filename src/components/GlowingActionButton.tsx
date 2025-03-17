@@ -130,7 +130,7 @@ export default function GlowingActionButton({
       // Open the AI Chat modal with larger default size
       openModal(<AIChatModal />, { 
         title: "AI Assistant", 
-        maxWidth: "lg",
+        maxWidth: "sm",
         showCloseButton: true
       });
     }
@@ -157,12 +157,12 @@ export default function GlowingActionButton({
           {icon}
         </StyledFab>
       </Box>
-      <Zoom in={showLabel} timeout={500}>
+      {/* <Zoom in={showLabel} timeout={500}>
         <AILabel>
           <SmartToyOutlinedIcon fontSize="small" sx={{ width: 16, height: 16 }} />
           <Typography variant="caption" sx={{ fontWeight: 600 }}>AI ASSISTANT</Typography>
         </AILabel>
-      </Zoom>
+      </Zoom> */}
     </GlowContainer>
   );
 } 

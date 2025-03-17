@@ -87,7 +87,7 @@ interface GlobalModalProps {
 export default function GlobalModal({ 
   title,
   showCloseButton = true,
-  maxWidth = 'sm',
+  maxWidth = 'lg',
   actions,
   fullScreen = false
 }: GlobalModalProps) {
