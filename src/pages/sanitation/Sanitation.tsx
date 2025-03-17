@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   CardContent,
   FormControl,
@@ -18,32 +17,10 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { FaExclamationTriangle, FaFilter, FaHandsWash, FaToilet } from 'react-icons/fa';
+import { FaExclamationTriangle, FaHandsWash, FaToilet } from 'react-icons/fa';
 import { FaScrewdriverWrench } from 'react-icons/fa6';
 import { apiController } from '../../axios';
 
-interface OpenDefecation {
-  _id: string;
-  picture: string;
-  ward: string;
-  village: string;
-  hamlet: string;
-  publicSpace: string;
-  space: string;
-  footTraffic: string;
-  peakTime: string[];
-  demographics: string[];
-  environmentalCharacteristics: string[];
-  dailyAverage: string;
-  createdBy: string;
-  capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  geolocation: {
-    type: string;
-    coordinates: number[];
-  };
-}
 
 interface ToiletFacility {
   geolocation: {
@@ -162,7 +139,7 @@ const Sanitation: React.FC = () => {
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
-            Sanitation
+            Sanitation Dashboard
           </Typography>
           <Box sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2}>

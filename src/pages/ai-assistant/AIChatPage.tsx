@@ -895,7 +895,7 @@ const AIChatPage: React.FC = () => {
               bgcolor: '#1a1f4b'
             },
             '&.Mui-disabled': {
-              bgcolor: '#f5f5f5',
+              bgcolor: '#F1F1F5',
               color: '#bdbdbd'
             }
           }}

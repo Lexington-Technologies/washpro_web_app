@@ -45,7 +45,7 @@ import {
         </Typography>
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+            <TableHead sx={{ bgcolor: '#F1F1F5' }}>
               <TableRow>
                 {columns.map((col) => (
                   <TableCell key={col.accessorKey} sx={{ fontWeight: 600 }}>

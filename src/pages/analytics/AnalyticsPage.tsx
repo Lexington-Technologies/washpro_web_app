@@ -136,7 +136,7 @@ const AnalyticsPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
       {/* Header Section */}
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
         Analytics Dashboard

@@ -82,7 +82,7 @@ const notificationCards = [
         description: "Generated at 09:00 AM",
         leftIcon: <img src="/img/svg/doc.svg" alt="Report" style={{ width: 20, height: 20 }} />,
         rightIcon: <img src="/img/svg/dload.svg" alt="Download" style={{ width: 20, height: 20 }} />,
-        bgcolor: "#f5f5f5",
+        bgcolor: "#F1F1F5",
       },
     ],
   },

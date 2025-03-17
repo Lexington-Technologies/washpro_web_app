@@ -20,32 +20,15 @@ import TsangayaDashboard from "../pages/tsangaya/Tsangaya";
 import CholeraOutbreak from "../pages/outbreak/CholeraOutbreak";
 import RiskAnalysisDashboard from "../pages/risk/Risk";
 import FinancialSummary from "../pages/finance/Financial";
-// import Wrapper from "../components/wrapper";
-// import Dashboard from "../pages/dashboard/dashboard";
-// import DumpSites from "../pages/dump-site/DumpSite";
-// import Interventions from "../pages/interventions/Interventions";
-// import PublicSpaceTypes from "../pages/public-space-type/PublicSpaceTypes";
-// import ToiletFacilities from "../pages/toilet-facilities/ToiletFacilities";
-// import Gutters from "../pages/gutters/Gutters";
-// import SoakAways from "../pages/soak-aways/SoakAways";
-// import WaterSourceRiskMonitoring from "../pages/monitor/WaterSourceRiskMonitoring";
-// import OpenDefication from "../pages/open-defecation/OpenDefication";
-// import WaterSources from "../pages/water-sources/WaterSources";
-// import NeedAndMaintainers from "../pages/needs-and-maintainers/needs-and-maintainers";
-// import Sanitation from "../pages/sanitation/Sanitation";
-// import Monitoring from "../pages/field-monitoring/FieldMonitoring";
-// import Wash from "../pages/wash/Wash";
-// import Enumerator from "../pages/enumerator/Enumerator";
-// import SignIn from "../pages/authentication/sign-in";
-// import AccountSetUp from "../pages/authentication/account-setup";
-// import NotFound from "../pages/error/NotFound";
-// import ErrorBoundary from "../pages/error/ErrorBoundary";
-// import UserPage from "../pages/admin/Admin";
-// import AIChatPage from "../pages/ai-assistant/AIChatPage";
+import ActivitesDashboard from "../pages/activities/Activies";
+import ChlorinationDashboard from "../pages/chlorination/Chlorination";
+import IssuesLogDashboard from "../pages/issues/Issues";
+import LAMReportingDashboard from "../pages/lam/LamReport";
+import WashStatus from "../pages/wash/wash-status/WashStatus";
 
 // Lazy load components
 const Wrapper = lazy(() => import("../components/wrapper"));
-const Dashboard = lazy(() => import("../pages/dashboard/dashboard"));
+const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const DumpSites = lazy(() => import("../pages/dump-site/DumpSite"));
 const Interventions = lazy(() => import("../pages/interventions/Interventions"));
 const PublicSpaceTypes = lazy(() => import("../pages/public-space-type/PublicSpaceTypes"));
@@ -132,6 +115,46 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingAnimation />}>
             <HouseHold />
+          </Suspense>
+        ),
+      },
+      {
+        path: "activities",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <ActivitesDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "chlorination",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <ChlorinationDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "wash-status",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <WashStatus />
+          </Suspense>
+        ),
+      },
+      {
+        path: "issues-log",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <IssuesLogDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: "lam-report",
+        element: (
+          <Suspense fallback={<LoadingAnimation />}>
+            <LAMReportingDashboard />
           </Suspense>
         ),
       },

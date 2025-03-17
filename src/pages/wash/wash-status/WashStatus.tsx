@@ -25,25 +25,30 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, 
 import { FaHandHoldingDroplet } from 'react-icons/fa6';
 import { MdWaterDrop, MdOutlineSanitizer, MdSoap } from 'react-icons/md';
 
-const TsangayaDashboard = () => {
+const WashStatus = () => {
+  const [selectedOption, setSelectedOption] = useState('Households');
+
+  const handleChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
 
   // Data for community table
   const communityData = [
     { 
       name: 'School A', 
-      tsangaya: 'Yes', 
+      households: 'Yes', 
       drinkingWater: 'Yes', 
       sanitation: 'No', 
     },
     { 
       name: 'School B', 
-      tsangaya: 'No', 
+      households: 'No', 
       drinkingWater: 'No', 
       sanitation: 'Yes', 
     },
     { 
       name: 'School C', 
-      tsangaya: 'Yes', 
+      households: 'Yes', 
       drinkingWater: 'No', 
       sanitation: 'YEs', 
     },
@@ -109,22 +114,67 @@ const TsangayaDashboard = () => {
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
       <Box sx={{ mb: 4 }}>
       {/* header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
-        Tsangaya Dashboard
-          <Typography variant="subtitle1" color="text.secondary">
-          Overview of water, sanitation and hygiene facilities and population
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, flexWrap: 'wrap' }}>
+        <Box>
+          {/* Styled Dropdown for Title */}
+          <FormControl variant="outlined" sx={{ minWidth: 200, mb: 0 }}>
+            <InputLabel
+              id="dropdown-label"
+              sx={{
+                color: '#9e9e9e', // Placeholder color
+                fontSize: 0, // Placeholder font size
+                '&.Mui-focused': {
+                  color: '#1e3a8a', // Color when focused
+                },
+              }}
+            >
+              Select Option
+            </InputLabel>
+            <Select
+              labelId="dropdown-label"
+              id="dropdown"
+              value={selectedOption}
+              onChange={handleChange}
+              label="Select Option"
+              sx={{
+                backgroundColor: '#F1F1F5', // Background color
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'transparent', // Remove border color
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'transparent', // Remove border color on hover
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'transparent', // Remove border color when focused
+                },
+                fontWeight: 'bold', // Add font weight
+                color: '#1a237e', // Add text color
+                fontSize: 30,
+                marginTop: -2
+              }}
+            >
+              <MenuItem value="Households">Households</MenuItem>
+              <MenuItem value="School">School</MenuItem>
+              <MenuItem value="Health Facilities">Health Facilities</MenuItem>
+              <MenuItem value="Tsangaya">Tsangaya</MenuItem>
+            </Select>
+          </FormControl>
+          {/* <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e' }}>
+            {selectedOption}
+          </Typography> */}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Comprehensive overview of water, sanitation and hygiene facilities
+          </Typography>
+        </Box>
+        
+        <Box sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={2}>
+            <FilterDropdown label="Ward" options={['All']} />
+            <FilterDropdown label="Village" options={['All']} />
+            <FilterDropdown label="Hamlet" options={['All']} />
+          </Stack>
+        </Box>
 
-        </Typography>
-    
-          <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <FilterDropdown label="Ward" options={['All']} />
-          <FilterDropdown label="Village" options={['All']} />
-          <FilterDropdown label="Hamlet" options={['All']} />
-        </Stack>
-      </Box>
         </Box>
         </Box>
 
@@ -339,161 +389,157 @@ const TsangayaDashboard = () => {
       </Grid>
       
       {/* Service Ladder Charts */}
-{/* Service Ladder Charts */}
-<Grid container spacing={2} sx={{ mb: 4 }}>
-  {/* Drinking Water Service (JMP) */}
-  <Grid item xs={12} md={4}>
-    <Card sx={{ height: '100%', boxShadow: 3 }}>
-      <CardContent>
-        <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <MdWaterDrop style={{ marginRight: '8px', color: '#3373B4' }} />
-          Drinking Water Service (JMP)
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={drinkingWaterData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {drinkingWaterData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => value.toFixed(2)} />
-              <Legend 
-                layout="vertical" 
-                align="right" 
-                verticalAlign="middle" 
-                wrapperStyle={{ paddingLeft: '20px' }} 
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </Card>
-  </Grid>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        {/* Drinking Water Service (JMP) */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <MdWaterDrop style={{ marginRight: '8px', color: '#3373B4' }} />
+                Drinking Water Service (JMP)
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={drinkingWaterData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {drinkingWaterData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => value.toFixed(2)} />
+                    <Legend 
+                      layout="vertical" 
+                      align="right" 
+                      verticalAlign="middle" 
+                      wrapperStyle={{ paddingLeft: '20px' }} 
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
 
-  {/* Sanitation Service Ladder */}
-  <Grid item xs={12} md={4}>
-    <Card sx={{ height: '100%', boxShadow: 3 }}>
-      <CardContent>
-        <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <MdOutlineSanitizer style={{ marginRight: '8px', color: '#4CBB78' }} />
-          Sanitation Service Ladder (JMP)
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300, marginLeft: -5 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={sanitationData} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <XAxis 
-                type="number" 
-                domain={[0, 100]} 
-                tick={{ fontSize: 12 }} 
-              />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
-                width={100} 
-                tick={{ fontSize: 12 }} 
-              />
-              <Tooltip />
-              <Bar dataKey="value" isAnimationActive={true}>
-                {sanitationData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </Card>
-  </Grid>
+        {/* Sanitation Service Ladder */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <MdOutlineSanitizer style={{ marginRight: '8px', color: '#4CBB78' }} />
+                Sanitation Service Ladder (JMP)
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300, marginLeft: -5 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sanitationData} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis 
+                      type="number" 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 12 }} 
+                    />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      width={100} 
+                      tick={{ fontSize: 12 }} 
+                    />
+                    <Tooltip />
+                    <Bar dataKey="value" isAnimationActive={true}>
+                      {sanitationData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
 
-  {/* Hygiene Service Ladder (JMP) */}
-  <Grid item xs={12} md={4}>
-    <Card sx={{ height: '100%', boxShadow: 3 }}>
-      <CardContent>
-        <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <MdSoap style={{ marginRight: '8px', color: '#C3AAEB' }} />
-          Hygiene Service Ladder (JMP)
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={hygieneData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label={false}
-                paddingAngle={2}
-              >
-                {hygieneData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => value.toFixed(2)} />
-              <Legend 
-                layout="vertical" 
-                align="right" 
-                verticalAlign="middle" 
-                wrapperStyle={{ paddingLeft: '20px' }} 
-              />
-              <text x="30%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                512.47
-              </text>
-            </PieChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </Card>
-  </Grid>
-</Grid>
+        {/* Hygiene Service Ladder (JMP) */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ height: '100%', boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" component="div" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <MdSoap style={{ marginRight: '8px', color: '#C3AAEB' }} />
+                Hygiene Service Ladder (JMP)
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={hygieneData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={false}
+                      paddingAngle={2}
+                    >
+                      {hygieneData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => value.toFixed(2)} />
+                    <Legend 
+                      layout="vertical" 
+                      align="right" 
+                      verticalAlign="middle" 
+                      wrapperStyle={{ paddingLeft: '20px' }} 
+                    />
+                    <text x="30%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                      512.47
+                    </text>
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Community Table */}
-      <Box sx={{ mb: 4, backgroundColor: 'white', p:2 }}>
-            <Typography variant="h6" component="div" sx={{ mb: 2 }}>
-            Schools' Basic WASH Access
-            </Typography>
-            <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }}>
-                <TableHead sx={{ backgroundColor: '#1e3a8a' }}>
-                <TableRow>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tsangaya Name</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Drinking Water</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Basic Sanitation</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Hygien Facilities</TableCell>
-                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}></TableCell>
+      <Box sx={{ mb: 4, backgroundColor: 'white', p: 2 }}>
+        <Typography variant="h6" component="div" sx={{ mb: 2 }}>
+          School Basic WASH Access
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead sx={{ backgroundColor: '#1e3a8a' }}>
+              <TableRow>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>School Name</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Drinking Water</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Basic Sanitation</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Hygiene Facilities</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {communityData.map((row) => (
+                <TableRow key={row.name}>
+                  <TableCell component="th" scope="row">
+                    {row.name}
+                  </TableCell>
+                  <TableCell>{row.households}</TableCell>
+                  <TableCell>{row.drinkingWater}</TableCell>
+                  <TableCell>{row.sanitation}</TableCell>
                 </TableRow>
-                </TableHead>
-                <TableBody>
-                {communityData.map((row) => (
-                    <TableRow key={row.name}>
-                    <TableCell component="th" scope="row">
-                        {row.name}
-                    </TableCell>
-                    <TableCell>{row.tsangaya.toLocaleString()}</TableCell>
-                    <TableCell>{row.drinkingWater}</TableCell>
-                    <TableCell>{row.sanitation}</TableCell>
-                    <TableCell>{row.hygiene}</TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-            </TableContainer>
-        </Box>
-
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </Container>
   );
 };
 
-export default TsangayaDashboard;
+export default WashStatus;

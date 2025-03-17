@@ -104,7 +104,7 @@ const Wash: React.FC = () => {
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">WASH Monitoring</Typography>
+        <Typography variant="h4">WASH </Typography>
         <Box display="flex" alignItems="center">
           {['LGA', 'Ward', 'Village', 'Hamlet'].map((item) => (
             <StyledSelect key={item} size="small" defaultValue={item}>
