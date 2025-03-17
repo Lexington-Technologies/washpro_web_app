@@ -22,6 +22,11 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Fab,
+  Modal,
+  Switch,
+  FormControlLabel,
+  Button,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -34,6 +39,7 @@ import {
   Add,
   Stop,
   Share as ShareIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from '../../config';
@@ -52,6 +58,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { Components } from 'react-markdown';
 
 interface StreamingMessage {
   id: string;
@@ -59,6 +66,7 @@ interface StreamingMessage {
   sender: 'user' | 'ai';
   timestamp: Date;
   isStreaming?: boolean;
+  isPrivate?: boolean;
 }
 
 interface PromptTemplate {
@@ -180,6 +188,8 @@ const AIChatPage: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [assistantId, setAssistantId] = useState<string | null>(null);
   const modelRef = useRef<GenerativeModel | null>(null);
+  const [privateModalOpen, setPrivateModalOpen] = useState(false);
+  const [privateMode, setPrivateMode] = useState(false);
 
   // Initialize socket connection
   useEffect(() => {
@@ -263,6 +273,8 @@ const AIChatPage: React.FC = () => {
     setIsLoading(true);
 
     const streamingMessageId = Date.now().toString();
+    
+    // Add an empty AI message that will be updated with streaming content
     setMessages(prev => [...prev, {
       id: streamingMessageId,
       content: '',
@@ -272,16 +284,21 @@ const AIChatPage: React.FC = () => {
     }]);
 
     try {
-      // Create chat history for context
+      // Prepare chat history by converting StreamingMessages to the format expected by Gemini
+      const history = messages
+        .filter(msg => !msg.isStreaming)  // Exclude any currently streaming messages
+        .map(msg => ({
+          role: msg.sender === 'user' ? 'user' as const : 'model' as const,
+          parts: [{ text: msg.content }],
+        }));
+
+      // Start a new chat with the correct history
       const chat = modelRef.current.startChat({
         generationConfig,
-        history: messages.map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }],
-        })),
+        history: history,
       });
 
-      // Send message and get streaming response
+      // Send the message and get streaming response
       const result = await chat.sendMessageStream(userMessage);
       
       let fullResponse = '';
@@ -299,7 +316,7 @@ const AIChatPage: React.FC = () => {
         ));
       }
 
-      // Finalize the message
+      // Finalize the message once streaming is complete
       setMessages(prev => prev.map(msg => 
         msg.id === streamingMessageId 
           ? {
@@ -334,19 +351,23 @@ const AIChatPage: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
+    const userMessageText = inputMessage.trim();
+    
+    // Create and add the user message to state
     const newMessage: StreamingMessage = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: userMessageText,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPrivate: privateMode,
     };
 
     setMessages(prev => [...prev, newMessage]);
     setInputMessage('');
-    setIsLoading(true);
     setShowPrompts(false);
 
-    await streamResponse(inputMessage);
+    // Process the response after the user message has been added to state
+    await streamResponse(userMessageText);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -397,6 +418,18 @@ const AIChatPage: React.FC = () => {
     } catch (error) {
       console.error('Error sharing message:', error);
     }
+  };
+
+  const handlePrivateModalOpen = () => {
+    setPrivateModalOpen(true);
+  };
+
+  const handlePrivateModalClose = () => {
+    setPrivateModalOpen(false);
+  };
+
+  const togglePrivateMode = () => {
+    setPrivateMode(!privateMode);
   };
 
   const MessageBubble: React.FC<{ message: StreamingMessage }> = ({ message }) => (
@@ -453,10 +486,19 @@ const AIChatPage: React.FC = () => {
         }
       }}
     >
+      {message.isPrivate && (
+        <Chip
+          icon={<LockIcon fontSize="small" />}
+          label="Private"
+          size="small"
+          color="secondary"
+          sx={{ mb: 1 }}
+        />
+      )}
       {message.sender === 'ai' && !message.isStreaming && (
         <Box 
           className="message-actions"
-          sx={{ 
+          sx={{
             position: 'absolute',
             top: 8,
             right: -40,
@@ -467,32 +509,15 @@ const AIChatPage: React.FC = () => {
             gap: 0.5
           }}
         >
-          <Tooltip title="Copy" TransitionComponent={Zoom} placement="left">
-            <IconButton 
-              size="small" 
-              onClick={() => handleCopyMessage(message.content)}
-              sx={{
-                bgcolor: 'white',
-                boxShadow: 1,
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
-              }}
-            >
-              <ContentCopy fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Share" TransitionComponent={Zoom} placement="left">
-            <IconButton 
-              size="small"
-              onClick={() => handleShareMessage(message.content)}
-              sx={{
-                bgcolor: 'white',
-                boxShadow: 1,
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
-              }}
-            >
-              <ShareIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCopyMessage(message.content);
+            }}
+          >
+            <ContentCopy fontSize="small" />
+          </IconButton>
         </Box>
       )}
       <Box className="markdown-content">
@@ -500,7 +525,7 @@ const AIChatPage: React.FC = () => {
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
           components={{
-            code({ node, inline, className, children, ...props }) {
+            code: ({ node, inline, className, children, ...props }: any) => {
               const match = /language-(\w+)/.exec(className || '');
               const language = match ? match[1] : '';
               const path = className?.split(':')[1];
@@ -526,10 +551,11 @@ const AIChatPage: React.FC = () => {
                     </Box>
                   )}
                   <SyntaxHighlighter
-                    style={vscDarkPlus}
+                    style={vscDarkPlus as any}
                     language={language}
                     PreTag="div"
-                    {...props}
+                    customStyle={{}}
+                    wrapLongLines={false}
                   >
                     {String(children).replace(/\n$/, '')}
                   </SyntaxHighlighter>
@@ -606,7 +632,7 @@ const AIChatPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ height: '100%', backgroundColor: '#f8f9fa', p: 3, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%', backgroundColor: '#f8f9fa', p: 3, display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
           AI Assistant
@@ -810,7 +836,7 @@ const AIChatPage: React.FC = () => {
             </Box>
           )}
           {messages.map((message) => (
-            <Fade in timeout={500} key={message.id}>
+            <Fade key={message.id} in={true} timeout={500}>
               <Box
                 sx={{
                   display: 'flex',
@@ -923,36 +949,6 @@ const AIChatPage: React.FC = () => {
           )}
         </IconButton>
       </Box>
-
-      {/* History Drawer */}
-      <Drawer
-        anchor="right"
-        open={showDrawer}
-        onClose={() => setShowDrawer(false)}
-        sx={{
-          '& .MuiDrawer-paper': {
-            borderLeft: '1px solid #e0e0e0',
-            boxShadow: 'none'
-          }
-        }}
-      >
-        <Box sx={{ width: 300, p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Chat History</Typography>
-          <List>
-            {messages.map((message) => (
-              <ListItem key={message.id}>
-                <ListItemIcon>
-                  {message.sender === 'user' ? <Avatar sx={{ width: 24, height: 24 }} /> : <SmartToy />}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={message.content.substring(0, 30) + '...'}
-                  secondary={new Date(message.timestamp).toLocaleString()}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
     </Box>
   );
 };
