@@ -154,6 +154,7 @@ const AIChatModal: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [isNewThread, setIsNewThread] = useState(false);
+  const [socket, setSocket] = useState<any>(null);
   
   // API functions
   const fetchThreads = async (): Promise<Thread[]> => {
@@ -273,6 +274,98 @@ const AIChatModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
+  // Initialize socket connection
+  useEffect(() => {
+    // Import socket.io-client dynamically to avoid SSR issues
+    import('socket.io-client').then(({ io }) => {
+      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000');
+      
+      newSocket.on('connect', () => {
+        console.log('Socket connected');
+      });
+      
+      newSocket.on('disconnect', () => {
+        console.log('Socket disconnected');
+      });
+      
+      setSocket(newSocket);
+      
+      // Clean up on unmount
+      return () => {
+        newSocket.disconnect();
+      };
+    });
+  }, []);
+  
+  // Listen for socket events when active thread changes
+  useEffect(() => {
+    if (!socket || !activeThreadId) return;
+    
+    // Join the thread room
+    socket.emit('join', activeThreadId);
+    
+    // Listen for streaming message chunks
+    const handleStream = (data: { content: string }) => {
+      setLocalMessages(prevMessages => {
+        const lastMessageIndex = prevMessages.length - 1;
+        
+        // If we already have a streaming message, append to it
+        if (lastMessageIndex >= 0 && prevMessages[lastMessageIndex].isStreaming) {
+          const updatedMessages = [...prevMessages];
+          updatedMessages[lastMessageIndex].content += data.content;
+          return updatedMessages;
+        } else {
+          // Otherwise create a new streaming message
+          return [
+            ...prevMessages,
+            {
+              role: 'assistant',
+              content: data.content,
+              timestamp: new Date(),
+              isStreaming: true
+            }
+          ];
+        }
+      });
+    };
+    
+    // Listen for updates (processing, complete, error)
+    const handleUpdate = (data: { step: string, message: string }) => {
+      console.log('Socket update:', data);
+      
+      if (data.step === 'complete') {
+        // Mark streaming as complete
+        setLocalMessages(prevMessages => {
+          const lastMessageIndex = prevMessages.length - 1;
+          if (lastMessageIndex >= 0 && prevMessages[lastMessageIndex].isStreaming) {
+            const updatedMessages = [...prevMessages];
+            updatedMessages[lastMessageIndex].isStreaming = false;
+            return updatedMessages;
+          }
+          return prevMessages;
+        });
+        
+        // Refresh the thread data
+        queryClient.invalidateQueries({ queryKey: ['thread', activeThreadId] });
+      }
+      
+      if (data.step === 'error') {
+        // Handle error - display error message
+        console.error('Stream error:', data.message);
+      }
+    };
+    
+    socket.on('stream', handleStream);
+    socket.on('update', handleUpdate);
+    
+    return () => {
+      // Leave the room and remove listeners when component unmounts or thread changes
+      socket.emit('leave', activeThreadId);
+      socket.off('stream', handleStream);
+      socket.off('update', handleUpdate);
+    };
+  }, [socket, activeThreadId, queryClient]);
+  
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
     
@@ -282,7 +375,7 @@ const AIChatModal: React.FC = () => {
     if (isNewThread) {
       // For new threads, create the thread first with the initial message
       createThreadMutation.mutate(
-        'New Chat',
+        inputMessage.slice(0, 20),
         {
           onSuccess: (newThread) => {
             // Send the message to the newly created thread
@@ -294,6 +387,16 @@ const AIChatModal: React.FC = () => {
                   setIsLoading(false);
                   setIsNewThread(false);
                   setActiveThreadId(newThread._id);
+                  
+                  // Add the user message to local messages for immediate display
+                  setLocalMessages([
+                    ...localMessages,
+                    {
+                      role: 'user',
+                      content: inputMessage,
+                      timestamp: new Date()
+                    }
+                  ]);
                 },
                 onError: (error) => {
                   console.error('Error sending message:', error);
@@ -316,6 +419,16 @@ const AIChatModal: React.FC = () => {
           onSuccess: () => {
             setInputMessage('');
             setIsLoading(false);
+            
+            // Add the user message to local messages for immediate display
+            setLocalMessages([
+              ...localMessages,
+              {
+                role: 'user',
+                content: inputMessage,
+                timestamp: new Date()
+              }
+            ]);
           },
           onError: (error) => {
             console.error('Error sending message:', error);
