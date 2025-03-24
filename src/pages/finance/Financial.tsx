@@ -103,7 +103,7 @@ const FinancialSummary = () => {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto', bgcolor: '#f5f5f5' }}>
+    <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" fontWeight="bold">Financial Summary</Typography>
         <Button 

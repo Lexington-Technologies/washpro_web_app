@@ -1,32 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
-  Paper,
   TextField,
   IconButton,
   Typography,
   Avatar,
   CircularProgress,
-  Divider,
   Grid,
   Card,
-  CardContent,
   CardActionArea,
   Tooltip,
   Zoom,
   Chip,
   Fade,
   Badge,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Fab,
-  Modal,
-  Switch,
-  FormControlLabel,
-  Button,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -34,11 +21,9 @@ import {
   Settings,
   DeleteSweep,
   ContentCopy,
-  Save,
   SmartToy,
   Add,
   Stop,
-  Share as ShareIcon,
   Lock as LockIcon,
 } from '@mui/icons-material';
 import { io, Socket } from 'socket.io-client';
@@ -58,7 +43,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { Components } from 'react-markdown';
 
 interface StreamingMessage {
   id: string;

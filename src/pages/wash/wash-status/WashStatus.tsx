@@ -34,45 +34,27 @@ const WashStatus = () => {
 
   // Data for community table
   const communityData = [
-    { 
-      name: 'School A', 
-      households: 'Yes', 
-      drinkingWater: 'Yes', 
-      sanitation: 'No', 
-    },
-    { 
-      name: 'School B', 
-      households: 'No', 
-      drinkingWater: 'No', 
-      sanitation: 'Yes', 
-    },
-    { 
-      name: 'School C', 
-      households: 'Yes', 
-      drinkingWater: 'No', 
-      sanitation: 'YEs', 
-    },
   ];
 
   const drinkingWaterData = [
-    { name: 'Basic ', value: 123.86, color: '#29B6F6' },
-    { name: 'Limited', value: 131.71, color: '#FEBC11' },
-    { name: 'None Service', value: 154.68, color: '#FFFF5D' },
+    { name: 'Basic ', value: 0, color: '#29B6F6' },
+    { name: 'Limited', value: 0, color: '#FEBC11' },
+    { name: 'None Service', value: 0, color: '#FFFF5D' },
   ];
 
   // Data for Sanitation Service Ladder
   const sanitationData = [
-    { name: 'Advanced', value: 60, color: '#8CC265' },
-    { name: 'Basic Service', value: 35, color: '#F2EB88' },
-    { name: 'Limited Service', value: 75, color: '#F2B69E' },
-    { name: 'No Services', value: 35, color: '#F5857F' },
+    { name: 'Advanced', value: 0, color: '#8CC265' },
+    { name: 'Basic Service', value: 0, color: '#F2EB88' },
+    { name: 'Limited Service', value: 0, color: '#F2B69E' },
+    { name: 'No Services', value: 0, color: '#F5857F' },
   ];
 
   // Data for Hygiene Service Ladder
   const hygieneData = [
-    { name: 'Basic Service', value: 250, color: '#F2B69E' },
-    { name: 'Limited Service', value: 100, color: '#F2EB88' },
-    { name: 'No Service', value: 162.47, color: '#C3AAEB' },
+    { name: 'Basic Service', value: 0, color: '#F2B69E' },
+    { name: 'Limited Service', value: 0, color: '#F2EB88' },
+    { name: 'No Service', value: 0, color: '#C3AAEB' },
   ];
 
   const RADIAN = Math.PI / 180;
@@ -121,11 +103,11 @@ const WashStatus = () => {
             <InputLabel
               id="dropdown-label"
               sx={{
-                color: '#9e9e9e', // Placeholder color
-                fontSize: 0, // Placeholder font size
-                '&.Mui-focused': {
-                  color: '#1e3a8a', // Color when focused
-                },
+              color: '#25306B', // Placeholder color
+              fontSize: 0, // Placeholder font size
+              '&.Mui-focused': {
+                color: '#1e3a8a', // Color when focused
+              },
               }}
             >
               Select Option
@@ -137,20 +119,20 @@ const WashStatus = () => {
               onChange={handleChange}
               label="Select Option"
               sx={{
-                backgroundColor: '#F1F1F5', // Background color
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent', // Remove border color
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent', // Remove border color on hover
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent', // Remove border color when focused
-                },
-                fontWeight: 'bold', // Add font weight
-                color: '#1a237e', // Add text color
-                fontSize: 30,
-                marginTop: -2
+          backgroundColor: '#F1F1F5', // Background color
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#25306B', // Border color
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#25306B', // Border color on hover
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#25306B', // Border color when focused
+          },
+          fontWeight: 'bold', // Add font weight
+          color: '#1a237e', // Add text color
+          fontSize: 25,
+          marginTop: -2
               }}
             >
               <MenuItem value="Households">Households</MenuItem>
@@ -159,10 +141,7 @@ const WashStatus = () => {
               <MenuItem value="Tsangaya">Tsangaya</MenuItem>
             </Select>
           </FormControl>
-          {/* <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e' }}>
-            {selectedOption}
-          </Typography> */}
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
             Comprehensive overview of water, sanitation and hygiene facilities
           </Typography>
         </Box>
@@ -202,7 +181,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                75%
+                0%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -211,11 +190,11 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">12,500</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={75} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -230,11 +209,11 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">4,167</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={25} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -271,7 +250,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                68%
+                0%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -280,11 +259,11 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">11,334</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={68} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -299,11 +278,11 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">5,333</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={32} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -340,7 +319,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                82%
+                0%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -349,11 +328,11 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">13,667</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={82} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -368,11 +347,11 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">3,000</Typography>
+                  <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={18} 
+                  value={0} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,

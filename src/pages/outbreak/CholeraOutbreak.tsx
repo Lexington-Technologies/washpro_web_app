@@ -20,6 +20,7 @@ import {
   Pagination,
   Tabs,
   Tab,
+  Container,
 } from '@mui/material';
 import {
   FaExclamationTriangle,
@@ -261,15 +262,7 @@ const CholeraOutbreakDashboard = () => {
   };
 
   return (
-    <Box
-      sx={{
-        maxWidth: 1440,
-        mx: 'auto',
-        p: 3,
-        bgcolor: '#F1F1F5',
-        minHeight: '100vh',
-      }}
-    >
+    <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       {/* Header Section */}
       <Box
         sx={{
@@ -494,7 +487,7 @@ const CholeraOutbreakDashboard = () => {
     </Paper>
       </Grid>
       </Grid>
-    </Box>
+      </Container>
   );
 };
 

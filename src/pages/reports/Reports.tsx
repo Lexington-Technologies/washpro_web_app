@@ -426,26 +426,19 @@ const ReportSection: React.FC<{
 
 const Reports: React.FC = () => {
   return (
-    <Box sx={{ p: 3, backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 500,
-            color: 'text.primary',
-            mb: 1,
-          }}
-        >
-          Reports & Documents
+    <Box sx={{ p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+        <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
+            Reports & Documents
+            <Typography variant="subtitle1" color="text.secondary">
+            Access and manage comprehensive reports and analytics documents
+          </Typography>
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Access and manage comprehensive reports and analytics documents
-        </Typography>
-      </Box>
 
       <ReportSection title="Recent Reports" reports={recentReports} />
       <ReportSection title="General Reports" reports={generalReports} />
       <ReportSection title="Stakeholder Reports" reports={stakeholderReports} />
+    </Box>
     </Box>
   );
 };

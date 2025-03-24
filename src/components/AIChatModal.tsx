@@ -7,23 +7,18 @@ import {
   Paper,
   IconButton,
   Avatar,
-  Drawer,
   ListItemButton,
   ListItemText,
   ListItemAvatar,
   List,
-  Divider,
-  Chip,
   CircularProgress,
   useTheme,
-  Card,
   InputAdornment,
   Stack,
   Tooltip,
   Zoom,
   alpha,
   Collapse,
-  Badge,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -37,20 +32,13 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
-import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
-import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import AddIcon from '@mui/icons-material/Add';
-import HistoryIcon from '@mui/icons-material/History';
 import CloseIcon from '@mui/icons-material/Close';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import OpenInFullIcon from '@mui/icons-material/OpenInFull';
-import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
 import { useModalStore } from '../store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -443,6 +431,12 @@ const AIChatModal: React.FC = () => {
   const isCreatingThread = createThreadMutation.isPending;
   const isDeletingThread = deleteThreadMutation.isPending;
 
+  // Handle click on a suggested prompt
+  const handlePromptClick = (prompt: string) => {
+    setInputMessage(prompt);
+    setShowPrompts(false); // Hide prompts after selection
+  };
+
   // Message bubble component
   const MessageBubble: React.FC<{ message: Message }> = ({ message }) => (
     <Box
@@ -577,19 +571,6 @@ const AIChatModal: React.FC = () => {
           }}>
             <Typography variant="subtitle1" fontWeight={600}>Chat History</Typography>
             <Box>
-              <Tooltip title="New chat">
-                <IconButton 
-                  size="small" 
-                  onClick={handleNewChat}
-                  disabled={isCreatingThread}
-                >
-                  {isCreatingThread ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <AddIcon fontSize="small" />
-                  )}
-                </IconButton>
-              </Tooltip>
               <Tooltip title="Close sidebar">
                 <IconButton size="small" onClick={() => setShowSidebar(false)}>
                   <CloseIcon fontSize="small" />
@@ -802,22 +783,6 @@ const AIChatModal: React.FC = () => {
                 )}
               </IconButton>
             </Tooltip>
-            <Tooltip title={isExpanded ? "Collapse" : "Expand"}>
-              <IconButton 
-                size="small" 
-                onClick={handleExpandToggle}
-                sx={{ 
-                  mx: 0.5,
-                  transition: 'transform 0.3s',
-                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                }}
-              >
-                {isExpanded ? 
-                  <CloseFullscreenIcon fontSize="small" /> : 
-                  <OpenInFullIcon fontSize="small" />
-                }
-              </IconButton>
-            </Tooltip>
             <Tooltip title={isMaximized ? "Exit fullscreen" : "Fullscreen"}>
               <IconButton 
                 size="small" 
@@ -829,7 +794,7 @@ const AIChatModal: React.FC = () => {
                   </Zoom>
                 ) : (
                   <Zoom in={!isMaximized} timeout={300}>
-                    <ExpandMoreIcon fontSize="small" />
+                    <MoreVertIcon fontSize="small" />
                   </Zoom>
                 )}
               </IconButton>

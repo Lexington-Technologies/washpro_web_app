@@ -25,6 +25,8 @@ import ChlorinationDashboard from "../pages/chlorination/Chlorination";
 import IssuesLogDashboard from "../pages/issues/Issues";
 import LAMReportingDashboard from "../pages/lam/LamReport";
 import WashStatus from "../pages/wash/wash-status/WashStatus";
+import HygeineFacilities from "../pages/hygeine-facilities/HygeineFacilities";
+import HygeineFacilitiesDetails from "../pages/hygeine-facilities/HygeineFacilitiesDetails";
 
 // Lazy load components
 const Wrapper = lazy(() => import("../components/wrapper"));
@@ -267,6 +269,27 @@ const router = createBrowserRouter([
             element: (
               <Suspense fallback={<LoadingAnimation />}>
                 <ToiletFacilitiesDetails />
+              </Suspense>
+              )
+            },
+        ],
+      },
+      {
+        path: "hygeine-facilities",
+        children: [
+          {
+            index: true,
+            element: (
+            <Suspense fallback={<LoadingAnimation />}>
+              <HygeineFacilities />
+            </Suspense>
+            )
+          },
+          {
+            path: ":id",
+            element: (
+              <Suspense fallback={<LoadingAnimation />}>
+                <HygeineFacilitiesDetails />
               </Suspense>
               )
             },
