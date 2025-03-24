@@ -27,10 +27,10 @@ import LAMReportingDashboard from "../pages/lam/LamReport";
 import WashStatus from "../pages/wash/wash-status/WashStatus";
 import HygeineFacilities from "../pages/hygeine-facilities/HygeineFacilities";
 import HygeineFacilitiesDetails from "../pages/hygeine-facilities/HygeineFacilitiesDetails";
+import Dashboard from "../pages/dashboard/dashboard";
 
 // Lazy load components
 const Wrapper = lazy(() => import("../components/wrapper"));
-const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const DumpSites = lazy(() => import("../pages/dump-site/DumpSite"));
 const Interventions = lazy(() => import("../pages/interventions/Interventions"));
 const PublicSpaceTypes = lazy(() => import("../pages/public-space-type/PublicSpaceTypes"));
