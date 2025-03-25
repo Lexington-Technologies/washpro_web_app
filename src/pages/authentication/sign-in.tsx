@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useAuthStore, useSnackStore } from "../../store";
 import { Ellipse, Ellipse2, Polygon, Polygon2, Rectangle, Logo } from "../../assets/svg/index";
+import { useSnackbar } from "notistack";
 
 interface LoginResponse {
   user: {
@@ -29,6 +30,7 @@ interface LoginResponse {
 }
 
 const SignInPage: FC = function () {
+  const { enqueueSnackbar } = useSnackbar()
   const navigate = useNavigate();
   const theme = useTheme();
   const { logIn } = useAuthStore();
@@ -63,7 +65,7 @@ const SignInPage: FC = function () {
       logIn(response.user, response.token, response.refreshToken);
       navigate("/");
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: error instanceof Error ? error.message : "Login failed",
       });

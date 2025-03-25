@@ -39,6 +39,7 @@ export const useSnackStore = create((set) => ({
   isLoading: false,
   setLoading: (bool: boolean) => set({ isLoading: bool }),
   setAlert: async ({ variant, message }: { variant: 'success' | 'error' | 'info' | 'warning', message: string }) => {
+    
     set({ variant, message });
   },
 }));

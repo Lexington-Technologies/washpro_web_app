@@ -14,9 +14,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios"; // Adjust import as needed
 import { useSnackStore } from "../../store"; // Assuming you have a snack store for alerts
+import { useSnackbar } from "notistack";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar()
   const { setAlert } = useSnackStore() as {
     setAlert: (alert: { variant: string; message: string }) => void;
   };
@@ -36,7 +38,7 @@ const ResetPassword = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      setAlert({ variant: "error", message: "Passwords do not match!" });
+      enqueueSnackbar({ variant: "error", message: "Passwords do not match!" });
       return;
     }
 
@@ -47,10 +49,10 @@ const ResetPassword = () => {
         password: formData.password,
       });
 
-      setAlert({ variant: "success", message: "Password reset successfully!" });
+      enqueueSnackbar({ variant: "success", message: "Password reset successfully!" });
       navigate("/login"); // Redirect to login page
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: error instanceof Error ? error.message : "Failed to reset password. Please try again.",
       });

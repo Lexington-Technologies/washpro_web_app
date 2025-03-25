@@ -5,6 +5,8 @@ import { useAuthStore } from "../store";
 import Navbar from "./navbar";
 import SideBar from "./sidebar";
 import { useTheme, useMediaQuery } from "@mui/material";
+import GlobalModal from "./GlobalModal";
+import GlowingActionButton from "./GlowingActionButton";
 
 export default function Wrapper() {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -46,6 +48,9 @@ export default function Wrapper() {
         />
         <Box sx={{ flexGrow: 1, padding: 1, overflowY: "scroll" }}>
           <Outlet />
+                    <GlobalModal />
+                    <GlowingActionButton />
+          
         </Box>
       </Box>
     </Box>

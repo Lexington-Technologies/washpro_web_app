@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useSnackStore } from "../../store";
 import { Logo } from "../../assets/svg";
+import { useSnackbar } from "notistack";
 
 const ForgotPassword = () => {
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -18,12 +19,14 @@ const ForgotPassword = () => {
   const navigate = useNavigate();
   const { setAlert } = useSnackStore();
   const isMobile = useMediaQuery("(max-width:768px)");
+  const { enqueueSnackbar } = useSnackbar()
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!emailOrPhone.trim()) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: "Please enter your email or phone number."
       });
@@ -37,13 +40,13 @@ const ForgotPassword = () => {
         emailOrPhone: emailOrPhone.trim()
       });
 
-      setAlert({
+      enqueueSnackbar({
         variant: "success",
         message: "Reset password link has been sent to your email or phone."
       });
       navigate("/login");
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: error instanceof Error ? error.message : "Failed to send reset password link"
       });

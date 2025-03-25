@@ -16,12 +16,13 @@ import {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiController } from "../../axios";
 import { useSnackStore } from "../../store";
+import { useSnackbar } from "notistack";
 
 const AccountSetUp = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const { setAlert } = useSnackStore();
+  const { enqueueSnackbar } = useSnackbar()
   
   const [formData, setFormData] = useState({
     password: "",
@@ -67,7 +68,7 @@ const AccountSetUp = () => {
     
     // Validate token
     if (!token) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: "Invalid or missing setup token"
       });
@@ -77,7 +78,7 @@ const AccountSetUp = () => {
     // Validate password requirements
     const passwordErrors = validatePassword(formData.password);
     if (passwordErrors.length > 0) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: passwordErrors[0] // Show first error message
       });
@@ -86,7 +87,7 @@ const AccountSetUp = () => {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: "Passwords do not match"
       });
@@ -100,7 +101,7 @@ const AccountSetUp = () => {
         password: formData.password
       });
 
-      setAlert({
+      enqueueSnackbar({
         variant: "success",
         message: "Account setup successful"
       });
@@ -108,7 +109,7 @@ const AccountSetUp = () => {
       // Redirect to login
       navigate("/login");
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: "error",
         message: error instanceof Error ? error.message : "Account setup failed"
       });

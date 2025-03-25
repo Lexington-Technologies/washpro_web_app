@@ -34,6 +34,7 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
+import { useSnackbar } from 'notistack';
 
 interface User {
   _id: string;
@@ -86,6 +87,8 @@ const UserPage: React.FC = () => {
     phone: '',
     role: '',
   });
+    const { enqueueSnackbar } = useSnackbar()
+  
 
   // Memoized analytics calculations
   const totalUsers = useMemo(() => users.length, [users]);
@@ -109,7 +112,7 @@ const UserPage: React.FC = () => {
 
   const handleStatusChange = async () => {
     if (!selectedUser?._id) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: 'No user selected',
       });
@@ -315,7 +318,7 @@ const UserPage: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
-          Users
+          Admins
         </Typography>
         <Button
           variant="contained"
@@ -323,7 +326,7 @@ const UserPage: React.FC = () => {
           sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
           onClick={() => setOpenAddModal(true)}
         >
-          Add User
+          Add Admin
         </Button>
       </Box>
 
@@ -449,7 +452,7 @@ const UserPage: React.FC = () => {
           }}
         >
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            Add New User
+            Add New Admin
           </Typography>
           <form onSubmit={handleAddSubmit}>
             <Stack spacing={2}>
@@ -527,7 +530,7 @@ const UserPage: React.FC = () => {
                   {isLoading ? (
                     <CircularProgress size={24} color="inherit" />
                   ) : (
-                    'Add User'
+                    'Add Admin'
                   )}
                 </Button>
               </Box>
@@ -556,7 +559,7 @@ const UserPage: React.FC = () => {
           }}
         >
           <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-            Edit User
+            Edit Admin
           </Typography>
           <form onSubmit={handleEditSubmit}>
             <Stack spacing={2}>

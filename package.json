@@ -40,6 +40,7 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^0.469.0",
+    "notistack": "^3.0.2",
     "openai": "^4.77.3",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.3.0",

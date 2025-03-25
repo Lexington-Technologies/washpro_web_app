@@ -28,6 +28,7 @@ import { MoreVert, Add, PersonAdd } from '@mui/icons-material';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
 import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
+import { useSnackbar } from 'notistack';
 
 interface Enumerator {
   _id: string;
@@ -80,7 +81,7 @@ const EnumeratorPage: React.FC = () => {
     email: '',
     phone: ''
   });
-  const { setAlert } = useSnackStore();
+  const { enqueueSnackbar } = useSnackbar()
 
   const fetchEnumerators = async () => {
     setIsLoading(true);
@@ -89,7 +90,7 @@ const EnumeratorPage: React.FC = () => {
       setEnumerators(response || []);
     } catch (error) {
       console.error('Error fetching enumerators:', error);
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to fetch enumerators'
       });
@@ -136,7 +137,7 @@ const EnumeratorPage: React.FC = () => {
     e.preventDefault();
     
     if (!selectedEnumerator?._id) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: 'No enumerator selected'
       });
@@ -147,7 +148,7 @@ const EnumeratorPage: React.FC = () => {
     try {
       await apiController.put(`/enumerator/${selectedEnumerator._id}`, editFormData);
       
-      setAlert({
+      enqueueSnackbar({
         variant: 'success',
         message: 'Enumerator updated successfully'
       });
@@ -158,7 +159,7 @@ const EnumeratorPage: React.FC = () => {
       fetchEnumerators();
     } catch (error) {
       console.error('Error updating enumerator:', error);
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to update enumerator'
       });
@@ -177,22 +178,21 @@ const EnumeratorPage: React.FC = () => {
     
     setIsLoading(true);
     try {
-      const endpoint = selectedEnumerator.status === 'active'
-        ? `/enumerator/deactivate/${selectedEnumerator._id}`
-        : `/enumerator/activate/${selectedEnumerator._id}`;
-
+      const endpoint = selectedEnumerator.status === 'active' 
+      ? `/enumerator/deactivate/${selectedEnumerator._id}` 
+      : `/enumerator/activate/${selectedEnumerator._id}`;
+      
       await apiController.put(endpoint);
-
-      setAlert({
+      enqueueSnackbar({
         variant: 'success',
-        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'deactivated' : 'activated'} successfully`
+        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'Deactivate' : 'activated'} successfully`
       });
       
       setConfirmDialog(false);
       setSelectedEnumerator(null);
       fetchEnumerators();
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to update status'
       });
@@ -221,10 +221,10 @@ const EnumeratorPage: React.FC = () => {
       };
 
       console.log('Sending registration data:', formData);
-      const response = await apiController.post('/api/v1/enumerator/register', formData);
+      const response = await apiController.post('/enumerator/register', formData);
       console.log('Registration response:', response);
 
-      setAlert({
+      enqueueSnackbar({
         variant: 'success',
         message: 'Enumerator registered successfully'
       });
@@ -241,7 +241,7 @@ const EnumeratorPage: React.FC = () => {
       fetchEnumerators();
     } catch (error: any) {
       console.error('Registration error:', error);
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error.response?.data?.message || 'Failed to register enumerator'
       });
@@ -334,7 +334,7 @@ const EnumeratorPage: React.FC = () => {
         onClose={handleMenuClose}
       >
         <MenuItem onClick={handleSuspendClick}>
-          {selectedEnumerator?.status === 'active' ? 'Suspend' : 'Activate'}
+          {selectedEnumerator?.status === 'active' ? 'Deactivate' : 'Activate'}
         </MenuItem>
         <MenuItem onClick={handleEditClick}>Edit</MenuItem>
       </Menu>

@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { apiController } from '../../axios';
 import { useSnackStore } from '../../store';
+import { useSnackbar } from 'notistack';
 
 interface Document {
   id: string;
@@ -96,7 +97,7 @@ const KnowledgeBase: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { setAlert } = useSnackStore();
+  const { enqueueSnackbar } = useSnackbar()
   const [availableTags, setAvailableTags] = useState<string[]>([
     'Water Quality',
     'Sanitation',
@@ -127,7 +128,7 @@ const KnowledgeBase: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: 'Please select a file to upload'
       });
@@ -154,13 +155,13 @@ const KnowledgeBase: React.FC = () => {
       // Add new document to the list
       setDocuments(prev => [...prev, newDocument]);
       
-      setAlert({
+      enqueueSnackbar({
         variant: 'success',
         message: 'Document uploaded successfully'
       });
       handleCloseModal();
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to upload document'
       });
@@ -203,12 +204,12 @@ const KnowledgeBase: React.FC = () => {
       // Filter out the deleted document
       setDocuments(prev => prev.filter(doc => doc.id !== id));
       
-      setAlert({
+      enqueueSnackbar({
         variant: 'success',
         message: 'Document deleted successfully'
       });
     } catch (error) {
-      setAlert({
+      enqueueSnackbar({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to delete document'
       });
