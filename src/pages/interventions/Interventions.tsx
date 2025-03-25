@@ -144,7 +144,7 @@ const InterventionOverview = () => {
               </Box>
             </Box>
             <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              364
+              0
             </Typography>
           </Paper>
         </Grid>
@@ -162,7 +162,7 @@ const InterventionOverview = () => {
               </Box>
             </Box>
             <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              37
+              0
             </Typography>
           </Paper>
         </Grid>
@@ -180,7 +180,7 @@ const InterventionOverview = () => {
               </Box>
             </Box>
             <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              56
+              0
             </Typography>
           </Paper>
         </Grid>
@@ -202,25 +202,25 @@ const InterventionOverview = () => {
           }}>
             <Box>
               <Typography variant="subtitle1" fontWeight="medium">
-                Water Pump Station
+          No Data
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                North District
+          -
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant="body1" sx={{ mr: 2 }}>
-                2024-02-15
+          -
               </Typography>
               <Chip 
-                label="High Priority" 
-                size="small" 
-                sx={{ 
-                  bgcolor: '#ffebee', 
-                  color: '#d32f2f',
-                  fontWeight: 'medium',
-                  fontSize: '0.75rem'
-                }} 
+          label="-" 
+          size="small" 
+          sx={{ 
+            bgcolor: '#e0e0e0', 
+            color: '#9e9e9e',
+            fontWeight: 'medium',
+            fontSize: '0.75rem'
+          }} 
               />
             </Box>
           </Box>
@@ -234,25 +234,25 @@ const InterventionOverview = () => {
           }}>
             <Box>
               <Typography variant="subtitle1" fontWeight="medium">
-                Treatment Plant
+          No Data
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Central Area
+          -
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant="body1" sx={{ mr: 2 }}>
-                2024-02-20
+          -
               </Typography>
               <Chip 
-                label="Medium Priority" 
-                size="small" 
-                sx={{ 
-                  bgcolor: '#fff8e1', 
-                  color: '#f57c00',
-                  fontWeight: 'medium',
-                  fontSize: '0.75rem'
-                }} 
+          label="-" 
+          size="small" 
+          sx={{ 
+            bgcolor: '#e0e0e0', 
+            color: '#9e9e9e',
+            fontWeight: 'medium',
+            fontSize: '0.75rem'
+          }} 
               />
             </Box>
           </Box>
@@ -265,25 +265,25 @@ const InterventionOverview = () => {
           }}>
             <Box>
               <Typography variant="subtitle1" fontWeight="medium">
-                Distribution Network
+          No Data
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                South District
+          -
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant="body1" sx={{ mr: 2 }}>
-                2024-02-25
+          -
               </Typography>
               <Chip 
-                label="Low Priority" 
-                size="small" 
-                sx={{ 
-                  bgcolor: '#e8f5e9', 
-                  color: '#2e7d32',
-                  fontWeight: 'medium',
-                  fontSize: '0.75rem'
-                }} 
+          label="-" 
+          size="small" 
+          sx={{ 
+            bgcolor: '#e0e0e0', 
+            color: '#9e9e9e',
+            fontWeight: 'medium',
+            fontSize: '0.75rem'
+          }} 
               />
             </Box>
           </Box>
@@ -354,7 +354,7 @@ const InterventionOverview = () => {
                 <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Action</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>
+            {/* <TableBody>
               <TableRow>
                 <TableCell>Hunkuyi</TableCell>
                 <TableCell>Chlorination</TableCell>
@@ -466,7 +466,7 @@ const InterventionOverview = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            </TableBody>
+            </TableBody> */}
           </Table>
         </TableContainer>
         

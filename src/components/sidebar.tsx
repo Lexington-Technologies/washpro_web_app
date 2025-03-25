@@ -101,26 +101,26 @@ const SideBar = ({
       path: "/",
       title: "Dashboard",
     },
-    // {
-    //   text: "Water Sources",
-    //   icon: <WaterDropOutlined />,
-    //   path: "/water-sources",
-    //   title: "Water Sources",
-    //   subItems: [
-    //     {
-    //       text: "Water Source Risk",
-    //       icon: <GiWaterRecycling style={{ fontSize: 24 }} />,
-    //       path: "/water-source-risk",
-    //       title: "Water Source Risk",
-    //     },
-    //   ],
-    // },
-    // {
-    //   text: "Toilet Facilities",
-    //   icon: <FaToilet />,
-    //   path: "/toilet-facilities",
-    //   title: "Toilet Facilities",
-    // },
+    {
+      text: "Water Sources",
+      icon: <WaterDropOutlined />,
+      path: "/water-sources",
+      title: "Water Sources",
+      subItems: [
+        {
+          text: "Water Source Risk",
+          icon: <GiWaterRecycling style={{ fontSize: 24 }} />,
+          path: "/water-source-risk",
+          title: "Water Source Risk",
+        },
+      ],
+    },
+    {
+      text: "Toilet Facilities",
+      icon: <FaToilet />,
+      path: "/toilet-facilities",
+      title: "Toilet Facilities",
+    },
     {
       text: "Hygeine Facilities",
       icon: <CleaningServices />,
@@ -133,30 +133,30 @@ const SideBar = ({
       path: "/wash-status",
       title: "Wash Status",
     },
-    // {
-    //   text: "Open Defecation",
-    //   icon: <FaPoop />,
-    //   path: "/open-defecation",
-    //   title: "Open Defecation",
-    // },
-    // {
-    //   text: "Calendar",
-    //   icon: <Schedule />,
-    //   path: "/calendar",
-    //   title: "Calendar",
-    // },
+    {
+      text: "Open Defecation",
+      icon: <FaPoop />,
+      path: "/open-defecation",
+      title: "Open Defecation",
+    },
+    {
+      text: "Calendar",
+      icon: <Schedule />,
+      path: "/calendar",
+      title: "Calendar",
+    },
     {
       text: "Intervention",
       icon: <BsFillShieldLockFill />,
       path: "/interventions",
       title: "Intervention",
     },
-    {
-      text: "Wash",
-      icon: <RiPlantLine />,
-      path: "/wash",
-      title: "Wash",
-    },
+    // {
+    //   text: "Wash",
+    //   icon: <RiPlantLine />,
+    //   path: "/wash",
+    //   title: "Wash",
+    // },
     {
       text: "Routine Activities",
       icon: <FaServicestack />,
@@ -175,21 +175,21 @@ const SideBar = ({
     //   path: "/ai-assistant",
     //   title: "AI Assistant",
     // },
-    // {
-    //   text: "Knowledge Base",
-    //   icon: <RiHealthBookFill />,
-    //   path: "/knowledge-base",
-    //   title: "Knowledge Base",
-    // },
+    {
+      text: "Knowledge Base",
+      icon: <RiHealthBookFill />,
+      path: "/knowledge-base",
+      title: "Knowledge Base",
+    },
   ];
 
   // Wash submenu items
-  // const washSubItems = [
-  //   { text: "HouseHold", icon: <FaHouse />, path: "/household", title: "HouseHold" },
-  //   { text: "School", icon: <FaSchool />, path: "/school", title: "School" },
-  //   { text: "Health Facilities", icon: <Hospital />, path: "/health-facilities", title: "Health Facilities" },
-  //   { text: "Tsangaya", icon: <FaCity />, path: "/tsangaya", title: "Tsangaya" },
-  // ];
+  const washSubItems = [
+    { text: "HouseHold", icon: <FaHouse />, path: "/household", title: "HouseHold" },
+    { text: "School", icon: <FaSchool />, path: "/school", title: "School" },
+    { text: "Health Facilities", icon: <Hospital />, path: "/health-facilities", title: "Health Facilities" },
+    { text: "Tsangaya", icon: <FaCity />, path: "/tsangaya", title: "Tsangaya" },
+  ];
 
   // Waste submenu items
   const wasteSubItems = [
@@ -227,12 +227,12 @@ const SideBar = ({
       path: "/risk-analysis",
       title: "Risk Analysis",
     },
-    // {
-    //   text: "Reports",
-    //   icon: <Report />,
-    //   path: "/reports",
-    //   title: "Reports",
-    // },
+    {
+      text: "Reports",
+      icon: <Report />,
+      path: "/reports",
+      title: "Reports",
+    },
   ];
 
   // Render a single menu item
@@ -454,13 +454,13 @@ const SideBar = ({
             <GiHazardSign style={{ fontSize: 24 }} />
           )} */}
           {/* Users Dropdown */}
-          {/* {renderDropdown(
+          {renderDropdown(
             "Accounts",
             openUsers,
             setOpenUsers,
             usersSubItems,
             <People />
-          )} */}
+          )}
           {/* Activities Dropdown */}
           {renderDropdown(
             "Activities Status",

@@ -31,8 +31,8 @@ import {
 // Mock data for chart
 const chartData = {
   labels: Array.from({ length: 12 }, (_, i) => i + 1),
-  values1: [80, 78, 55, 63, 35, 62, 32, 47, 20, 65, 30, 25],
-  values2: [75, 82, 58, 60, 38, 55, 33, 48, 15, 20, 22, 80]
+  values1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  values2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 };
 
 const FilterDropdown = ({ label, options }) => {
@@ -317,10 +317,10 @@ const RiskAnalysisDashboard = () => {
         {/* KPI Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {[
-            { icon: <MdLocationOn size={24} />, label: 'Active Outbreaks', value: '317', color: '#ff4d4f' },
-            { icon: <MdWarning size={24} />, label: 'At Risk Areas', value: '1,462', color: '#fa8c16' },
-            { icon: <MdWaterDrop size={24} />, label: 'Water Sources', value: '1,672', color: '#1890ff' },
-            { icon: <MdCheckCircle size={24} />, label: 'Cases Resolved', value: '1,424', color: '#52c41a' },
+            { icon: <MdLocationOn size={24} />, label: 'Active Outbreaks', value: '0', color: '#ff4d4f' },
+            { icon: <MdWarning size={24} />, label: 'At Risk Areas', value: '0', color: '#fa8c16' },
+            { icon: <MdWaterDrop size={24} />, label: 'Water Sources', value: '0', color: '#1890ff' },
+            { icon: <MdCheckCircle size={24} />, label: 'Cases Resolved', value: '0', color: '#52c41a' },
           ].map((item, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
               <Card sx={{ height: '100%', minHeight: '150px', display: 'flex', flexDirection: 'column' }}>

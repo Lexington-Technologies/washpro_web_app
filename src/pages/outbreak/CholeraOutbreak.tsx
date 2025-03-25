@@ -31,79 +31,6 @@ import { useQuery } from '@tanstack/react-query';
 const fetchData = async () => {
   const data = {
     locationData: [
-      {
-        location: 'Kudan',
-        suspected: 50,
-        confirmed: 20,
-        deaths: 3,
-        communitiesAffected: 5,
-        population: 10000,
-        status: 'Moderate Risk',
-        trend: 'Increasing',
-      },
-      {
-        location: 'Sabon Gari',
-        suspected: 30,
-        confirmed: 10,
-        deaths: 1,
-        communitiesAffected: 3,
-        population: 8000,
-        status: 'High Risk',
-        trend: 'Stable',
-      },
-      {
-        location: 'Doka',
-        suspected: 15,
-        confirmed: 5,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
-        status: 'Low Risk',
-        trend: 'Decreasing',
-      },
-      {
-        location: 'Doka',
-        suspected: 15,
-        confirmed: 5,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
-        status: 'Low Risk',
-        trend: 'Decreasing',
-      },
-      {
-        location: 'Doka',
-        suspected: 15,
-        confirmed: 5,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
-        status: 'Low Risk',
-        trend: 'Decreasing',
-      },
-      {
-        location: 'Doka',
-        suspected: 15,
-        confirmed: 5,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
-        status: 'Low Risk',
-        trend: 'Decreasing',
-      },
-      {
-        location: 'Doka',
-        suspected: 15,
-        confirmed: 5,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
-        status: 'Low Risk',
-        trend: 'Decreasing',
-      },
-
-
-
     ],
     metrics: [
       {
@@ -111,8 +38,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#ef5350',
         subItems: [
-          { label: 'Children <5 Years', value: 97 },
-          { label: 'Children ≥5 Years', value: 79 },
+          { label: 'Children <5 Years', value: 0 },
+          { label: 'Children ≥5 Years', value: 0 },
         ],
       },
       {
@@ -120,8 +47,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#ffa726',
         subItems: [
-          { label: 'Tested', value: 86 },
-          { label: 'Positives', value: 97 },
+          { label: 'Tested', value: 0 },
+          { label: 'Positives', value: 0 },
         ],
       },
       {
@@ -129,8 +56,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#42a5f5',
         subItems: [
-          { label: 'Conducted', value: 4 },
-          { label: 'Confirmed', value: '12 (+5%)' },
+          { label: 'Conducted', value: 0 },
+          { label: 'Confirmed', value: '0 (0%)' },
         ],
       },
       {
@@ -138,8 +65,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#78909c',
         subItems: [
-          { label: 'Facility Deaths', value: 3 },
-          { label: 'Community Deaths', value: 2 },
+          { label: 'Facility Deaths', value: 0 },
+          { label: 'Community Deaths', value: 0 },
         ],
       },
     ],
@@ -149,8 +76,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#ef5350',
         subItems: [
-          { label: 'Attack Rate', value: '8%' },
-          { label: 'Case Fatality Rate', value: '8%' },
+          { label: 'Attack Rate', value: '0%' },
+          { label: 'Case Fatality Rate', value: '0%' },
         ],
       },
       {
@@ -158,8 +85,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#ffa726',
         subItems: [
-          { label: 'Active Cases', value: 12 },
-          { label: 'Currently Hospitalised', value: 8 },
+          { label: 'Active Cases', value: 0 },
+          { label: 'Currently Hospitalised', value: 0 },
         ],
       },
       {
@@ -167,8 +94,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#42a5f5',
         subItems: [
-          { label: 'Recovered', value: 4 },
-          { label: 'Recovery Rate', value: '12 (+5%)' },
+          { label: 'Recovered', value: 0 },
+          { label: 'Recovery Rate', value: '0 (0%)' },
         ],
       },
       {
@@ -176,8 +103,8 @@ const fetchData = async () => {
         icon: <FaExclamationTriangle />,
         color: '#78909c',
         subItems: [
-          { label: 'Affected', value: 3 },
-          { label: 'Most Affected Ward', value: 2 },
+          { label: 'Affected', value: 0 },
+          { label: 'Most Affected Ward', value: 0 },
         ],
       },
     ],
@@ -303,9 +230,109 @@ const CholeraOutbreakDashboard = () => {
         ))}
       </Grid>
 
-      {/* Split Layout: Table on the Left, Tabs on the Right */}
+      {/* Split Layout: Tabs on the Left, Table on the Right */}
       <Grid container spacing={3}>
-        {/* Left Side: Table */}
+        {/* Left Side: Tabs */}
+        <Grid item xs={12} md={3}>
+          <Paper sx={{ boxShadow: 3 }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              variant="fullWidth"
+              sx={{
+                bgcolor: '#25306B', // Background color for tabs
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#42a5f5', // Color for the active tab indicator
+                },
+                '& .MuiTab-root': {
+                  color: '#9e9e9e', // Default text color for inactive tabs
+                  '&:hover': {
+                    color: '#ffffff', // Text color on hover
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Background color on hover
+                  },
+                  '&.Mui-selected': {
+                    color: '#ffffff', // Text color for active tab
+                    fontWeight: 'bold', // Bold text for active tab
+                  },
+                },
+              }}
+            >
+              <Tab label="Overview" />
+              <Tab label="Report Case" />
+              <Tab label="Analysis Case" />
+            </Tabs>
+
+            {/* Tab Content */}
+            <Box sx={{ p: 3 }}>
+              {tabValue === 0 && (
+                <Box>
+                  {/* Recent Alerts Section */}
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#25306B' }}>
+                    Recent Alerts
+                  </Typography>
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body1">Site A23</Typography>
+                      <Chip label="Critical" color="error" size="small" />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      3.2m from dump site
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body1">Site B15</Typography>
+                      <Chip label="Warning" color="warning" size="small" />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      15m from sanitation risk
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body1">Site C08</Typography>
+                      <Chip label="Clear" color="success" size="small" />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      45m from nearest risk
+                    </Typography>
+                  </Box>
+
+                  {/* Risk Legend Section */}
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#25306B' }}>
+                    Risk Legend
+                  </Typography>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: '#ef5350', mr: 1 }} /> {/* Critical Risk Color */}
+                      <Typography variant="body1">Critical Risk (&lt;10m)</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: '#ffa726', mr: 1 }} /> {/* Moderate Risk Color */}
+                      <Typography variant="body1">Moderate Risk (10-30m)</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: '#42a5f5', mr: 1 }} /> {/* Safe Distance Color */}
+                      <Typography variant="body1">Safe Distance (&gt;30m)</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+
+              {tabValue === 1 && (
+                <Typography variant="body1">
+                  Report Case content goes here. This section allows users to report new cases.
+                </Typography>
+              )}
+
+              {tabValue === 2 && (
+                <Typography variant="body1">
+                  Analysis Case content goes here. This section provides detailed analysis of the outbreak.
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Right Side: Table */}
         <Grid item xs={12} md={9}>
           <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
             <Table>
@@ -323,7 +350,7 @@ const CholeraOutbreakDashboard = () => {
               <TableBody>
                 {locationData
                   .slice(page * rowsPerPage, (page + 1) * rowsPerPage)
-                  .map((row, index) => (
+                  .map((row: any, index: number) => (
                     <TableRow key={index} hover>
                       <TableCell>{row.location}</TableCell>
                       <TableCell>{row.suspected}</TableCell>
@@ -357,6 +384,11 @@ const CholeraOutbreakDashboard = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">
+                      No data found
+                    </TableCell>
+                  </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
@@ -385,109 +417,8 @@ const CholeraOutbreakDashboard = () => {
             />
           </Box>
         </Grid>
-
-      {/* Right Side: Tabs */}
-      <Grid item xs={12} md={3}>
-      <Paper sx={{ boxShadow: 3 }}>
-      <Tabs
-        value={tabValue}
-        onChange={handleTabChange}
-        variant="fullWidth"
-        sx={{
-          bgcolor: '#25306B', // Background color for tabs
-          '& .MuiTabs-indicator': {
-            backgroundColor: '#42a5f5', // Color for the active tab indicator
-          },
-          '& .MuiTab-root': {
-            color: '#9e9e9e', // Default text color for inactive tabs
-            '&:hover': {
-              color: '#ffffff', // Text color on hover
-              backgroundColor: 'rgba(255, 255, 255, 0.1)', // Background color on hover
-            },
-            '&.Mui-selected': {
-              color: '#ffffff', // Text color for active tab
-              fontWeight: 'bold', // Bold text for active tab
-            },
-          },
-        }}
-      >
-        <Tab label="Overview" />
-        <Tab label="Report Case" />
-        <Tab label="Analysis Case" />
-      </Tabs>
-      
-
-          {/* Tab Content */}
-          <Box sx={{ p: 3 }}>
-            {tabValue === 0 && (
-              <Box>
-                {/* Recent Alerts Section */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#25306B' }}>
-                  Recent Alerts
-                </Typography>
-                <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Site A23</Typography>
-                    <Chip label="Critical" color="error" size="small" />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    3.2m from dump site
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Site B15</Typography>
-                    <Chip label="Warning" color="warning" size="small" />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    15m from sanitation risk
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Site C08</Typography>
-                    <Chip label="Clear" color="success" size="small" />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    45m from nearest risk
-                  </Typography>
-                </Box>
-
-                {/* Risk Legend Section */}
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#25306B' }}>
-                  Risk Legend
-                </Typography>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box sx={{ width: 12, height: 12, bgcolor: '#ef5350', mr: 1 }} /> {/* Critical Risk Color */}
-                    <Typography variant="body1">Critical Risk (&lt;10m)</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box sx={{ width: 12, height: 12, bgcolor: '#ffa726', mr: 1 }} /> {/* Moderate Risk Color */}
-                    <Typography variant="body1">Moderate Risk (10-30m)</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Box sx={{ width: 12, height: 12, bgcolor: '#42a5f5', mr: 1 }} /> {/* Safe Distance Color */}
-                    <Typography variant="body1">Safe Distance (&gt;30m)</Typography>
-                  </Box>
-                </Box>
-              </Box>
-            )}
-
-            {tabValue === 1 && (
-              <Typography variant="body1">
-                Report Case content goes here. This section allows users to report new cases.
-              </Typography>
-            )}
-
-            {tabValue === 2 && (
-              <Typography variant="body1">
-                Analysis Case content goes here. This section provides detailed analysis of the outbreak.
-              </Typography>
-            )}
-          </Box>
-    </Paper>
       </Grid>
-      </Grid>
-      </Container>
+    </Container>
   );
 };
 

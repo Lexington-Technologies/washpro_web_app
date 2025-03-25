@@ -29,42 +29,6 @@ import {
 const ChlorinationDashboard = () => {
   // Mock data for water quality monitoring
   const waterQualityData = [
-    {
-      id: 1,
-      source: 'Community Well #1',
-      location: 'Kudan',
-      testDate: '2023-10-15',
-      chlorineLevel: 1.2,
-      pH: 7.4,
-      status: 'Compliant'
-    },
-    {
-      id: 2,
-      source: 'Public Tap #3',
-      location: 'Sabon Gari',
-      testDate: '2023-10-14',
-      chlorineLevel: 0.8,
-      pH: 7.2,
-      status: 'Borderline'
-    },
-    {
-      id: 3,
-      source: 'School Water Tank',
-      location: 'Doka',
-      testDate: '2023-10-16',
-      chlorineLevel: 1.5,
-      pH: 7.6,
-      status: 'Compliant'
-    },
-    {
-      id: 4,
-      source: 'Community Well #4',
-      location: 'Kudan',
-      testDate: '2023-10-13',
-      chlorineLevel: 0.5,
-      pH: 7.1,
-      status: 'Non-compliant'
-    }
   ];
 
   // Function to get chip color based on status
@@ -130,7 +94,7 @@ const ChlorinationDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  18
+                  0
                 </Typography>
                 <FaWater size={24} style={{ color: '#2196f3' }} />
               </Box>
@@ -145,7 +109,7 @@ const ChlorinationDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  245
+                  0
                 </Typography>
                 <FaFlask size={24} style={{ color: '#9c27b0' }} />
               </Box>
@@ -160,7 +124,7 @@ const ChlorinationDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  92%
+                  0%
                 </Typography>
                 <FaClipboardCheck size={24} style={{ color: '#4caf50' }} />
               </Box>
@@ -175,7 +139,7 @@ const ChlorinationDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  72
+                  0
                 </Typography>
                 <FaVial size={24} style={{ color: '#ff9800' }} />
               </Box>
@@ -202,7 +166,8 @@ const ChlorinationDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {waterQualityData.map((row) => (
+            {waterQualityData.length > 0 ? (
+              waterQualityData.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>{row.source}</TableCell>
                   <TableCell>{row.location}</TableCell>
@@ -218,7 +183,13 @@ const ChlorinationDashboard = () => {
                     />
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center">No data available</TableCell>
+              </TableRow>
+            )}
+            
             </TableBody>
           </Table>
         </TableContainer>

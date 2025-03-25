@@ -305,7 +305,7 @@ const Dashboard = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip content={<CustomTooltip active={undefined} payload={undefined} />} />
                     <Legend
                       align="right"
                       verticalAlign="middle"
@@ -327,18 +327,18 @@ const Dashboard = () => {
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
               <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Toilets and Gutters Maintenance
+          Toilets and Gutters Maintenance
               </Typography>
               <Box sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sanitationData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="value" fill="#1e3a8a" />
-                  </BarChart>
-                </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sanitationData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} />
+              <Tooltip content={<CustomTooltip active={undefined} payload={undefined} />} />
+              <Bar dataKey="value" fill="#1e3a8a" />
+            </BarChart>
+          </ResponsiveContainer>
               </Box>
             </CardContent>
           </Card>
@@ -368,7 +368,7 @@ const Dashboard = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip content={<CustomTooltip active={undefined} payload={undefined} />} />
                     <Legend
                       align="right"
                       verticalAlign="middle"

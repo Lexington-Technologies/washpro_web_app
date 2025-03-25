@@ -35,42 +35,6 @@ import React from 'react';
 const LAMReportingDashboard = () => {
   // Mock data for reporting history
   const reportingHistory = [
-    {
-      id: 1,
-      location: 'Kudan',
-      functionality: 'Functional',
-      maintenanceType: 'Pump Repair',
-      materials: 'Pipes, Pump parts',
-      timeline: '2023-10-05',
-      status: 'Urgent'
-    },
-    {
-      id: 2,
-      location: 'Sabon Gari',
-      functionality: 'Non-Functional',
-      maintenanceType: 'Pump Repair, Pipe Replacement',
-      materials: 'Pipes',
-      timeline: '2023-10-12',
-      status: 'Urgent'
-    },
-    {
-      id: 3,
-      location: 'Doka',
-      functionality: 'Partially Functional',
-      maintenanceType: 'Water Quality Treatment',
-      materials: 'Chlorine tablets',
-      timeline: '2023-10-08',
-      status: 'In Progress'
-    },
-    {
-      id: 4,
-      location: 'Zabi',
-      functionality: 'Functional',
-      maintenanceType: 'Electrical Repair',
-      materials: 'Wires, switches',
-      timeline: '2023-09-30',
-      status: 'Completed'
-    }
   ];
 
   // Function to get chip color based on status
@@ -269,23 +233,29 @@ const LAMReportingDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {reportingHistory.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.functionality}</TableCell>
-                  <TableCell>{row.maintenanceType}</TableCell>
-                  <TableCell>{row.materials}</TableCell>
-                  <TableCell>{row.timeline}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={row.status} 
-                      color={getStatusChipColor(row.status)} 
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
+              {reportingHistory.length > 0 ? (
+                reportingHistory.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.location}</TableCell>
+                    <TableCell>{row.functionality}</TableCell>
+                    <TableCell>{row.maintenanceType}</TableCell>
+                    <TableCell>{row.materials}</TableCell>
+                    <TableCell>{row.timeline}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={row.status} 
+                        color={getStatusChipColor(row.status)} 
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">No data available</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

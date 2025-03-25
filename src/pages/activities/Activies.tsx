@@ -29,42 +29,6 @@ import {
 const ActivitesDashboard = () => {
   // Mock data
   const activities = [
-    {
-      id: 1,
-      activity: 'Hand Washing Workshop',
-      type: 'Hygiene Promotion',
-      location: 'Kudan Community Center',
-      date: '2023-10-15',
-      participants: 45,
-      status: 'Completed'
-    },
-    {
-      id: 2,
-      activity: 'Soap Distribution',
-      type: 'Resource Distribution',
-      location: 'Sabon Gari',
-      date: '2023-10-12',
-      participants: 120,
-      status: 'Completed'
-    },
-    {
-      id: 3,
-      activity: 'Community Meeting',
-      type: 'Community Engagement',
-      location: 'Doka Village Hall',
-      date: '2023-10-10',
-      participants: 32,
-      status: 'Completed'
-    },
-    {
-      id: 4,
-      activity: 'School Hygiene Program',
-      type: 'Behavioral Change',
-      location: 'Kudan Primary School',
-      date: '2023-10-20',
-      participants: 85,
-      status: 'Scheduled'
-    }
   ];
 
     const FilterDropdown = ({ label, options }) => {
@@ -119,7 +83,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  24
+                  0
                 </Typography>
                 <FaHandsWash size={24} style={{ color: '#4caf50' }} />
               </Box>
@@ -134,7 +98,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  18
+                  0
                 </Typography>
                 <FaPeopleGroup size={24} style={{ color: '#2196f3' }} />
               </Box>
@@ -149,7 +113,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  156
+                  0
                 </Typography>
                 <FaBoxOpen size={24} style={{ color: '#9c27b0' }} />
               </Box>
@@ -164,7 +128,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  7
+                  0
                 </Typography>
                 <FaChartLine size={24} style={{ color: '#ff9800' }} />
               </Box>
@@ -191,23 +155,31 @@ const ActivitesDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {activities.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.activity}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell>{row.participants}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={row.status} 
-                      color={row.status === 'Completed' ? 'success' : 'warning'} 
-                      size="small"
-                      variant="outlined"
-                    />
+              {activities.length > 0 ? (
+                activities.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.activity}</TableCell>
+                    <TableCell>{row.type}</TableCell>
+                    <TableCell>{row.location}</TableCell>
+                    <TableCell>{row.date}</TableCell>
+                    <TableCell>{row.participants}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={row.status} 
+                        color={row.status === 'Completed' ? 'success' : 'warning'} 
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No activities found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

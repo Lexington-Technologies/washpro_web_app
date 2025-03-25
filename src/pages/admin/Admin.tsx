@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  Paper,
   Chip,
   IconButton,
   Menu,
@@ -32,10 +31,7 @@ import {
   FaUserTimes,
 } from 'react-icons/fa'; // Example icons
 import {
-  useReactTable,
   createColumnHelper,
-  flexRender,
-  getCoreRowModel,
 } from '@tanstack/react-table';
 import { DataTable } from '../../components/Table/DataTable';
 
@@ -430,7 +426,7 @@ const UserPage: React.FC = () => {
         onFetchData={fetchUsers}
         pageCount={1}
         pageSize={10}
-        showPagination={false}  
+        showPagination={true}  
         />
 
       {/* Add User Modal */}

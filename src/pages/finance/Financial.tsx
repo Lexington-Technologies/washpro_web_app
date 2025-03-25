@@ -41,39 +41,39 @@ import {
 
 // Sample data
 const fundCategories = [
-  { name: "Operational Fund", used: "N27,000", total: "N60,000", color: "#3B82F6" },
-  { name: "Maintenance Fund", used: "N650,000", total: "N800,000", color: "#4F46E5" },
-  { name: "Capital Expenditure", used: "N185,000", total: "N370,000", color: "#10B981" },
-  { name: "Aids & Grants", used: "N27,000", total: "N60,000", color: "#F59E0B" },
-  { name: "Community Financing", used: "N25,000", total: "N25,000", color: "#EF4444" }
+  { name: "Operational Fund", used: "₦0", total: "₦0", color: "#3B82F6" },
+  { name: "Maintenance Fund", used: "₦0", total: "₦0", color: "#4F46E5" },
+  { name: "Capital Expenditure", used: "₦0", total: "₦0", color: "#10B981" },
+  { name: "Aids & Grants", used: "₦0", total: "₦0", color: "#F59E0B" },
+  { name: "Community Financing", used: "₦0", total: "₦0", color: "#EF4444" }
 ];
 
 const pieChartData = [
-  { name: "Operational", value: 27000, color: "#3B82F6" },
-  { name: "Maintenance", value: 650000, color: "#EC4899" },
-  { name: "Capital Expenditure", value: 185000, color: "#06B6D4" },
-  { name: "Aids & Grants", value: 27000, color: "#F97316" },
-  { name: "Community Financing", value: 25000, color: "#FACC15" }
+  { name: "Operational", value: 0, color: "#3B82F6" },
+  { name: "Maintenance", value: 0, color: "#EC4899" },
+  { name: "Capital Expenditure", value: 0, color: "#06B6D4" },
+  { name: "Aids & Grants", value: 0, color: "#F97316" },
+  { name: "Community Financing", value: 0, color: "#FACC15" }
 ];
 
 const monthlyData = [
-  { name: 'Jan', operational: 40, maintenance: 60 },
-  { name: 'Feb', operational: 60, maintenance: 45 },
-  { name: 'Mar', operational: 50, maintenance: 40 },
-  { name: 'Apr', operational: 30, maintenance: 25 },
-  { name: 'May', operational: 25, maintenance: 20 },
-  { name: 'Jun', operational: 40, maintenance: 30 },
-  { name: 'Jul', operational: 70, maintenance: 60 },
-  { name: 'Aug', operational: 45, maintenance: 40 },
+  { name: 'Jan', operational: 0, maintenance: 0 },
+  { name: 'Feb', operational: 0, maintenance: 0 },
+  { name: 'Mar', operational: 0, maintenance: 0 },
+  { name: 'Apr', operational: 0, maintenance: 0 },
+  { name: 'May', operational: 0, maintenance: 0 },
+  { name: 'Jun', operational: 0, maintenance: 0 },
+  { name: 'Jul', operational: 0, maintenance: 0 },
+  { name: 'Aug', operational: 0, maintenance: 0 },
 ];
 
 const paymentsData = [
-  { month: 'Jan', initiated: 'N10,000', paid: 'N10,000', status: 'Paid', date: 'Jan 10, 2023' },
-  { month: 'Feb', initiated: 'N10,000', paid: 'N5,000', status: 'Partial', date: 'Feb 15, 2023' },
-  { month: 'March', initiated: 'N10,000', paid: 'N0', status: 'Overdue', date: '-' },
-  { month: 'April', initiated: 'N10,000', paid: 'N10,000', status: 'Paid', date: 'Apr 20, 2023' },
-  { month: 'May', initiated: 'N10,000', paid: 'N2,000', status: 'Partial', date: 'May 10, 2023' },
-  { month: 'June', initiated: 'N10,000', paid: 'N0', status: 'Overdue', date: '-' },
+  { month: 'Jan', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
+  { month: 'Feb', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
+  { month: 'March', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
+  { month: 'April', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
+  { month: 'May', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
+  { month: 'June', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
 ];
 
 const FinancialSummary = () => {
@@ -98,7 +98,7 @@ const FinancialSummary = () => {
     } else if (status === 'Partial') {
       return <Chip label="Partial" size="small" sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontSize: '0.75rem' }} />;
     } else {
-      return <Chip label="Overdue" size="small" sx={{ bgcolor: '#FEE2E2', color: '#7F1D1D', fontSize: '0.75rem' }} />;
+      return <Chip label="-" size="small" sx={{ bgcolor: '#FEE2E2', color: '#7F1D1D', fontSize: '0.75rem' }} />;
     }
   };
 

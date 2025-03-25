@@ -29,38 +29,6 @@ import {
 const IssuesLogDashboard = () => {
   // Mock data for issues
   const issuesData = [
-    {
-      id: 'ISS-1023',
-      issue: 'Water source contamination',
-      location: 'Kudan Well #2',
-      reportedDate: '2023-10-15',
-      severity: 'High',
-      status: 'In Progress'
-    },
-    {
-      id: 'ISS-1022',
-      issue: 'Broken latrine door',
-      location: 'Sabon Gari School',
-      reportedDate: '2023-10-12',
-      severity: 'Medium',
-      status: 'Resolved'
-    },
-    {
-      id: 'ISS-1021',
-      issue: 'Chlorine supply shortage',
-      location: 'Doka Distribution Center',
-      reportedDate: '2023-10-10',
-      severity: 'High',
-      status: 'Resolved'
-    },
-    {
-      id: 'ISS-1020',
-      issue: 'Drainage blockage',
-      location: 'Kudan Market Area',
-      reportedDate: '2023-10-08',
-      severity: 'Medium',
-      status: 'In Progress'
-    }
   ];
 
   // Function to get chip color based on severity
@@ -141,7 +109,7 @@ const IssuesLogDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  38
+                  0
                 </Typography>
                 <FaExclamationTriangle size={24} style={{ color: '#ffc107' }} />
               </Box>
@@ -156,7 +124,7 @@ const IssuesLogDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold" color="#f44336">
-                  12
+                  0
                 </Typography>
                 <FaExclamationCircle size={24} style={{ color: '#f44336' }} />
               </Box>
@@ -171,7 +139,7 @@ const IssuesLogDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  26
+                  0
                 </Typography>
                 <FaCheckCircle size={24} style={{ color: '#4caf50' }} />
               </Box>
@@ -186,7 +154,7 @@ const IssuesLogDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  68%
+                  0%
                 </Typography>
                 <FaChartBar size={24} style={{ color: '#3f51b5' }} />
               </Box>
@@ -213,30 +181,38 @@ const IssuesLogDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {issuesData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.issue}</TableCell>
-                  <TableCell>{row.location}</TableCell>
-                  <TableCell>{row.reportedDate}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={row.severity} 
-                      color={getSeverityChipColor(row.severity)} 
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={row.status} 
-                      color={getStatusChipColor(row.status)} 
-                      size="small"
-                      variant="outlined"
-                    />
+              {issuesData.length > 0 ? (
+                issuesData.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{row.issue}</TableCell>
+                    <TableCell>{row.location}</TableCell>
+                    <TableCell>{row.reportedDate}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={row.severity} 
+                        color={getSeverityChipColor(row.severity)} 
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={row.status} 
+                        color={getStatusChipColor(row.status)} 
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No issues found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
