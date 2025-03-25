@@ -49,6 +49,7 @@ interface NewEnumerator {
   fullName: string;
   email: string;
   phone: string;
+  password: string;
 }
 
 const initialEditFormData: EditEnumeratorFormData = {
@@ -79,7 +80,8 @@ const EnumeratorPage: React.FC = () => {
   const [newEnumerator, setNewEnumerator] = useState<NewEnumerator>({
     fullName: '',
     email: '',
-    phone: ''
+    phone: '',
+    password: ''
   });
   const { enqueueSnackbar } = useSnackbar()
 
@@ -217,11 +219,12 @@ const EnumeratorPage: React.FC = () => {
       const formData = {
         fullName: newEnumerator.fullName.trim(),
         email: newEnumerator.email.trim().toLowerCase(),
-        phone: newEnumerator.phone.trim()
+        phone: newEnumerator.phone.trim(),
+        password: newEnumerator.password.trim()
       };
 
       console.log('Sending registration data:', formData);
-      const response = await apiController.post('/enumerator/register', formData);
+      const response = await apiController.post('/enumerator/register-admin', formData);
       console.log('Registration response:', response);
 
       enqueueSnackbar({
@@ -233,7 +236,8 @@ const EnumeratorPage: React.FC = () => {
       setNewEnumerator({
         fullName: '',
         email: '',
-        phone: ''
+        phone: '',
+        password: ''
       });
       setOpenAddModal(false);
       
@@ -454,7 +458,8 @@ const EnumeratorPage: React.FC = () => {
           setNewEnumerator({
             fullName: '',
             email: '',
-            phone: ''
+            phone: '',
+            password: ''
           });
         }}
         maxWidth="sm"
@@ -505,6 +510,17 @@ const EnumeratorPage: React.FC = () => {
                 error={newEnumerator.phone.trim() === ''}
                 helperText={newEnumerator.phone.trim() === '' ? 'Phone number is required' : ''}
               />
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type="password"
+                value={newEnumerator.password}
+                onChange={handleInputChange}
+                required
+                error={newEnumerator.password.trim() === ''}
+                helperText={newEnumerator.password.trim() === '' ? 'Password is required' : ''}
+              />
             </Stack>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 3 }}>
@@ -520,7 +536,8 @@ const EnumeratorPage: React.FC = () => {
               disabled={isLoading || 
                 !newEnumerator.fullName.trim() ||
                 !newEnumerator.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) ||
-                !newEnumerator.phone.trim()
+                !newEnumerator.phone.trim() ||
+                !newEnumerator.password.trim()
               }
               sx={{ 
                 bgcolor: '#25306B', 
