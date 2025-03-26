@@ -277,6 +277,7 @@ const EnumeratorPage: React.FC = () => {
         <Table>
           <TableHead sx={{ bgcolor: '#1a237e' }}>
             <TableRow>
+              <TableCell sx={{ color: 'white' }}>S/N</TableCell>
               <TableCell sx={{ color: 'white' }}>Full Name</TableCell>
               <TableCell sx={{ color: 'white' }}>Email</TableCell>
               <TableCell sx={{ color: 'white' }}>Phone</TableCell>
@@ -288,19 +289,20 @@ const EnumeratorPage: React.FC = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                   <CircularProgress size={40} />
                 </TableCell>
               </TableRow>
             ) : enumerators.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                   No enumerators found
                 </TableCell>
               </TableRow>
             ) : (
-              enumerators.map((enumerator) => (
+              enumerators.map((enumerator, index) => (
                 <TableRow key={enumerator._id}>
+                  <TableCell>{index + 1}</TableCell>
                   <TableCell>{enumerator.fullName}</TableCell>
                   <TableCell>{enumerator.email}</TableCell>
                   <TableCell>{enumerator.phone}</TableCell>
