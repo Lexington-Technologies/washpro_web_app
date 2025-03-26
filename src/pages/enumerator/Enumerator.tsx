@@ -88,7 +88,7 @@ const EnumeratorPage: React.FC = () => {
   const fetchEnumerators = async () => {
     setIsLoading(true);
     try {
-      const response = await apiController.get('/enumerator?limit=50');
+      const response = await apiController.get('/enumerator');
       setEnumerators(response || []);
     } catch (error) {
       console.error('Error fetching enumerators:', error);
