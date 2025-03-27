@@ -33,7 +33,7 @@ import {
 import {
   createColumnHelper,
 } from '@tanstack/react-table';
-import { DataTable } from '../../components/Table/DataTable';
+import { DataTable } from '../../components/Table/DataTable2';
 import { useSnackbar } from 'notistack';
 
 interface User {
