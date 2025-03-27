@@ -7,6 +7,7 @@ import {
     getPaginationRowModel,
     SortingState,
     ColumnDef,
+    PaginationState,
 } from '@tanstack/react-table';
 import {
     Box,
@@ -40,9 +41,9 @@ interface DataTableProps<T extends object> {
     enablePagination?: boolean;
     enableSorting?: boolean;
     noDataMessage?: string;
-    setSearch?: (search: string) => void;
-    setPage?: (page: number) => void;
-    setLimit?: (limit: number) => void;
+    totalCount?: number; // Add totalCount for server-side pagination
+    onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+    pagination?: PaginationState; // Controlled pagination state
 }
 
 export function DataTable<T extends object>({
@@ -54,16 +55,24 @@ export function DataTable<T extends object>({
     enablePagination = true,
     enableSorting = true,
     noDataMessage = "No data available",
-    setPage,
-    setLimit
+    totalCount = 0,
+    onPaginationChange,
+    pagination: controlledPagination,
 }: DataTableProps<T>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [selectedWard, setSelectedWard] = useState('');
     const [selectedVillage, setSelectedVillage] = useState('');
     const [selectedHamlet, setSelectedHamlet] = useState('');
-    const [pageIndex, setPageIndex] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+
+    // Use controlled pagination if provided, otherwise use local state
+    const [localPagination, setLocalPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+    
+    const pagination = controlledPagination || localPagination;
+    const setPagination = onPaginationChange || setLocalPagination;
 
     // Ensure data is an array
     const tableData = Array.isArray(data) ? data : [];
@@ -74,7 +83,7 @@ export function DataTable<T extends object>({
             id: 'serialNumber',
             header: 'S/N',
             cell: ({ row }) => {
-                return pageIndex * pageSize + row.index + 1;
+                return pagination.pageIndex * pagination.pageSize + row.index + 1;
             },
             enableSorting: false,
         },
@@ -87,13 +96,17 @@ export function DataTable<T extends object>({
         state: {
             sorting,
             globalFilter,
+            pagination,
         },
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        manualPagination: !!onPaginationChange, // Use manual pagination if onPaginationChange is provided
+        pageCount: Math.ceil(totalCount / pagination.pageSize), // For server-side pagination
         enableSorting,
     });
 
@@ -113,15 +126,22 @@ export function DataTable<T extends object>({
 
     // Handle page change
     const handlePageChange = (event: unknown, newPage: number) => {
-        setPageIndex(newPage);
-        if (setPage) setPage(newPage);
+        if (onPaginationChange) {
+            onPaginationChange({ pageIndex: newPage, pageSize: pagination.pageSize });
+        } else {
+            table.setPageIndex(newPage);
+        }
     };
 
     // Handle rows per page change
     const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setPageSize(parseInt(event.target.value, 10));
-        setPageIndex(0);
-        if (setLimit) setLimit(parseInt(event.target.value, 10));
+        const newPageSize = parseInt(event.target.value, 10);
+        if (onPaginationChange) {
+            onPaginationChange({ pageIndex: 0, pageSize: newPageSize });
+        } else {
+            table.setPageSize(newPageSize);
+            table.setPageIndex(0); // Reset to first page when page size changes
+        }
     };
 
     return (
@@ -130,7 +150,6 @@ export function DataTable<T extends object>({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <TextField
                     select
-                    // label="Ward"
                     variant="outlined"
                     size="small"
                     value={selectedWard}
@@ -152,7 +171,6 @@ export function DataTable<T extends object>({
                 </TextField>
                 <TextField
                     select
-                    // label="Village"
                     variant="outlined"
                     size="small"
                     value={selectedVillage}
@@ -174,7 +192,6 @@ export function DataTable<T extends object>({
                 </TextField>
                 <TextField
                     select
-                    // label="Hamlet"
                     variant="outlined"
                     size="small"
                     value={selectedHamlet}
@@ -352,10 +369,10 @@ export function DataTable<T extends object>({
             {enablePagination && (
                 <TablePagination
                     component="div"
-                    count={table.getFilteredRowModel().rows.length}
-                    page={pageIndex}
+                    count={onPaginationChange ? totalCount : table.getFilteredRowModel().rows.length}
+                    page={table.getState().pagination.pageIndex}
                     onPageChange={handlePageChange}
-                    rowsPerPage={pageSize}
+                    rowsPerPage={table.getState().pagination.pageSize}
                     onRowsPerPageChange={handleRowsPerPageChange}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     sx={{

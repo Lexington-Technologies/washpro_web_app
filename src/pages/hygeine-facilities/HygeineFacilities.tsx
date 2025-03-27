@@ -73,6 +73,11 @@ const HygieneFacilities: React.FC = () => {
   const [wardFilter, setWardFilter] = useState<string>('All');
   const [villageFilter, setVillageFilter] = useState<string>('All');
   const [hamletFilter, setHamletFilter] = useState<string>('All');
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+
+  const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
+    setPagination(newPagination);
+  };
 
   // Fetch data from the API
   const { data, isLoading, error } = useQuery({
@@ -453,7 +458,13 @@ const HygieneFacilities: React.FC = () => {
         <Box sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Hygiene Facilities Overview</Typography>
           <Paper sx={{ overflowX: 'auto' }}>
-            <DataTable columns={columns} data={tableData} />
+            <DataTable
+              columns={columns}
+              data={tableData}
+              pagination={pagination}
+              onPaginationChange={handlePaginationChange}
+              totalCount={tableData.length} // Replace with server-side total count if applicable
+            />
           </Paper>
         </Box>
       </Card>
