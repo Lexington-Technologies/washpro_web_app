@@ -142,7 +142,7 @@ export default function GlowingActionButton({
         <RippleEffect />
         <StyledFab
           onClick={handleClick}
-          size="large"
+          size="small"
           color="primary"
           aria-label="chat"
           onMouseEnter={() => setIsHovered(true)}

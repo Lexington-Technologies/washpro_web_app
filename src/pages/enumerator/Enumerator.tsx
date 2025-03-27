@@ -1,15 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Chip,
   IconButton,
   Menu,
@@ -23,12 +16,17 @@ import {
   Modal,
   Stack,
   CircularProgress,
+  Grid,
+  Card,
 } from '@mui/material';
 import { MoreVert, Add, PersonAdd } from '@mui/icons-material';
 import { apiController } from '../../axios';
-import { useSnackStore } from '../../store';
-import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { formatDistanceToNow, parseISO, isValid } from 'date-fns';
+import { DataTable } from '../../components/Table/DataTable2';
+import { createColumnHelper } from '@tanstack/react-table';
 
 interface Enumerator {
   _id: string;
@@ -58,19 +56,12 @@ const initialEditFormData: EditEnumeratorFormData = {
   phone: '',
 };
 
-const formatLastLogin = (lastLogin: string) => {
-  try {
-    const date = parseISO(lastLogin);
-    if (!isValid(date)) return 'Never';
-    return formatDistanceToNow(date, { addSuffix: true });
-  } catch {
-    return 'Never';
-  }
-};
+const columnHelper = createColumnHelper<Enumerator>();
 
 const EnumeratorPage: React.FC = () => {
-  const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedEnumerator, setSelectedEnumerator] = useState<Enumerator | null>(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
@@ -83,29 +74,136 @@ const EnumeratorPage: React.FC = () => {
     phone: '',
     password: ''
   });
-  const { enqueueSnackbar } = useSnackbar()
 
-  const fetchEnumerators = async () => {
-    setIsLoading(true);
-    try {
+  // Fetch enumerators with TanStack Query
+  const { data: enumerators = [], isLoading } = useQuery<Enumerator[]>({
+    queryKey: ['enumerators'],
+    queryFn: async () => {
       const response = await apiController.get('/enumerator');
-      setEnumerators(response || []);
-    } catch (error) {
-      console.error('Error fetching enumerators:', error);
+      return response || [];
+    },
+    onError: (error: Error) => {
       enqueueSnackbar({
         variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch enumerators'
+        message: error.message || 'Failed to fetch enumerators'
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchEnumerators();
-  }, []);
+  // Memoized analytics calculations
+  const totalUsers = enumerators.length;
+  const activeUsers = enumerators.filter(user => user.status === 'active').length;
+  const inactiveUsers = enumerators.filter(user => user.status === 'disable').length;
+
+  // Mutation for updating enumerator
+  const updateEnumeratorMutation = useMutation({
+    mutationFn: async (data: { id: string; data: EditEnumeratorFormData }) => {
+      await apiController.put(`/enumerator/${data.id}`, data.data);
+    },
+    onSuccess: () => {
+      enqueueSnackbar({
+        variant: 'success',
+        message: 'Enumerator updated successfully'
+      });
+      queryClient.invalidateQueries(['enumerators']);
+    },
+    onError: (error: Error) => {
+      enqueueSnackbar({
+        variant: 'error',
+        message: error.message || 'Failed to update enumerator'
+      });
+    }
+  });
+
+  // Mutation for status change
+  const statusChangeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const enumerator = enumerators.find(e => e._id === id);
+      if (!enumerator) throw new Error('Enumerator not found');
+      
+      const endpoint = enumerator.status === 'active' 
+        ? `/enumerator/deactivate/${id}` 
+        : `/enumerator/activate/${id}`;
+      
+      await apiController.put(endpoint);
+    },
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries(['enumerators']);
+
+      // Snapshot the previous value
+      const previousEnumerators = queryClient.getQueryData<Enumerator[]>(['enumerators']);
+
+      // Optimistically update to the new value
+      if (previousEnumerators) {
+        queryClient.setQueryData<Enumerator[]>(['enumerators'], old => 
+          old?.map(enumerator => 
+            enumerator._id === id 
+              ? { ...enumerator, status: enumerator.status === 'active' ? 'inactive' : 'active' } 
+              : enumerator
+          ) || []
+        );
+      }
+
+      return { previousEnumerators };
+    },
+    onError: (err, id, context) => {
+      // Rollback to the previous value if error occurs
+      if (context?.previousEnumerators) {
+        queryClient.setQueryData(['enumerators'], context.previousEnumerators);
+      }
+      enqueueSnackbar({
+        variant: 'error',
+        message: err instanceof Error ? err.message : 'Failed to update status'
+      });
+    },
+    onSuccess: () => {
+      enqueueSnackbar({
+        variant: 'success',
+        message: 'Enumerator status updated successfully'
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries(['enumerators']);
+    }
+  });
+
+  // Mutation for adding enumerator
+  const addEnumeratorMutation = useMutation({
+    mutationFn: async (data: NewEnumerator) => {
+      const formData = {
+        fullName: data.fullName.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone.trim(),
+        password: data.password.trim()
+      };
+      await apiController.post('/enumerator/register-admin', formData);
+    },
+    onSuccess: () => {
+      enqueueSnackbar({
+        variant: 'success',
+        message: 'Enumerator registered successfully'
+      });
+      setNewEnumerator({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: ''
+      });
+      setOpenAddModal(false);
+      queryClient.invalidateQueries(['enumerators']);
+    },
+    onError: (error: any) => {
+      enqueueSnackbar({
+        variant: 'error',
+        message: error.response?.data?.message || 'Failed to register enumerator'
+      });
+    }
+  });
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, enumerator: Enumerator) => {
+    event.stopPropagation(); // Prevent event bubbling
     setAnchorEl(event.currentTarget);
     setSelectedEnumerator(enumerator);
   };
@@ -146,28 +244,14 @@ const EnumeratorPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      await apiController.put(`/enumerator/${selectedEnumerator._id}`, editFormData);
-      
-      enqueueSnackbar({
-        variant: 'success',
-        message: 'Enumerator updated successfully'
-      });
-      
-      setOpenEditModal(false);
-      setSelectedEnumerator(null);
-      setEditFormData(initialEditFormData);
-      fetchEnumerators();
-    } catch (error) {
-      console.error('Error updating enumerator:', error);
-      enqueueSnackbar({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update enumerator'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    updateEnumeratorMutation.mutate({
+      id: selectedEnumerator._id,
+      data: editFormData
+    });
+    
+    setOpenEditModal(false);
+    setSelectedEnumerator(null);
+    setEditFormData(initialEditFormData);
   };
 
   const handleSuspendClick = () => {
@@ -178,28 +262,13 @@ const EnumeratorPage: React.FC = () => {
   const handleStatusChange = async () => {
     if (!selectedEnumerator?._id) return;
     
-    setIsLoading(true);
     try {
-      const endpoint = selectedEnumerator.status === 'active' 
-      ? `/enumerator/deactivate/${selectedEnumerator._id}` 
-      : `/enumerator/activate/${selectedEnumerator._id}`;
-      
-      await apiController.put(endpoint);
-      enqueueSnackbar({
-        variant: 'success',
-        message: `Enumerator ${selectedEnumerator.status === 'active' ? 'Deactivate' : 'activated'} successfully`
-      });
-      
+      await statusChangeMutation.mutateAsync(selectedEnumerator._id);
       setConfirmDialog(false);
       setSelectedEnumerator(null);
-      fetchEnumerators();
+      // The query will automatically invalidate and refetch due to the mutation settings
     } catch (error) {
-      enqueueSnackbar({
-        variant: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update status'
-      });
-    } finally {
-      setIsLoading(false);
+      // Error is already handled by the mutation
     }
   };
 
@@ -213,138 +282,142 @@ const EnumeratorPage: React.FC = () => {
 
   const handleAddEnumerator = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    addEnumeratorMutation.mutate(newEnumerator);
+  };
 
+  const formatLastLogin = (lastLogin?: string) => {
+    if (!lastLogin) return 'Never';
     try {
-      const formData = {
-        fullName: newEnumerator.fullName.trim(),
-        email: newEnumerator.email.trim().toLowerCase(),
-        phone: newEnumerator.phone.trim(),
-        password: newEnumerator.password.trim()
-      };
-
-      console.log('Sending registration data:', formData);
-      const response = await apiController.post('/enumerator/register-admin', formData);
-      console.log('Registration response:', response);
-
-      enqueueSnackbar({
-        variant: 'success',
-        message: 'Enumerator registered successfully'
-      });
-
-      // Reset form and close modal
-      setNewEnumerator({
-        fullName: '',
-        email: '',
-        phone: '',
-        password: ''
-      });
-      setOpenAddModal(false);
-      
-      // Refresh enumerators list
-      fetchEnumerators();
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      enqueueSnackbar({
-        variant: 'error',
-        message: error.response?.data?.message || 'Failed to register enumerator'
-      });
-    } finally {
-      setIsLoading(false);
+      const date = parseISO(lastLogin);
+      if (!isValid(date)) return 'Never';
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return 'Never';
     }
   };
 
+  const columns = [
+    columnHelper.accessor('fullName', {
+      header: 'Full Name',
+    }),
+    columnHelper.accessor('email', {
+      header: 'Email',
+    }),
+    columnHelper.accessor('phone', {
+      header: 'Phone',
+    }),
+    columnHelper.accessor('status', {
+      header: 'Status',
+      cell: info => (
+        <Chip
+          label={info.getValue()}
+          size="small"
+          sx={{
+            bgcolor: info.getValue() === 'active' ? '#dcfce7' : '#fee2e2',
+            color: info.getValue() === 'active' ? '#16a34a' : '#dc2626',
+            textTransform: 'capitalize',
+          }}
+        />
+      ),
+    }),
+    columnHelper.accessor(row => row.lastLogin, {
+      id: 'lastLogin',
+      header: 'Last Login',
+      cell: info => formatLastLogin(info.getValue()),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <IconButton 
+          size="small"
+          onClick={(e) => handleMenuOpen(e, row.original)}
+        >
+          <MoreVert />
+        </IconButton>
+      ),
+    }),
+  ];
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
           Enumerators
         </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
+          sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
           onClick={() => setOpenAddModal(true)}
-          sx={{ 
-            bgcolor: '#25306B', 
-            '&:hover': { bgcolor: '#1a1f4b' }
-          }}
         >
           Add Enumerator
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ bgcolor: '#1a237e' }}>
-            <TableRow>
-              <TableCell sx={{ color: 'white' }}>S/N</TableCell>
-              <TableCell sx={{ color: 'white' }}>Full Name</TableCell>
-              <TableCell sx={{ color: 'white' }}>Email</TableCell>
-              <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-              <TableCell sx={{ color: 'white' }}>Status</TableCell>
-              <TableCell sx={{ color: 'white' }}>Last Login</TableCell>
-              <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                  <CircularProgress size={40} />
-                </TableCell>
-              </TableRow>
-            ) : enumerators.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
-                  No enumerators found
-                </TableCell>
-              </TableRow>
-            ) : (
-              enumerators.map((enumerator, index) => (
-                <TableRow key={enumerator._id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{enumerator.fullName}</TableCell>
-                  <TableCell>{enumerator.email}</TableCell>
-                  <TableCell>{enumerator.phone}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={enumerator.status}
-                      size="small"
-                      sx={{
-                        bgcolor: enumerator.status === 'active' ? '#dcfce7' : '#fee2e2',
-                        color: enumerator.status === 'active' ? '#16a34a' : '#dc2626',
-                        textTransform: 'capitalize',
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{formatLastLogin(enumerator.lastLogin || '')}</TableCell>
-                  <TableCell>
-                    <IconButton 
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, enumerator)}
-                    >
-                      <MoreVert />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* Analytics Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={4}>
+          <StatsCard
+        title="Total Enumerators"
+        value={totalUsers}
+        icon={<PersonAdd />}
+        iconColor="#3f51b5"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <StatsCard
+        title="Active Enumerators"
+        value={activeUsers}
+        icon={<PersonAdd />}
+        iconColor="#4caf50"
+          />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <StatsCard
+        title="Inactive Enumerators"
+        value={inactiveUsers}
+        icon={<PersonAdd />}
+        iconColor="#f44336"
+          />
+        </Grid>
+      </Grid>
 
+      {/* DataTable */}
+      <DataTable
+        columns={columns}
+        data={enumerators}
+        isLoading={isLoading}
+        // onRowClick={(enumerator) => {
+        //   // Navigate to enumerator detail page
+        //   navigate(`/enumerators/${enumerator._id}`);
+        // }}
+        // viewButtonText="View Details"
+      />
       {/* Action Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: '8px',
+            marginLeft: '91%',
+            marginTop: '35%',
+            '& .MuiMenuItem-root': {
+              fontSize: '0.875rem',
+              padding: '8px 16px',
+            },
+          },
+        }}
       >
         <MenuItem onClick={handleSuspendClick}>
           {selectedEnumerator?.status === 'active' ? 'Deactivate' : 'Activate'}
         </MenuItem>
         <MenuItem onClick={handleEditClick}>Edit</MenuItem>
       </Menu>
-
+      
       {/* Edit Modal */}
       <Modal
         open={openEditModal}
@@ -402,17 +475,17 @@ const EnumeratorPage: React.FC = () => {
                 <Button 
                   variant="outlined" 
                   onClick={() => setOpenEditModal(false)}
-                  disabled={isLoading}
+                  disabled={updateEnumeratorMutation.isLoading}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   variant="contained"
-                  disabled={isLoading}
+                  disabled={updateEnumeratorMutation.isLoading}
                   sx={{ bgcolor: '#25306B', '&:hover': { bgcolor: '#1a1f4b' } }}
                 >
-                  {isLoading ? (
+                  {updateEnumeratorMutation.isLoading ? (
                     <CircularProgress size={24} color="inherit" />
                   ) : (
                     'Save Changes'
@@ -432,7 +505,7 @@ const EnumeratorPage: React.FC = () => {
         <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {selectedEnumerator?.status === 'active' ? 'suspend' : 'activate'} this enumerator?
+            Are you sure you want to {selectedEnumerator?.status === 'active' ? 'deactivate' : 'activate'} this enumerator?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -441,9 +514,9 @@ const EnumeratorPage: React.FC = () => {
             onClick={handleStatusChange} 
             color="primary" 
             variant="contained"
-            disabled={isLoading}
+            disabled={statusChangeMutation.isLoading}
           >
-            {isLoading ? (
+            {statusChangeMutation.isLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
               'Confirm'
@@ -528,14 +601,14 @@ const EnumeratorPage: React.FC = () => {
           <DialogActions sx={{ px: 3, pb: 3 }}>
             <Button 
               onClick={() => setOpenAddModal(false)}
-              disabled={isLoading}
+              disabled={addEnumeratorMutation.isLoading}
             >
               Cancel
             </Button>
             <Button 
               type="submit"
               variant="contained"
-              disabled={isLoading || 
+              disabled={addEnumeratorMutation.isLoading || 
                 !newEnumerator.fullName.trim() ||
                 !newEnumerator.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) ||
                 !newEnumerator.phone.trim() ||
@@ -546,7 +619,7 @@ const EnumeratorPage: React.FC = () => {
                 '&:hover': { bgcolor: '#1a1f4b' }
               }}
             >
-              {isLoading ? <CircularProgress size={24} /> : 'Register'}
+              {addEnumeratorMutation.isLoading ? <CircularProgress size={24} /> : 'Register'}
             </Button>
           </DialogActions>
         </form>
@@ -554,5 +627,37 @@ const EnumeratorPage: React.FC = () => {
     </Box>
   );
 };
+
+interface StatsCardProps {
+  title: string;
+  value: string | number | undefined;
+  icon: React.ReactElement;
+  iconColor: string;
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) => (
+  <Card sx={{ flex: 1, p: 2, borderRadius: 2 }}>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+      {title}
+    </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="h4" sx={{ fontWeight: 600 }}>
+        {value}
+      </Typography>
+      <Box
+        sx={{
+          bgcolor: `${iconColor}15`,
+          p: 1,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {React.cloneElement(icon, { sx: { color: iconColor } })}
+      </Box>
+    </Box>
+  </Card>
+);
 
 export default EnumeratorPage;
