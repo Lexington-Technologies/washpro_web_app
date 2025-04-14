@@ -43,6 +43,8 @@ import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
 import { useModalStore } from '../store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiController } from '../axios';
+import { Crop } from 'lucide-react';
+import { CropFreeRounded } from '@mui/icons-material';
 
 // Message interface (aligned with mongoose schema)
 interface Message {
@@ -907,7 +909,7 @@ const AIChatModal: React.FC = () => {
                   </Zoom>
                 ) : (
                   <Zoom in={!isMaximized} timeout={300}>
-                    <MoreVertIcon fontSize="small" />
+                    <CropFreeRounded fontSize="small" />
                   </Zoom>
                 )}
               </IconButton>

@@ -34,7 +34,7 @@ interface DumpSite {
     type: string;
     coordinates: [number, number, number];
   };
-  publicSpace: string;
+  spaceType: string;
   _id: string;
   picture: string;
   ward: string;
@@ -172,15 +172,15 @@ const DumpSiteDetails: React.FC = () => {
             </Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Chip
+            {/* <Chip
               variant="outlined"
               label={dumpSite.status || 'Not specified'}
               color={dumpSite.status === 'Improved' ? 'success' : 'error'}
-            />
+            /> */}
             <Chip
               variant="outlined"
               label={dumpSite.condition || 'Not specified'}
-              color={dumpSite.condition === 'Maintained' ? 'success' : 'error'}
+              color={dumpSite.condition === 'Foul smelling' ? 'success' : 'error'}
             />
           </Stack>
         </Stack>
@@ -268,17 +268,7 @@ const OverviewTab = ({ dumpSite, position, onImageClick }: {
             <DetailItem icon={MapPin} label="Location" value={`${dumpSite.hamlet || 'Not specified'}, ${dumpSite.village || 'Not specified'}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={dumpSite.publicSpace || 'Not specified'} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={RiDeleteBin6Line} label="Status" value={dumpSite.status || 'Not specified'} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={MdOutlineCleaningServices} label="Condition" value={dumpSite.condition || 'Not specified'} />
+            <DetailItem icon={Home} label="Public Space" value={dumpSite.spaceType || 'Not specified'} />
           </Grid>
         </Grid>
 

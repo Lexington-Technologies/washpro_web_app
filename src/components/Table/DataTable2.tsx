@@ -30,7 +30,6 @@ import {
   ArrowDownward,
 } from '@mui/icons-material';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 interface DataTableProps<T extends object> {
   data: T[];

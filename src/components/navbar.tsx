@@ -52,7 +52,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          minHeight: { xs: "56px !important", md: "100px !important" },
+          minHeight: { xs: "56px !important", md: "90px !important" },
           px: { xs: 1, md: 3 },
         }}
       >
@@ -65,7 +65,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               onClick={onMenuClick}
               sx={{ color: "white" }}
             >
-              <MenuIcon sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }} />
+              <MenuIcon sx={{ fontSize: { xs: "2rem", md: "2rem" } }} />
             </IconButton>
           )}
 

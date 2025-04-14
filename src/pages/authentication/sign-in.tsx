@@ -63,6 +63,7 @@ const SignInPage: FC = function () {
       );
 
       logIn(response.user, response.token, response.refreshToken);
+      enqueueSnackbar("Login successful!", { variant: "success", autoHideDuration: 1000 });
       navigate("/");
     } catch (error) {
       enqueueSnackbar({
@@ -107,7 +108,8 @@ const SignInPage: FC = function () {
             </Typography>
           </Box>
           {/* Decorative Elements */}
-          <img
+          <Box
+          component="img"
             src={Polygon2}
             alt="Polygon"
             style={{
@@ -119,7 +121,8 @@ const SignInPage: FC = function () {
               opacity: 0.5,
             }}
           />
-          <img
+          <Box
+          component="img"
             src={Ellipse2}
             alt="Ellipse"
             style={{
@@ -131,7 +134,8 @@ const SignInPage: FC = function () {
               opacity: 0.5,
             }}
           />
-          <img
+          <Box
+          component="img"
             src={Polygon}
             alt="Polygon"
             style={{
@@ -143,7 +147,8 @@ const SignInPage: FC = function () {
               opacity: 0.5,
             }}
           />
-          <img
+          <Box
+          component="img"
             src={Rectangle}
             alt="Rectangle"
             style={{
@@ -155,7 +160,8 @@ const SignInPage: FC = function () {
               opacity: 0.5,
             }}
           />
-          <img
+          <Box
+          component="img"
             src={Ellipse}
             alt="Ellipse"
             style={{
@@ -195,7 +201,8 @@ const SignInPage: FC = function () {
         >
           {/* Logo and Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
-            <img
+            <Box
+            component="img"
               src={Logo}
               alt="Logo"
               style={{ width: isMobile ? "50%" : "60%" }}
@@ -251,9 +258,22 @@ const SignInPage: FC = function () {
               variant="contained"
               fullWidth
               disabled={isSubmitting}
-              startIcon={isSubmitting && <CircularProgress size={20} />}
+              sx={{ 
+                borderRadius: 2,
+                height: 48,
+                bgcolor: "#25306B",
+                "&:hover": { bgcolor: "#1a1f4b" },
+                position: "relative"
+              }}
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? (
+                <>
+                  <CircularProgress size={24} color="inherit" sx={{ position: "absolute" }} />
+                  <span style={{ visibility: "hidden" }}>Submit</span>
+                </>
+              ) : (
+                "Submit"
+              )}
             </Button>
           </Box>
         </form>

@@ -1,105 +1,115 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
 import {
   Avatar,
   Box,
   Card,
+  CardContent,
   Chip,
   CircularProgress,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
-  Typography
-} from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import { createColumnHelper } from '@tanstack/react-table';
-import { useState, useMemo } from 'react';
-import { GiBrickWall, GiRiver, GiSpill, GiSplashyStream } from 'react-icons/gi';
-import { apiController } from '../../axios';
-import { DataTable } from '../../components/Table/DataTable';
+  Typography,
+} from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useState } from "react";
+import { FaDumpster } from "react-icons/fa";
+import { IoWarning } from "react-icons/io5";
+import { apiController } from "../../axios";
+import { DataTable } from "../../components/Table/DataTable";
 
-// Add Gutter interface
-interface Gutter {
+interface DumpSite {
   _id: string;
   picture: string;
   ward: string;
   village: string;
   hamlet: string;
+  fencing: string;
+  spaceType: string;
+  type: string;
   geolocation: {
     type: string;
-    coordinates: number[];
+    coordinates: [number, number, number];
   };
-  type: string;
   condition: string;
   status: string;
-  dischargePoint: string;
-  createdBy: string;
+  safetyRisk: string;
+  evacuationSchedule: string;
+  lastEvacuationDate: string;
+  nextScheduledEvacuation: string;
   publicSpace: string;
   capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
-// Add column helper and column definitions
-const columnHelper = createColumnHelper<Gutter>();
+const columnHelper = createColumnHelper<DumpSite>();
 
 const columns = [
-  columnHelper.accessor('picture', {
-    header: 'Picture',
-    cell: props => (
+  columnHelper.accessor("picture", {
+    header: "Picture",
+    cell: (props) => (
       <Avatar
         src={props.getValue()}
-        alt="gutter"
+        alt="Dump Site"
         sx={{
-          borderRadius: '100%', // Make avatar round
+          borderRadius: "100%",
         }}
       />
     ),
   }),
-  columnHelper.accessor('ward', {
-    header: 'Ward',
-    cell: info => info.getValue(),
+  columnHelper.accessor("ward", {
+    cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('village', {
-    header: 'Village',
-    cell: info => info.getValue(),
+  columnHelper.accessor("village", {
+    cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('hamlet', {
-    header: 'Hamlet',
-    cell: info => info.getValue(),
+  columnHelper.accessor("hamlet", {
+    cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('publicSpace', {
-    header: 'Categories',
-    cell: info => info.getValue(),
+  columnHelper.accessor("spaceType", {
+    header: "Categories",
+    cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('type', {
-    header: 'Tags',
-    cell: info => {
+  columnHelper.accessor("type", {
+    header: "Tags",
+    cell: (info) => {
       return (
         <Stack direction="row" spacing={1} alignItems="center">
           <Chip
-            variant='outlined'
-            label={info.row.original.condition}
-            color={info.row.original.condition === 'Good' ? 'success' : info.row.original.condition === 'Poor' ? 'error' : 'warning'}
+            variant="outlined"
+            label={info.row.original.evacuationSchedule}
+            color={
+              info.row.original.evacuationSchedule === "None"
+                ? "success"
+                : "info"
+            }
           />
           <Chip
-            variant='outlined'
-            label={info.row.original.status}
-            color={info.row.original.status === 'Maintained' ? 'success' : 'warning'}
+            variant="outlined"
+            label={info.row.original.fencing}
+            color={info.row.original.fencing === "close" ? "warning" : "error"}
           />
         </Stack>
-      )
+      );
     },
   }),
 ];
 
-// Define FilterDropdown component before using it
 const FilterDropdown = ({ label, value, options, onChange }) => (
   <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
     <InputLabel>{label}</InputLabel>
-    <Select value={value} onChange={(e) => onChange(e.target.value)} label={label} sx={{ height: 45 }}>
-      <MenuItem value="">All {label}</MenuItem>
+    <Select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      label={label}
+      sx={{ height: 45 }}
+    >
+      <MenuItem value="">{`All ${label}`}</MenuItem>
       {options.map((option, index) => (
         <MenuItem key={index} value={option}>
           {option}
@@ -109,206 +119,165 @@ const FilterDropdown = ({ label, value, options, onChange }) => (
   </FormControl>
 );
 
-const GutterDashboard = () => {
-  // Add state management
+const DumpSites = () => {
+  // State for pagination and search (used for API fetching)
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
-  const [ward, setWard] = useState('');
-  const [village, setVillage] = useState('');
-  const [hamlet, setHamlet] = useState('');
+  const [search, setSearch] = useState("");
 
-  // Add query hook
-  const { data: gutters, isLoading } = useQuery<Gutter[], Error>({
-    queryKey: ['gutters', { limit, page, search }],
-    queryFn: () => apiController.get<Gutter[]>(`/gutters?limit=${limit}&page=${page}&search=${search}`),
+  // Dummy filter UI states (now static; selections do not affect the displayed data)
+  const [ward, setWard] = useState("All");
+  const [village, setVillage] = useState("All");
+  const [hamlet, setHamlet] = useState("All");
+
+  const { data, isLoading } = useQuery<DumpSite[], Error>({
+    queryKey: ["dump-sites", { limit, page, search }],
+    queryFn: () =>
+      apiController.get<DumpSite[]>(
+        `/dump-sites?limit=${limit}&page=${page}&search=${search}`
+      ),
   });
 
-  // Generate filter options
-  const wardOptions = useMemo(() => {
-    if (!gutters) return [];
-    return [...new Set(gutters.map(item => item.ward))];
-  }, [gutters]);
+  // Instead of computing filter options from data, we use dummy static options
+  const dummyOptions = ["All"];
 
-  const villageOptions = useMemo(() => {
-    if (!gutters) return [];
-    const filteredVillages = gutters
-      .filter(item => !ward || item.ward === ward)
-      .map(item => item.village);
-    return [...new Set(filteredVillages)];
-  }, [gutters, ward]);
+  // Use the full dataset for display (no filtering is applied)
+  const displayedData = data || [];
 
-  const hamletOptions = useMemo(() => {
-    if (!gutters) return [];
-    const filteredHamlets = gutters
-      .filter(item => (!ward || item.ward === ward) && (!village || item.village === village))
-      .map(item => item.hamlet);
-    return [...new Set(filteredHamlets)];
-  }, [gutters, ward, village]);
-
-  // Filtered data
-  const filteredData = useMemo(() => {
-    if (!gutters) return [];
-    return gutters.filter(item =>
-      (!ward || item.ward === ward) &&
-      (!village || item.village === village) &&
-      (!hamlet || item.hamlet === hamlet) &&
-      (!search ||
-        item.ward.toLowerCase().includes(search.toLowerCase()) ||
-        item.village.toLowerCase().includes(search.toLowerCase()) ||
-        item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
-        item.publicSpace.toLowerCase().includes(search.toLowerCase())
-      )
-    );
-
-
-  }, [gutters, ward, village, hamlet, search]);
-
-  // Fixed countByProperty function
-  const countByProperty = <T,>(
-    data: T[] | undefined,
-    property: keyof T,
-    value: T[keyof T]
-  ): number => {
-    return data?.filter(item => item[property] !== undefined && item[property] === value).length.toLocaleString() || 0;
-  };
+  // Dummy metric card values (can be replaced with real values when needed)
+  const metricCards = [
+    {
+      title: "Total Dump Site",
+      value: displayedData.length.toLocaleString(),
+      icon: <FaDumpster style={{ fontSize: "1.8rem", color: "#00B4D8" }} />,
+      bgColor: "#e3f2fd",
+    },
+    {
+      title: "Maintained",
+      value: "0",
+      icon: <CheckCircleIcon sx={{ fontSize: "1.8rem", color: "#16A34A" }} />,
+      bgColor: "#e8f5e9",
+    },
+    {
+      title: "Unmaintained",
+      value: "0",
+      icon: <IoWarning style={{ fontSize: "1.8rem", color: "#EAB308" }} />,
+      bgColor: "#ffebee",
+    },
+    {
+      title: "Overfilled",
+      value: "0",
+      icon: <ErrorIcon sx={{ fontSize: "1.8rem", color: "#D32F2F" }} />,
+      bgColor: "#fffde7",
+    },
+  ];
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <CircularProgress size={60} thickness={4} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+    <Box sx={{ backgroundColor: "#f0f0f0", minHeight: "100vh", p: 3 }}>
+      {/* Header Section */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+          flexDirection: { xs: "column", sm: "row" },
+        }}
+      >
         <Box>
-          <Typography variant="h5" sx={{ color: '#2C3E50', fontWeight: 600, mb: 0.5 }}>
-            Gutters
+          <Typography variant="h5" sx={{ fontWeight: "bold", color: "#25306B" }}>
+            Dump Sites
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" sx={{ color: "#666" }}>
             Detailed insights about your selected location
           </Typography>
         </Box>
         <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
-            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
-            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
-            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+            {/* Filter UI stays for display purposes only */}
+            <FilterDropdown label="Ward" value={ward} options={dummyOptions} onChange={setWard} />
+            <FilterDropdown label="Village" value={village} options={dummyOptions} onChange={setVillage} />
+            <FilterDropdown label="Hamlet" value={hamlet} options={dummyOptions} onChange={setHamlet} />
           </Stack>
         </Box>
       </Box>
 
-      {/* Stats Cards */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        {/* Total Site Card */}
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Total Gutters</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>{filteredData.length.toLocaleString()}</Typography>
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#E0F2FE',
-              p: 1.5,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <GiRiver style={{ color: '#3B82F6', fontSize: '2rem' }} />
-          </Box>
-        </Card>
+      {/* Metric Cards UI (static dummy values) */}
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
+        {metricCards.map((card, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <Card
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                p: 2,
+                borderRadius: 2,
+                bgcolor: "#fff",
+              }}
+            >
+              <Box>
+                <Typography variant="body2" sx={{ color: "#666" }}>
+                  {card.title}
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: "bold", color: "#25306B" }}>
+                  {card.value}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: card.bgColor,
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                }}
+              >
+                {card.icon}
+              </Box>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
-        {/* Maintained Card */}
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Constructed with Block</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#4CAF50' }}>
-              {countByProperty(filteredData, 'type', 'Constructed with Block')}
+      {/* Table Section */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              Dump Site Overview
             </Typography>
           </Box>
-          <Box
-            sx={{
-              bgcolor: '#E8F5E9',
-              p: 1.5,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <GiBrickWall style={{ color: '#4CAF50', fontSize: '2rem' }} />
-          </Box>
-        </Card>
-
-        {/* Overfilled Card */}
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Locally Dug</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#EF4444' }}>
-              {countByProperty(filteredData, 'type', 'Locally Dug')}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#FEE2E2',
-              p: 1.5,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <GiSplashyStream style={{ color: '#EF4444', fontSize: '2rem' }} />
-          </Box>
-        </Card>
-
-        {/* Unmaintained Card */}
-        <Card sx={{ flex: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 2 }}>
-          <Box>
-            <Typography color="text.secondary">Surfaced Gutter</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#F59E0B' }}>
-              {countByProperty(filteredData, 'type', 'Surface Gutter')}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              bgcolor: '#FEF3C7',
-              p: 1.5,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <GiSpill style={{ color: '#F59E0B', fontSize: '2rem' }} />
-          </Box>
-        </Card>
-      </Box>
-
-      {/* Maintenance Table */}
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Gutter Overview
-          </Typography>
-        </Box>
-
-        <DataTable
-          setSearch={setSearch}
-          setPage={setPage}
-          setLimit={setLimit}
-          isLoading={isLoading}
-          columns={columns}
-          data={filteredData || []}
-        />
-      </Paper>
+          <DataTable
+            setSearch={setSearch}
+            setPage={setPage}
+            setLimit={setLimit}
+            isLoading={isLoading}
+            columns={columns}
+            data={displayedData}
+          />
+        </CardContent>
+      </Card>
     </Box>
   );
 };
 
-export default GutterDashboard;
+export default DumpSites;

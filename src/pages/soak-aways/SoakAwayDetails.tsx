@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Compass, Home, MapPin, Waves, X, ZoomIn, User, Phone, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Compass, Home, MapPin, X, ZoomIn, User, Phone, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { AiOutlineAlert } from "react-icons/ai";
 import { BsBricks } from 'react-icons/bs';
@@ -34,7 +34,7 @@ interface SoakAway {
     type: string;
     coordinates: [number, number, number];
   };
-  publicSpace: string;
+  spaceType: string;
   _id: string;
   picture: string;
   ward: string;
@@ -43,10 +43,11 @@ interface SoakAway {
   space: string;
   condition: string;
   status: string;
-  evacuationStatus: string,
+  evacuationScheduled: string,
+  maintenanceStatus: string;
   daysSinceLastEvacuation: number;
   evacuationFrequency: string;
-  safetyRisk: string;
+  soakEvacuation: string;
   createdBy: string;
   capturedAt: string;
   __v: number;
@@ -164,7 +165,7 @@ const SoakAwayDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {"SoakAway"}
+                {"SoakAway Details"}
               </Typography>
               <Typography color="text.secondary">
                 {soakAway.ward || 'Not specified'}, {soakAway.village || 'Not specified'}
@@ -174,9 +175,9 @@ const SoakAwayDetails: React.FC = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
             variant="outlined"
-              label={soakAway.status || 'Not specified'}
-              color={soakAway.status === 'Maintained' ? 'success' : 'error'}
-            />
+              label={soakAway.maintenanceStatus || 'Not specified'}
+              color={soakAway.maintenanceStatus === 'Overdue' ? 'warning' : 'success'}
+              />
             <Chip
             variant="outlined"
               label={soakAway.condition || 'Not specified'}
@@ -268,7 +269,7 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
             <DetailItem icon={MapPin} label="Location" value={`${soakAway.hamlet || 'Not specified'}, ${soakAway.village || 'Not specified'}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Home} label="Category" value={soakAway.publicSpace || 'Not specified'} />
+            <DetailItem icon={Home} label="Category" value={soakAway.spaceType || 'Not specified'} />
           </Grid>
         </Grid>
 
@@ -278,17 +279,17 @@ const OverviewTab = ({ soakAway, position, onImageClick }: {
             <DetailItem icon={MdOutlinePropaneTank} label="Condition" value={soakAway.condition || 'Not specified'} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={BsBricks} label="Status" value={soakAway.status || 'Not specified'} />
+            <DetailItem icon={BsBricks} label="Status" value={soakAway.maintenanceStatus || 'Not specified'} />
           </Grid>
         </Grid>
 
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={GiSplashyStream} label="Evacuation Status" value={soakAway.evacuationStatus || 'Not specified'} />
+            <DetailItem icon={GiSplashyStream} label="Evacuation Status" value={soakAway.evacuationScheduled || 'Not specified'} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={AiOutlineAlert} label="Safety Risk" value={soakAway.safetyRisk || 'Not specified'} />
+            <DetailItem icon={AiOutlineAlert} label="SoakAway Evacuation Point" value={soakAway.soakEvacuation || 'Not specified'} />
           </Grid>
         </Grid>
 

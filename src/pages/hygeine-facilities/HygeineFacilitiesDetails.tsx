@@ -1,7 +1,6 @@
 import {
   Alert,
   Box,
-  capitalize,
   Chip,
   CircularProgress,
   Container,
@@ -20,14 +19,10 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, Calendar, Compass, Home, MapPin, Toilet, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Compass, Home, MapPin, Toilet, User, X, ZoomIn } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { FaChartSimple } from 'react-icons/fa6';
-import { FiAlertOctagon } from "react-icons/fi";
-import { GiSpill } from "react-icons/gi";
-import { MdCleaningServices, MdOutlineWash } from 'react-icons/md';
-import { RiDoorLine } from 'react-icons/ri';
-import { data, useNavigate, useParams } from 'react-router-dom';
+import { MdOutlineWash } from 'react-icons/md';
+import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { Email, Phone } from '@mui/icons-material';
@@ -200,13 +195,8 @@ const HygeineFacilitiesDetails: React.FC = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
               variant="outlined"
-              label={hygieneFacility.status}
-              color={hygieneFacility.status === 'Improved' ? 'success' : 'error'}
-            />
-            <Chip
-              variant="outlined"
-              label={hygieneFacility.condition}
-              color={hygieneFacility.condition === 'Maintained' ? 'success' : 'warning'}
+              label={hygieneFacility.type}
+              color={hygieneFacility.type === 'default' ? 'secondary' : 'default'}
             />
           </Stack>
         </Stack>

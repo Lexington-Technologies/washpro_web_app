@@ -22,7 +22,6 @@ import { ArrowLeft, Calendar, Compass, Home, MapPin, User, X, ZoomIn, Phone, Use
 import React, { useState } from 'react';
 import { GiJapaneseBridge, GiSplashyStream } from 'react-icons/gi';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import { MdOutlineCleaningServices } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
@@ -33,11 +32,12 @@ interface Gutter {
     type: string;
     coordinates: [number, number, number];
   };
-  publicSpace: string;
+  spaceType: string;
   _id: string;
   picture: string;
   ward: string;
   village: string;
+  unmaintainedReasons: string;  
   hamlet: string;
   type: string;
   condition: string;
@@ -160,7 +160,7 @@ const GutterDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {"Gutter"}
+                {"Gutter Details"} 
               </Typography>
               <Typography color="text.secondary">
                 {gutter.ward || 'Not specified'}, {gutter.village || 'Not specified'}
@@ -170,9 +170,9 @@ const GutterDetails: React.FC = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Chip
             variant='outlined'
-              label={gutter.status || 'Not specified'}
-              color={gutter.status === 'Maintained' ? 'success' : gutter.status === 'Error' ? 'error' : 'warning'}
-            />
+              label={gutter.unmaintainedReasons || 'Not specified'}
+              color={gutter.unmaintainedReasons  === 'Overfilled' ? 'success' : 'warning'}
+              />
             <Chip
             variant='outlined'
               label={gutter.condition || 'Not specified'}
@@ -264,7 +264,7 @@ const OverviewTab = ({ gutter, position, onImageClick }: {
             <DetailItem icon={MapPin} label="Location" value={`${gutter.hamlet || 'Not specified'}, ${gutter.village || 'Not specified'}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={gutter.publicSpace || 'Not specified'} />
+            <DetailItem icon={Home} label="Public Space" value={gutter.spaceType || 'Not specified'} />
           </Grid>
         </Grid>
 
@@ -280,22 +280,15 @@ const OverviewTab = ({ gutter, position, onImageClick }: {
 
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={MdOutlineCleaningServices} label="Maintenance Status" value={gutter.status || 'Not specified'} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={GiSplashyStream} label="Discharge Point" value={gutter.dischargePoint || 'Not specified'} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
+        <Grid item xs={6}>
             <DetailItem
               icon={Calendar}
               label="Last Updated"
               value={format(new Date(gutter.updatedAt), 'PPP')}
             />
+          </Grid>
+          <Grid item xs={6}>
+            <DetailItem icon={GiSplashyStream} label="Discharge Point" value={gutter.discharge || 'Not specified'} />
           </Grid>
         </Grid>
       </Box>
@@ -443,7 +436,7 @@ const ContactPersonTab = ({ contactPerson }: { contactPerson: any }) => (
           </IconButton>
         </Box>
       ) : (
-        " "
+        "No image available"
       )}
     </Grid>
   </Grid>

@@ -10,7 +10,6 @@ import {
   People,
   Report,
   Schedule,
-  SmartToy,
   WaterDropOutlined,
   Waves,
   WarningAmber,
@@ -33,9 +32,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import {
-  FaCity,
   FaPoop,
-  FaSchool,
   FaToilet,
   FaUserCog,
   FaServicestack,
@@ -43,11 +40,9 @@ import {
 import { GiHazardSign, GiWaterRecycling } from "react-icons/gi";
 import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Hospital } from "lucide-react";
 import { Logo } from "../assets/svg";
 import { BsFillShieldLockFill, BsWater } from "react-icons/bs";
-import { RiHealthBookFill, RiPlantLine } from "react-icons/ri";
-import { FaHouse } from "react-icons/fa6";
+import { RiHealthBookFill } from "react-icons/ri";
 import { useAuthStore } from "../store";
 
 interface SideBarProps {
@@ -181,14 +176,6 @@ const SideBar = ({
       path: "/knowledge-base",
       title: "Knowledge Base",
     },
-  ];
-
-  // Wash submenu items
-  const washSubItems = [
-    { text: "HouseHold", icon: <FaHouse />, path: "/household", title: "HouseHold" },
-    { text: "School", icon: <FaSchool />, path: "/school", title: "School" },
-    { text: "Health Facilities", icon: <Hospital />, path: "/health-facilities", title: "Health Facilities" },
-    { text: "Tsangaya", icon: <FaCity />, path: "/tsangaya", title: "Tsangaya" },
   ];
 
   // Waste submenu items
@@ -377,7 +364,8 @@ const SideBar = ({
         }}
       >
         <Link to="/">
-          <img
+          <Box
+          component='img'
             src={Logo}
             alt="Logo"
             style={{
@@ -446,13 +434,13 @@ const SideBar = ({
             </div>
           ))}
           {/* Waste Dropdown */}
-          {/* {renderDropdown(
+          {renderDropdown(
             "Waste Management",
             openWaste,
             setOpenWaste,
             wasteSubItems,
             <GiHazardSign style={{ fontSize: 24 }} />
-          )} */}
+          )} 
           {/* Users Dropdown */}
           {renderDropdown(
             "Accounts",

@@ -14,18 +14,17 @@ import {
   Typography,
   Card,
   CardContent,
-  Chip,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Compass, Home, MapPin, X, ZoomIn, User, Phone, Users } from 'lucide-react';
 import React, { useState } from 'react';
-import { IoCameraOutline, IoFootstepsOutline, IoMapOutline, IoTimeOutline, IoTodayOutline } from 'react-icons/io5';
+import { IoFootstepsOutline, IoMapOutline, IoTimeOutline, IoTodayOutline } from 'react-icons/io5';
 import { PiUsersFour } from 'react-icons/pi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
-import { Email } from '@mui/icons-material';
+import { DensityMediumTwoTone, Email } from '@mui/icons-material';
 
 // Define types for the open defecation site
 interface OpenDefication {
@@ -33,7 +32,7 @@ interface OpenDefication {
     type: string;
     coordinates: [number, number, number];
   };
-  publicSpace: string;
+  spaceType: string;
   _id: string;
   picture: string;
   ward: string;
@@ -42,8 +41,8 @@ interface OpenDefication {
   footTraffic: string;
   peakTime: string;
   demographics: string;
-  environmentalCharacteristics: string;
-  dailyAverage: string;
+  environmentalSpaceType: string;
+  density: string;
   createdBy: string;
   capturedAt: string;
   __v: number;
@@ -256,14 +255,14 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
             <DetailItem icon={MapPin} label="Location" value={`${openDefication.hamlet}, ${openDefication.village}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={Home} label="Public Space" value={openDefication.publicSpace} />
+            <DetailItem icon={Home} label="Public Space" value={openDefication.spaceType} />
           </Grid>
         </Grid>
 
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={IoMapOutline} label="Environmental Characteristic" value={openDefication.environmentalCharacteristics} />
+            <DetailItem icon={IoMapOutline} label="Environmental Characteristic" value={openDefication.environmentalSpaceType} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={IoFootstepsOutline} label="Foot Traffics" value={openDefication.footTraffic} />
@@ -283,7 +282,7 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={IoTodayOutline} label="Daily Average" value={openDefication.dailyAverage} />
+            <DetailItem icon={DensityMediumTwoTone} label="Density" value={openDefication.density} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem
@@ -354,7 +353,7 @@ const OverviewTab = ({ openDefication, position, onImageClick }: {
           >
             <CustomMarker 
               position={position}
-              tooltip={`${openDefication.publicSpace} - ${openDefication.ward}`}
+              tooltip={`${openDefication.spaceType} - ${openDefication.ward}`}
             />
             <MapCard
               latitude={position.lat}
@@ -494,10 +493,47 @@ const EnumeratorTab = ({ enumerator, onImageClick }: { enumerator: any; onImageC
     </Grid>
   );
 };
+const getIconColor = (label: string): string => {
+  switch (label) {
+    case 'Location':
+    case 'Hamlet':
+      return '#FF5252'; // red
+    case 'Public Space':
+    case 'Village':
+    case 'Ward':
+      return '#2196F3'; // blue
+    case 'Environmental Characteristic':
+      return '#4CAF50'; // green
+    case 'Foot Traffics':
+      return '#FFC107'; // amber
+    case 'Peak Time':
+      return '#9C27B0'; // purple
+    case 'Demographics':
+      return '#FF9800'; // orange
+    case 'Density':
+      return '#795548'; // brown
+    case 'Last Updated':
+    case 'Last Login':
+      return '#607D8B'; // blue grey
+    case 'Contact Person Name':
+    case 'Full Name':
+      return '#E91E63'; // pink
+    case 'Phone Number':
+      return '#00BCD4'; // cyan
+    case 'Email':
+      return '#3F51B5'; // indigo
+    case 'Address':
+      return '#009688'; // teal
+    case 'Population':
+      return '#8BC34A'; // light green
+    default:
+      return '#666666'; // default gray
+  }
+};
 
 const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) => (
   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-    <Icon size={20} style={{ color: '#666', marginTop: 4 }} />
+    <Icon size={20} style={{ color: getIconColor(label), marginTop: 4 }} />
     <Box>
       <Typography variant="body2" color="text.secondary" gutterBottom>
         {label}
@@ -508,5 +544,6 @@ const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; va
     </Box>
   </Box>
 );
+
 
 export default OpenDeficationDetails;

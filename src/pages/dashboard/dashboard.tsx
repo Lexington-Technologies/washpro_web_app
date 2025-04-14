@@ -26,6 +26,33 @@ import { FaHandHoldingDroplet, FaHeartPulse, FaPoop } from 'react-icons/fa6';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { apiController } from '../../axios';
 
+// Utility function for color conversion
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Color palette definition
+const CARD_COLORS = {
+  facility: [
+    { color: '#1A56DB', bgColor: '#E8F2FF' }, // Blue
+    { color: '#7E3AF2', bgColor: '#F3EBFF' }, // Purple
+    { color: '#0E9F6E', bgColor: '#E0F5EF' }, // Emerald
+    { color: '#E74694', bgColor: '#FBE9F4' }, // Pink
+    { color: '#F05D23', bgColor: '#FEF0E9' }, // Orange
+    { color: '#C81E1E', bgColor: '#FCE8E8' }, // Red
+    { color: '#0694A2', bgColor: '#E0F5F6' }, // Teal
+  ],
+  wash: [
+    { color: '#1A56DB', bgColor: '#E8F2FF' }, // Blue
+    { color: '#3F83F8', bgColor: '#EBF3FF' }, // Light Blue
+    { color: '#6574CD', bgColor: '#EEF1FC' }, // Indigo
+    { color: '#0694A2', bgColor: '#E0F5F6' }, // Teal
+  ]
+};
+
 const Dashboard = () => {
   // Fetch data using react-query
   const { data, isLoading, error } = useQuery({
@@ -39,8 +66,6 @@ const Dashboard = () => {
   });
 
   console.log(handWashData);
-
-
 
   // State for filters
   const [ward, setWard] = useState('All');
@@ -119,20 +144,75 @@ const Dashboard = () => {
 
   // Map filtered data to the expected format for cards
   const facilityCards = [
-    { title: 'Total Water Sources', value: filteredData.facilityCards?.find((card) => card.name === 'Total Water Sources')?.count || 0, icon: <FaWater size={20} />, color: '#1976d2', bgColor: '#e3f2fd' },
-    { title: 'Total Toilet Facilities', value: filteredData.facilityCards?.find((card) => card.name === 'Total Toilet Facilities')?.count || 0, icon: <FaToilet size={20} />, color: '#7b1fa2', bgColor: '#f3e5f5' },
-    { title: 'Total Gutters', value: filteredData.facilityCards?.find((card) => card.name === 'Total Gutters')?.count || 0, icon: <FaWater size={20} />, color: '#2e7d32', bgColor: '#c8e6c9' },
-    { title: 'Total Soakaways', value: filteredData.facilityCards?.find((card) => card.name === 'Total Soakaways')?.count || 0, icon: <FaWater size={20} />, color: '#e91e63', bgColor: '#f8bbd0' },
-    { title: 'Total Dumpsites', value: filteredData.facilityCards?.find((card) => card.name === 'Total Dumpsites')?.count || 0, icon: <FaTrash size={20} />, color: '#ed6c02', bgColor: '#ffe0b2' },
-    { title: 'Total Open Defecation Sites', value: filteredData.facilityCards?.find((card) => card.name === 'Total Open Defecation Sites')?.count || 0, icon: <FaPoop size={20} />, color: '#d32f2f', bgColor: '#ffcdd2' },
-    { title: 'Total Handwashing Facilities', value: filteredData.facilityCards?.find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, icon: <FaHandHoldingDroplet size={20} />, color: '#2196F3', bgColor: '#bbdefb' },
+    { 
+      title: 'Total Water Sources', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Water Sources')?.count || 0, 
+      icon: <FaWater size={20} />, 
+      ...CARD_COLORS.facility[0]
+    },
+    { 
+      title: 'Total Toilet Facilities', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Toilet Facilities')?.count || 0, 
+      icon: <FaToilet size={20} />, 
+      ...CARD_COLORS.facility[1]
+    },
+    { 
+      title: 'Total Gutters', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Gutters')?.count || 0, 
+      icon: <FaWater size={20} />, 
+      ...CARD_COLORS.facility[2]
+    },
+    { 
+      title: 'Total Soakaways', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Soakaways')?.count || 0, 
+      icon: <FaWater size={20} />, 
+      ...CARD_COLORS.facility[3]
+    },
+    { 
+      title: 'Total Dumpsites', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Dumpsites')?.count || 0, 
+      icon: <FaTrash size={20} />, 
+      ...CARD_COLORS.facility[4]
+    },
+    { 
+      title: 'Total Open Defecation Sites', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Open Defecation Sites')?.count || 0, 
+      icon: <FaPoop size={20} />, 
+      ...CARD_COLORS.facility[5]
+    },
+    { 
+      title: 'Total Handwashing Facilities', 
+      value: filteredData.facilityCards?.find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, 
+      icon: <FaHandHoldingDroplet size={20} />, 
+      ...CARD_COLORS.facility[6]
+    },
   ];
 
   const washCards = [
-    { title: 'Total Households', value: filteredData.washCards?.find((card) => card.name === 'Total Households')?.count || 0, icon: <FaHome size={20} />, color: '#25306B', bgColor: '#e8eaf6' },
-    { title: 'Total Schools', value: filteredData.washCards?.find((card) => card.name === 'Total Schools')?.count || 0, icon: <FaSchool size={20} />, color: '#25306B', bgColor: '#e8eaf6' },
-    { title: 'Health Facilities', value: filteredData.washCards?.find((card) => card.name === 'Health Facilities')?.count || 0, icon: <FaHeartPulse size={20} />, color: '#25306B', bgColor: '#e8eaf6' },
-    { title: 'Tsangaya', value: filteredData.washCards?.find((card) => card.name === 'Tsangaya')?.count || 0, icon: <FaCity size={20} />, color: '#25306B', bgColor: '#e8eaf6' },
+    { 
+      title: 'Total Households', 
+      value: filteredData.washCards?.find((card) => card.name === 'Total Households')?.count || 0, 
+      icon: <FaHome size={20} />, 
+      ...CARD_COLORS.wash[0]
+    },
+    { 
+      title: 'Total Schools', 
+      value: filteredData.washCards?.find((card) => card.name === 'Total Schools')?.count || 0, 
+      icon: <FaSchool size={20} />, 
+      ...CARD_COLORS.wash[1]
+    },
+    { 
+      title: 'Health Facilities', 
+      value: filteredData.washCards?.find((card) => card.name === 'Health Facilities')?.count || 0, 
+      icon: <FaHeartPulse size={20} />, 
+      ...CARD_COLORS.wash[2]
+    },
+    { 
+      title: 'Tsangaya', 
+      value: filteredData.washCards?.find((card) => card.name === 'Tsangaya')?.count || 0, 
+      icon: <FaCity size={20} />, 
+      ...CARD_COLORS.wash[3]
+    },
   ];
 
   // Water Analytics Data
@@ -231,17 +311,46 @@ const Dashboard = () => {
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {facilityCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ height: '100%', backgroundColor: card.bgColor, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Card sx={{ 
+              height: '100%', 
+              backgroundColor: card.bgColor, 
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)'
+              }
+            }}>
+              <CardContent sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '24px'
+              }}>
                 <Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     {card.title}
                   </Typography>
-                  <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: card.color }}>
+                  <Typography variant="h4" component="div" sx={{ 
+                    fontWeight: 800, 
+                    color: card.color,
+                    letterSpacing: '-0.03em'
+                  }}>
                     {card.value}
                   </Typography>
                 </Box>
-                <Box sx={{ backgroundColor: 'white', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: card.color }}>
+                <Box sx={{ 
+                  backgroundColor: card.color, 
+                  borderRadius: '50%', 
+                  width: 48, 
+                  height: 48, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: 'white',
+                  boxShadow: `0 2px 4px ${hexToRgba(card.color, 0.2)}`
+                }}>
                   {card.icon}
                 </Box>
               </CardContent>
@@ -257,17 +366,46 @@ const Dashboard = () => {
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {washCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ height: '100%', backgroundColor: card.bgColor, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Card sx={{ 
+              height: '100%', 
+              backgroundColor: card.bgColor, 
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)'
+              }
+            }}>
+              <CardContent sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '24px'
+              }}>
                 <Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     {card.title}
                   </Typography>
-                  <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', color: card.color }}>
+                  <Typography variant="h4" component="div" sx={{ 
+                    fontWeight: 800, 
+                    color: card.color,
+                    letterSpacing: '-0.03em'
+                  }}>
                     {card.value}
                   </Typography>
                 </Box>
-                <Box sx={{ backgroundColor: 'white', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: card.color }}>
+                <Box sx={{ 
+                  backgroundColor: card.color, 
+                  borderRadius: '50%', 
+                  width: 48, 
+                  height: 48, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: 'white',
+                  boxShadow: `0 2px 4px ${hexToRgba(card.color, 0.2)}`
+                }}>
                   {card.icon}
                 </Box>
               </CardContent>

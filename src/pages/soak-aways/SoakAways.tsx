@@ -1,36 +1,24 @@
 import {
-  Add as AddIcon,
-  FiberManualRecord as FiberManualRecordIcon,
-  FilterAlt as FilterAltIcon,
-  Remove as RemoveIcon,
   Waves,
 } from '@mui/icons-material';
 import {
   Avatar,
   Box,
-  Button,
   Card,
   Chip,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
   CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useState, useMemo } from 'react';
-import { FaClipboardCheck, FaDownload, FaExclamationTriangle, FaFilter, FaWrench } from 'react-icons/fa';
+import { FaClipboardCheck, FaExclamationTriangle, FaWrench } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 
@@ -41,13 +29,13 @@ interface SoakAway {
   ward: string;
   village: string;
   hamlet: string;
-  publicSpace: string;
+  spaceType: string;
   space: string;
   condition: string;
   status: string;
   daysSinceLastEvacuation: number;
   evacuationFrequency: string;
-  safetyRisk: string;
+  evacuationScheduled: string;
   daysSinceLastMaintenance: number | null;
   daysUntilEvacuation: number | null;
   maintenanceStatus: string;
@@ -89,7 +77,7 @@ const columns = [
     header: 'Hamlet',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('publicSpace', {
+  columnHelper.accessor('spaceType', {
     header: 'Categories',
     cell: info => info.getValue(),
   }),
@@ -101,17 +89,12 @@ const columns = [
           <Chip
             variant='outlined'
             label={info.row.original.condition}
-            color={info.row.original.condition === 'Maintained' ? 'success' : 'error'}
+            color={info.row.original.condition === 'Maintained' ? 'success' : 'warning'}
           />
           <Chip
             variant='outlined'
-            label={info.row.original.status}
-            color={info.row.original.status === 'Unimproved' ? 'warning' : 'success'}
-          />
-          <Chip
-            variant='outlined'
-            label={info.row.original.safetyRisk}
-            color={info.row.original.safetyRisk === 'Fair' ? 'warning' : 'error'}
+            label={info.row.original.maintenanceStatus}
+            color={info.row.original.maintenanceStatus === 'Overdue' ? 'warning' : 'success'}
           />
         </Stack>
       )
@@ -180,7 +163,7 @@ const SoakAways = () => {
         item.ward.toLowerCase().includes(search.toLowerCase()) ||
         item.village.toLowerCase().includes(search.toLowerCase()) ||
         item.hamlet.toLowerCase().includes(search.toLowerCase()) ||
-        item.publicSpace.toLowerCase().includes(search.toLowerCase())
+        item.spaceType.toLowerCase().includes(search.toLowerCase())
       )
     );
     
