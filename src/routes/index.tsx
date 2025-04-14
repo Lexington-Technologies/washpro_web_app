@@ -27,8 +27,8 @@ import LAMReportingDashboard from "../pages/lam/LamReport";
 import WashStatus from "../pages/wash/wash-status/WashStatus";
 import HygeineFacilities from "../pages/hygeine-facilities/HygeineFacilities";
 import HygeineFacilitiesDetails from "../pages/hygeine-facilities/HygeineFacilitiesDetails";
-import Dashboard from "../pages/dashboard/Dashboard";
 import WaterSourceRiskDetails from "../pages/water-source-risk/WaterSourceRiskDetails";
+import Dashboard from "../pages/dashboard/dashboard";
 
 // Lazy load components
 const Wrapper = lazy(() => import("../components/wrapper"));
