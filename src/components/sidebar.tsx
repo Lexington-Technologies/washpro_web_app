@@ -197,7 +197,7 @@ const SideBar = ({
     { text: "Chlorination", icon: <Report />, path: "/chlorination", title: "Chlorination" },
     { text: "Issues Log", icon: <Report />, path: "/issues-log", title: "Issues Log" },
     { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
-    { text: "Lam Report", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "Lam Report" },
+    { text: "LAM Report", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "Lam Report" },
   ];
 
   // Bottom menu items
