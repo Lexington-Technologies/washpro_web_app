@@ -328,7 +328,7 @@ const WaterSourceRisk = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
-            Water Risk Monitoring
+            Water Source Risk
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
             Filtered water sources analysis

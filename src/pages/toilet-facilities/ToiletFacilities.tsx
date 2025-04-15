@@ -1,32 +1,39 @@
 import {
-  Alert,
   Avatar,
   Box,
   Card,
   Chip,
   CircularProgress,
-  Container,
   FormControl,
-  InputLabel,
   Grid,
-  Paper,
-  styled,
-  Typography,
+  InputLabel,
   MenuItem,
+  Paper,
   Select,
   Stack,
+  Typography,
+  styled,
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
-import { useQuery } from '@tanstack/react-query';
+import { BarChart } from '@mui/x-charts/BarChart';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useState, useMemo } from 'react';
-import { FaToilet } from 'react-icons/fa';
-import { GiHole } from "react-icons/gi";
-import { LuToilet } from "react-icons/lu";
-import { PiToiletFill } from "react-icons/pi";
+import { RiWaterFlashFill } from 'react-icons/ri';
+import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const getImageSrc = (url: string) => {
+  return url.startsWith('file://') ? '/fallback-placeholder.jpg' : url;
+};
+
+const StyledPaper = styled(Paper)`
+  padding: ${({ theme }) => theme.spacing(3)};
+  border-radius: ${({ theme }) => theme.spacing(1)};
+  min-height: 150px;
+`;
 
 interface StatCardProps {
   title: string;
@@ -63,49 +70,9 @@ interface ToiletFacility {
   updatedAt: string;
 }
 
-// Analytics structure as returned from the API
-interface ToiletAnalytics {
-  totalToilets: number;
-  proportionImproved: number; // as a decimal (e.g. 0.0096)
-  householdToiletRatio: string;
-  schoolToiletRatio: string;
-  conditionDistribution: {
-    [key: string]: {
-      count: number;
-      percentage: string;
-    };
-  };
-  typeDistribution: {
-    [key: string]: {
-      count: number;
-      percentage: string;
-    };
-  };
-}
-
-const StyledPaper = styled(Paper)`
-  padding: ${({ theme }) => theme.spacing(3)};
-  border-radius: ${({ theme }) => theme.spacing(1)};
-  box-shadow: 5;
-`;
-
-// Error Alert Component
-const ErrorAlert: React.FC<{ message: string }> = ({ message }) => (
-  <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="error">{message}</Alert>
-  </Container>
-);
-
-// Not Found Component
-const NotFoundAlert: React.FC = () => (
-  <Container maxWidth="md" sx={{ mt: 3 }}>
-    <Alert severity="info">No toilet facility found</Alert>
-  </Container>
-);
-
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
   <StyledPaper>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
       <Box>
         <Typography color="text.secondary" variant="body2">
           {title}
@@ -132,227 +99,118 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
   </StyledPaper>
 );
 
-const columnHelper = createColumnHelper<ToiletFacility>();
-
-const columns = [
-  columnHelper.accessor('picture', {
-    header: 'Picture',
-    cell: (props) => (
-      <Avatar
-        src={props.row.original.picture}
-        alt="toilet facility"
-        sx={{
-          borderRadius: '100%',
-        }}
-      />
-    ),
-  }),
-  columnHelper.accessor('ward', {
-    header: 'Ward',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('village', {
-    header: 'Village',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('hamlet', {
-    header: 'Hamlet',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('spaceType', {
-    header: 'Category',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('type', {
-    header: 'Tags',
-    cell: (info) => (
-      <Stack direction="row" spacing={1} alignItems="center">
-        <Chip variant="outlined" label={info.row.original.type} color="primary" />
-        <Chip
-          variant="outlined"
-          label={info.row.original.condition}
-          color={info.row.original.condition === 'Maintained' ? 'success' : 'warning'}
-        />
-        <Chip
-          variant="outlined"
-          label={info.row.original.type}
-          color={info.row.original.type === 'Pit Latrine without slab' ? 'info' : 'error'}
-        />
-      </Stack>
-    ),
-  }),
-];
-
 const ToiletFacilities: React.FC = () => {
-  // State hooks for table parameters and filters
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
-  const [ward, setWard] = useState('');
-  const [village, setVillage] = useState('');
-  const [hamlet, setHamlet] = useState('');
+  const [wardFilter, setWardFilter] = useState<string>('All');
+  const [villageFilter, setVillageFilter] = useState<string>('All');
+  const [hamletFilter, setHamletFilter] = useState<string>('All');
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
 
-    const navigate = useNavigate();
-    const queryParams = new URLSearchParams(location.search);
-  
-  
-
-  // Fetch toilet facilities data
-  const { data, isLoading, error } = useQuery<ToiletFacility[], Error>({
-    queryKey: ['toilet-facilities', { limit, page, search }],
+  const { data: analytics } = useQuery({
+    queryKey: ['toilet-facilities-analytics', wardFilter, villageFilter, hamletFilter],
     queryFn: () =>
-      apiController.get<ToiletFacility[]>(`/toilet-facilities?limit=${limit}&page=${page}&search=${search}`),
+      apiController.get(
+        `/toilet-facilities/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
+          villageFilter !== 'All' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
+      ),
   });
 
-  // Fetch analytics data from the new endpoint
-  const { data: analytics } = useQuery<ToiletAnalytics, Error>({
-    queryKey: ['toilet-facilities-analytics'],
-    queryFn: () => apiController.get<ToiletAnalytics>('/toilet-facilities/analytics'),
+  const { data: tableData, isLoading: isTableLoading } = useQuery({
+    queryKey: ['toilet-facilities', wardFilter, villageFilter, hamletFilter],
+    queryFn: () =>
+      apiController.get(
+        `/toilet-facilities?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
+          villageFilter !== 'All' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
+      ),
   });
 
-  // Generate filter options from data
-  const wardOptions = useMemo(() => {
-    if (!data) return [];
-    return [...new Set(data.map((item) => item.ward))];
-  }, [data]);
+  const isLoading = isTableLoading;
+  const totalToilets = analytics?.totalToilets || 0;
+  const proportionImproved =
+    analytics?.proportionImproved !== undefined
+      ? `${(analytics.proportionImproved * 100).toFixed(1)}%`
+      : '0%';
+  const householdToiletRatio = analytics?.householdToiletRatio === 'No data' ? '0' : (analytics?.householdToiletRatio || '0');
+  const schoolToiletRatio = analytics?.schoolToiletRatio === 'No data' ? '0' : (analytics?.schoolToiletRatio || '0');
 
-  const villageOptions = useMemo(() => {
-    if (!data) return [];
-    const filteredVillages = data.filter((item) => !ward || item.ward === ward).map((item) => item.village);
-    return [...new Set(filteredVillages)];
-  }, [data, ward]);
+  const wardOptions = useMemo(
+    () => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']),
+    [analytics]
+  );
 
-  const hamletOptions = useMemo(() => {
-    if (!data) return [];
-    const filteredHamlets = data
-      .filter((item) => (!ward || item.ward === ward) && (!village || item.village === village))
-      .map((item) => item.hamlet);
-    return [...new Set(filteredHamlets)];
-  }, [data, ward, village]);
+  const villageOptions = useMemo(
+    () => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']),
+    [analytics]
+  );
 
-  // Filter the fetched data based on user selection
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    return data.filter(
-      (item) =>
-        (!ward || item.ward === ward) &&
-        (!village || item.village === village) &&
-        (!hamlet || item.hamlet === hamlet)
-    );
-  }, [data, ward, village, hamlet]);
+  const hamletOptions = useMemo(
+    () => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']),
+    [analytics]
+  );
 
-  // Determine if no filters are applied (empty strings mean "all")
-  const noFilterApplied = useMemo(() => !ward && !village && !hamlet, [ward, village, hamlet]);
+  const pieChartData = useMemo(() => {
+    if (!analytics || !analytics.typeDistribution) return [];
+    const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722'];
+    return Object.entries(analytics.typeDistribution).map(([type, values], index) => ({
+      id: index,
+      label: type,
+      value: values.count,
+      color: colorPalette[index % colorPalette.length],
+    }));
+  }, [analytics]);
 
-  // Compute effective analytics based on filters:
-  // Use the API analytics when no filter is applied; otherwise, recalculate from filteredData.
-  const effectiveAnalytics = useMemo(() => {
-    if (noFilterApplied && analytics) {
-      return {
-        totalToilets: analytics.totalToilets,
-        // Convert proportion to percentage string
-        proportionImproved: analytics.proportionImproved
-          ? (analytics.proportionImproved * 100).toFixed(1) + '%'
-          : '0%',
-        householdToiletRatio: analytics.householdToiletRatio,
-        schoolToiletRatio: analytics.schoolToiletRatio,
-        conditionDistribution: analytics.conditionDistribution,
-        typeDistribution: analytics.typeDistribution,
-      };
-    } else {
-      const total = filteredData.length;
-      if (total === 0) {
-        return {
-          totalToilets: 0,
-          proportionImproved: '0%',
-          householdToiletRatio: '0',
-          schoolToiletRatio: '0',
-          conditionDistribution: { Maintained: { count: 0, percentage: '0%' }, Unmaintained: { count: 0, percentage: '0%' } },
-          typeDistribution: {},
-        };
+  const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
+
+  const barChartData = useMemo(() => {
+    if (!analytics?.conditionDistribution) return [];
+    return [
+      {
+        condition: 'Condition',
+        maintained: analytics.conditionDistribution['Maintained']?.count || 0,
+        unmaintained: analytics.conditionDistribution['Unmaintained']?.count || 0,
       }
-      // Compute improved proportion based on condition: assume "Maintained" counts as improved
-      const maintainedCount = filteredData.filter((item) => item.condition === 'Maintained').length;
-      const proportionImproved = ((maintainedCount / total) * 100).toFixed(1) + '%';
+    ];
+  }, [analytics]);
 
-      // Compute condition distribution from filtered data
-      const conditionCounts = filteredData.reduce((acc: any, item) => {
-        const key = item.condition;
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      const conditionDistribution = {
-        Maintained: {
-          count: conditionCounts['Maintained'] || 0,
-          percentage: ((conditionCounts['Maintained'] || 0) / total * 100).toFixed(1) + '%',
-        },
-        Unmaintained: {
-          count: conditionCounts['Unmaintained'] || 0,
-          percentage: ((conditionCounts['Unmaintained'] || 0) / total * 100).toFixed(1) + '%',
-        },
-      };
+  const columnHelper = createColumnHelper<ToiletFacility>();
 
-      // Compute type distribution from filtered data
-      const typeCounts = filteredData.reduce((acc: any, item) => {
-        const key = item.type;
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      const typeDistribution: Record<string, { count: number; percentage: string }> = {};
-      Object.keys(typeCounts).forEach((key) => {
-        typeDistribution[key] = {
-          count: typeCounts[key],
-          percentage: ((typeCounts[key] / total) * 100).toFixed(1) + '%',
-        };
-      });
-
-      return {
-        totalToilets: total,
-        proportionImproved,
-        householdToiletRatio: '0',
-        schoolToiletRatio: '0',
-        conditionDistribution,
-        typeDistribution,
-      };
-    }
-  }, [noFilterApplied, analytics, filteredData]);
-
-  // Prepare chart data for toilet facility types
-  const typeDistributionChartData = useMemo(() => {
-    const chartData: { id: number; label: string; value: number; color: string }[] = [];
-    const colorPalette = ['#4CAF50', '#FF9800', '#2196F3', '#F44336', '#9C27B0', '#FF5722'];
-    if (effectiveAnalytics.typeDistribution) {
-      let index = 0;
-      for (const [type, dist] of Object.entries(effectiveAnalytics.typeDistribution)) {
-        chartData.push({
-          id: index,
-          label: type,
-          value: dist.count,
-          color: colorPalette[index % colorPalette.length],
-        });
-        index++;
-      }
-    }
-    return chartData;
-  }, [effectiveAnalytics]);
-
-  // Prepare chart data for condition distribution
-  const conditionDistributionChartData = useMemo(() => {
-    const chartData: { id: number; label: string; value: number; color: string }[] = [];
-    const colorPalette = ['#4CAF50', '#F44336'];
-    if (effectiveAnalytics.conditionDistribution) {
-      const keys = Object.keys(effectiveAnalytics.conditionDistribution);
-      keys.forEach((key, idx) => {
-        chartData.push({
-          id: idx,
-          label: key,
-          value: effectiveAnalytics.conditionDistribution[key].count,
-          color: colorPalette[idx % colorPalette.length],
-        });
-      });
-    }
-    return chartData;
-  }, [effectiveAnalytics]);
+  const columns = [
+    columnHelper.accessor('picture', {
+      header: 'Picture',
+      cell: (props) => (
+        <Avatar
+          src={getImageSrc(props.row.original.picture)}
+          alt="toilet facility"
+          sx={{ borderRadius: '100%' }}
+        />
+      ),
+    }),
+    columnHelper.accessor('ward', { header: 'Ward', cell: (info) => info.getValue() }),
+    columnHelper.accessor('village', { header: 'Village', cell: (info) => info.getValue() }),
+    columnHelper.accessor('hamlet', { header: 'Hamlet', cell: (info) => info.getValue() }),
+    columnHelper.accessor('spaceType', { header: 'Category', cell: (info) => info.getValue() }),
+    columnHelper.accessor('type', {
+      header: 'Tags',
+      cell: (info) => (
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Chip variant="outlined" label={info.row.original.type} color="primary" />
+          <Chip
+            variant="outlined"
+            label={info.row.original.condition}
+            color={info.row.original.condition === 'Maintained' ? 'success' : 'warning'}
+          />
+          <Chip
+            variant="outlined"
+            label={info.row.original.type}
+            color={info.row.original.type === 'Pit Latrine without slab' ? 'info' : 'error'}
+          />
+        </Stack>
+      ),
+    }),
+  ];
 
   if (isLoading) {
     return (
@@ -362,176 +220,162 @@ const ToiletFacilities: React.FC = () => {
     );
   }
 
-  if (error instanceof Error) return <ErrorAlert message={error.message} />;
-  if (!data || data.length === 0) return <NotFoundAlert />;
-
-  // A reusable filter dropdown component
-  const FilterDropdown = ({
-    label,
-    value,
-    options,
-    onChange,
-  }: {
-    label: string;
-    value: string;
-    options: string[];
-    onChange: (value: string) => void;
-  }) => (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 210 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        label={label}
-        sx={{ height: 45 }}
-      >
-        <MenuItem value="">{`All ${label}`}</MenuItem>
-        {options.map((option, index) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
   const navigateToDetails = (id: string) => {
     navigate(`/toilet-facilities/${id}?${queryParams.toString()}`);
   };
 
-
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      {/* Header with Filters */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-            Toilet Facilities
+            Toilet Facilities Dashboard
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Detailed insights and analytics based on your selected location.
+            Comprehensive overview of toilet facilities in the region
           </Typography>
         </Box>
-        <Box sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={2}>
-            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
-            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
-            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+        <Box>
+          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Ward</InputLabel>
+              <Select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} label="Ward">
+                {wardOptions.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Village</InputLabel>
+              <Select value={villageFilter} onChange={(e) => setVillageFilter(e.target.value)} label="Village">
+                {villageOptions.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Hamlet</InputLabel>
+              <Select value={hamletFilter} onChange={(e) => setHamletFilter(e.target.value)} label="Hamlet">
+                {hamletOptions.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Stack>
         </Box>
       </Box>
-
-      {/* Analytics Stat Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Total Toilet Facilities"
-            value={Number(effectiveAnalytics.totalToilets).toLocaleString()}
-            icon={<LuToilet style={{ color: '#2563EB', fontSize: '2rem' }} />}
+            title="Total Toilets"
+            value={Number(totalToilets).toLocaleString()}
+            icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
             title="Improved Facilities"
-            value={effectiveAnalytics.proportionImproved || '0%'}
-            icon={<FaToilet style={{ color: '#4CAF50', fontSize: '2rem' }} />}
+            value={proportionImproved}
+            icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />}
             bgColor="#E8F5E9"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
             title="Household Toilet Ratio"
-            value={effectiveAnalytics.householdToiletRatio}
-            icon={<GiHole style={{ color: '#FF9800', fontSize: '2rem' }} />}
-            bgColor="#FFF3E0"
+            value={householdToiletRatio}
+            icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />}
+            bgColor="#E3F2FD"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
             title="School Toilet Ratio"
-            value={effectiveAnalytics.schoolToiletRatio}
-            icon={<PiToiletFill style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
-            bgColor="#E3F2FD"
+            value={schoolToiletRatio}
+            icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />}
+            bgColor="#FFEBEE"
           />
         </Grid>
       </Grid>
-
-      {/* Charts Section */}
-      <Grid container spacing={3} mb={3}>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h4" mb={2}>
-              Toilet Facility Types
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>
+              Type Distribution
             </Typography>
             <PieChart
               series={[
                 {
-                  data: typeDistributionChartData,
-                  arcLabel: (item) => {
-                    const total = effectiveAnalytics.totalToilets || 1;
-                    return `${item.value.toLocaleString()} (${((item.value / total) * 100).toFixed(1)}%)`;
-                  },
+                  data: pieChartData,
+                  arcLabel: (item) => totalPieValue > 0 ? `${((item.value / totalPieValue) * 100).toFixed(1)}%` : '0%',
                   arcLabelMinAngle: 10,
-                  outerRadius: 150,
+                  outerRadius: 180,
+                  innerRadius: 40,
+                  tooltip: ({ datum }) => `${datum.label}: ${datum.value}`,
                 },
               ]}
-              width={700}
-              height={300}
+              width={Math.min(760, window.innerWidth - 40)}
+              height={370}
               sx={{
                 [`& .${pieArcLabelClasses.root}`]: {
                   fontWeight: 'bold',
                   fill: 'white',
+                  fontSize: '0.8rem',
                 },
               }}
             />
-          </Paper>
+          </Card>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h4" mb={2}>
-              Condition Distribution
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>
+              Condition Status
             </Typography>
-            <PieChart
+            <BarChart
+              dataset={barChartData}
+              yAxis={[{ scaleType: 'linear' }]}
+              xAxis={[{ scaleType: 'band', dataKey: 'condition' }]}
               series={[
                 {
-                  data: conditionDistributionChartData,
-                  arcLabel: (item) => {
-                    const total = effectiveAnalytics.totalToilets || 1;
-                    return `${item.value.toLocaleString()} (${((item.value / total) * 100).toFixed(1)}%)`;
-                  },
-                  arcLabelMinAngle: 10,
-                  outerRadius: 150,
+                  dataKey: 'maintained',
+                  label: 'Maintained',
+                  color: '#4CAF50',
+                  valueFormatter: (value) => `${value}`,
                 },
+                {
+                  dataKey: 'unmaintained',
+                  label: 'Unmaintained',
+                  color: '#F44336',
+                  valueFormatter: (value) => `${value}`,
+                }
               ]}
-              width={600}
-              height={300}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                },
-              }}
+              height={400}
+              layout="vertical"
             />
-          </Paper>
+          </Card>
         </Grid>
       </Grid>
-
-      {/* Data Table Section */}
       <Card sx={{ mt: 3 }}>
         <Box sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
             Toilet Facilities Overview
           </Typography>
-          <DataTable
-            setSearch={setSearch}
-            setPage={setPage}
-            setLimit={setLimit}
-            isLoading={isLoading}
-            columns={columns}
-            data={filteredData || []}
-            onRowClick={(row) => navigateToDetails(row._id)}
-          />
+          <Paper sx={{ overflowX: 'auto' }}>
+            <DataTable
+              columns={columns}
+              data={tableData}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+              onRowClick={(row) => navigateToDetails(row._id)}
+            />
+          </Paper>
         </Box>
       </Card>
     </Box>
