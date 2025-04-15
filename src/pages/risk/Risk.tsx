@@ -12,7 +12,8 @@ import {
   InputLabel,
   Stack,
   ToggleButtonGroup, 
-  ToggleButton
+  ToggleButton,
+  SelectChangeEvent
 } from '@mui/material';
 import { 
   MdLocationOn, 
@@ -28,17 +29,122 @@ import {
   BarChart as ChartIcon
 } from '@mui/icons-material';
 
+// Type Definitions
+interface FilterDropdownProps {
+  label: string;
+  options: string[];
+}
+
+interface KPICard {
+  icon: JSX.Element;
+  label: string;
+  value: string;
+  color: string;
+}
+
+interface WaterSource {
+  type: string;
+  distance: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+  additionalInfo?: string;
+}
+
+interface EnvironmentalRisk {
+  type: string;
+  description: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+}
+
+interface WasteManagement {
+  type: string;
+  description: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+}
+
 // Mock data for chart
 const chartData = {
   labels: Array.from({ length: 12 }, (_, i) => i + 1),
-  values1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  values2: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  values1: [20, 35, 40, 30, 45, 50, 60, 55, 65, 70, 75, 80],
+  values2: [15, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
 };
 
-const FilterDropdown = ({ label, options }) => {
-  const [selectedOption, setSelectedOption] = useState('');
+// Mock data for KPI cards
+const kpiData: KPICard[] = [
+  { icon: <MdLocationOn size={24} />, label: 'Active Outbreaks', value: '3', color: '#ff4d4f' },
+  { icon: <MdWarning size={24} />, label: 'At Risk Areas', value: '8', color: '#fa8c16' },
+  { icon: <MdWaterDrop size={24} />, label: 'Water Sources', value: '12', color: '#1890ff' },
+  { icon: <MdCheckCircle size={24} />, label: 'Cases Resolved', value: '45', color: '#52c41a' },
+];
 
-  const handleChange = (event) => {
+// Mock data for water sources
+const waterSources: WaterSource[] = [
+  {
+    type: 'Contaminated Well',
+    distance: '500m from outbreak',
+    riskLevel: 'high'
+  },
+  {
+    type: 'Public Borehole',
+    distance: '750m from outbreak',
+    riskLevel: 'moderate',
+    additionalInfo: 'Moderate contamination risk'
+  },
+  {
+    type: 'Stream',
+    distance: '1.2km from outbreak',
+    riskLevel: 'high',
+    additionalInfo: 'Heavy contamination detected'
+  },
+  {
+    type: 'Water Tank',
+    distance: '300m from outbreak',
+    riskLevel: 'moderate',
+    additionalInfo: 'Regular testing needed'
+  }
+];
+
+// Mock data for environmental risks
+const environmentalRisks: EnvironmentalRisk[] = [
+  {
+    type: 'Open Defecation',
+    description: 'Multiple sites within 200m',
+    riskLevel: 'high'
+  },
+  {
+    type: 'Poor Drainage',
+    description: 'Stagnant water observed',
+    riskLevel: 'moderate'
+  },
+  {
+    type: 'Flood Prone Area',
+    description: 'Recent flooding reported',
+    riskLevel: 'high'
+  }
+];
+
+// Mock data for waste management
+const wasteManagement: WasteManagement[] = [
+  {
+    type: 'Waste Collection',
+    description: 'Irregular service reported',
+    riskLevel: 'moderate'
+  },
+  {
+    type: 'Illegal Dumping',
+    description: 'Multiple sites identified',
+    riskLevel: 'high'
+  },
+  {
+    type: 'Drainage System',
+    description: 'Partially blocked',
+    riskLevel: 'moderate'
+  }
+];
+
+const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options }) => {
+  const [selectedOption, setSelectedOption] = useState<string>('');
+
+  const handleChange = (event: SelectChangeEvent) => {
     setSelectedOption(event.target.value);
   };
 
@@ -57,9 +163,9 @@ const FilterDropdown = ({ label, options }) => {
 };
 
 const RiskAnalysisSection = () => {
-  const [timeRange, setTimeRange] = useState('6M');
+  const [timeRange, setTimeRange] = useState<string>('6M');
 
-  const handleTimeRangeChange = (event, newTimeRange) => {
+  const handleTimeRangeChange = (event: React.MouseEvent<HTMLElement>, newTimeRange: string | null) => {
     if (newTimeRange !== null) {
       setTimeRange(newTimeRange);
     }
@@ -149,30 +255,35 @@ const RiskAnalysisSection = () => {
                 </Box>
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, height:100 }}>
-                      <Typography variant="subtitle1" color="error.main" fontWeight="medium">
-                        Contaminated Well
-                      </Typography>
-                      <Typography variant="body2" color="error.light">
-                        500m from outbreak
-                      </Typography>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ bgcolor: '#fff8e1', p: 2, borderRadius: 1, height:100 }}>
-                      <Typography variant="subtitle1" color="warning.main" fontWeight="medium">
-                      Public Borehole
-                    </Typography>
-                      <Typography variant="body2" color="warning.light">
-                      750m from outbreak
-                    </Typography> 
-                    <Typography variant="body2" color="text.secondary" mt={0.5}>
-                    Moderate contamination risk
-                    </Typography>
-                    </Box>
-                  </Grid>                  
+                  {waterSources.map((source, index) => (
+                    <Grid item xs={12} md={6} key={index}>
+                      <Box sx={{ 
+                        bgcolor: source.riskLevel === 'high' ? '#ffebee' : '#fff8e1', 
+                        p: 2, 
+                        borderRadius: 1, 
+                        height: 100 
+                      }}>
+                        <Typography 
+                          variant="subtitle1" 
+                          color={source.riskLevel === 'high' ? 'error.main' : 'warning.main'} 
+                          fontWeight="medium"
+                        >
+                          {source.type}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          color={source.riskLevel === 'high' ? 'error.light' : 'warning.light'}
+                        >
+                          {source.distance}
+                        </Typography>
+                        {source.additionalInfo && (
+                          <Typography variant="body2" color="text.secondary" mt={0.5}>
+                            {source.additionalInfo}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                  ))}
                 </Grid>
               </Grid>
               
@@ -184,27 +295,30 @@ const RiskAnalysisSection = () => {
                 </Box>
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, height:100 }}>
-                      <Typography variant="subtitle1" color="error.main" fontWeight="medium">
-                        Open Defecation
-                      </Typography>
-                      <Typography variant="body2" color="error.light">
-                        Multiple sites within 200m
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ bgcolor: '#fff8e1', p: 2, borderRadius: 1, height:100 }}>
-                      <Typography variant="subtitle1" color="warning.main" fontWeight="medium">
-                        Poor Drainage
-                      </Typography>
-                      <Typography variant="body2" color="warning.light">
-                        Stagnant water observed
-                      </Typography>
-                    </Box>
-                  </Grid>
+                  {environmentalRisks.map((risk, index) => (
+                    <Grid item xs={12} md={6} key={index}>
+                      <Box sx={{ 
+                        bgcolor: risk.riskLevel === 'high' ? '#ffebee' : '#fff8e1', 
+                        p: 2, 
+                        borderRadius: 1, 
+                        height: 100 
+                      }}>
+                        <Typography 
+                          variant="subtitle1" 
+                          color={risk.riskLevel === 'high' ? 'error.main' : 'warning.main'} 
+                          fontWeight="medium"
+                        >
+                          {risk.type}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          color={risk.riskLevel === 'high' ? 'error.light' : 'warning.light'}
+                        >
+                          {risk.description}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
                 </Grid>
               </Grid>
               
@@ -216,38 +330,30 @@ const RiskAnalysisSection = () => {
                 </Box>
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ bgcolor: '#fff8e1', p: 2, borderRadius: 1, height: 100 }}>
-                      <Typography variant="subtitle1" color="warning.main" fontWeight="medium">
-                        Waste Collection
-                      </Typography>
-                      <Typography variant="body2" color="warning.light">
-                        Irregular service reported
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ bgcolor: '#ffebee', p: 2, borderRadius: 1, height: 100 }}>
-                      <Typography variant="subtitle1" color="error.main" fontWeight="medium">
-                        Illegal Dumping
-                      </Typography>
-                      <Typography variant="body2" color="error.light">
-                        Multiple sites identified
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={4}>
-                    <Box sx={{ bgcolor: '#fff8e1', p: 2, borderRadius: 1, height: 100 }}>
-                      <Typography variant="subtitle1" color="warning.main" fontWeight="medium">
-                        Drainage System
-                      </Typography>
-                      <Typography variant="body2" color="warning.light">
-                        Partially blocked
-                      </Typography>
-                    </Box>
-                  </Grid>
+                  {wasteManagement.map((item, index) => (
+                    <Grid item xs={12} md={4} key={index}>
+                      <Box sx={{ 
+                        bgcolor: item.riskLevel === 'high' ? '#ffebee' : '#fff8e1', 
+                        p: 2, 
+                        borderRadius: 1, 
+                        height: 100 
+                      }}>
+                        <Typography 
+                          variant="subtitle1" 
+                          color={item.riskLevel === 'high' ? 'error.main' : 'warning.main'} 
+                          fontWeight="medium"
+                        >
+                          {item.type}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          color={item.riskLevel === 'high' ? 'error.light' : 'warning.light'}
+                        >
+                          {item.description}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
                 </Grid>
               </Grid>
             </Grid>
@@ -316,12 +422,7 @@ const RiskAnalysisDashboard = () => {
 
         {/* KPI Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {[
-            { icon: <MdLocationOn size={24} />, label: 'Active Outbreaks', value: '0', color: '#ff4d4f' },
-            { icon: <MdWarning size={24} />, label: 'At Risk Areas', value: '0', color: '#fa8c16' },
-            { icon: <MdWaterDrop size={24} />, label: 'Water Sources', value: '0', color: '#1890ff' },
-            { icon: <MdCheckCircle size={24} />, label: 'Cases Resolved', value: '0', color: '#52c41a' },
-          ].map((item, index) => (
+          {kpiData.map((item, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
               <Card sx={{ height: '100%', minHeight: '150px', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1 }}>

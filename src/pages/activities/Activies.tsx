@@ -16,7 +16,8 @@ import {
   FormControl,
   InputLabel,
   Chip,
-  Stack
+  Stack,
+  SelectChangeEvent
 } from '@mui/material';
 import React from 'react';
 import { FaHandsWash } from 'react-icons/fa';
@@ -26,32 +27,99 @@ import {
   FaChartLine 
 } from 'react-icons/fa6';
 
+interface Activity {
+  id: number;
+  activity: string;
+  type: string;
+  location: string;
+  date: string;
+  participants: number;
+  status: 'Completed' | 'In Progress' | 'Scheduled';
+}
+
+interface FilterDropdownProps {
+  label: string;
+  options: string[];
+}
+
 const ActivitesDashboard = () => {
   // Mock data
-  const activities = [
+  const activities: Activity[] = [
+    {
+      id: 1,
+      activity: 'Handwashing Workshop',
+      type: 'Hygiene Session',
+      location: 'Central Ward',
+      date: '2024-03-15',
+      participants: 45,
+      status: 'Completed'
+    },
+    {
+      id: 2,
+      activity: 'Community Meeting',
+      type: 'Community Engagement',
+      location: 'North Village',
+      date: '2024-03-18',
+      participants: 32,
+      status: 'In Progress'
+    },
+    {
+      id: 3,
+      activity: 'Soap Distribution',
+      type: 'Resource Distribution',
+      location: 'South Hamlet',
+      date: '2024-03-20',
+      participants: 28,
+      status: 'Scheduled'
+    },
+    {
+      id: 4,
+      activity: 'Sanitation Awareness',
+      type: 'Behavior Change',
+      location: 'East Ward',
+      date: '2024-03-22',
+      participants: 50,
+      status: 'Scheduled'
+    },
+    {
+      id: 5,
+      activity: 'Water Treatment Training',
+      type: 'Hygiene Session',
+      location: 'West Village',
+      date: '2024-03-25',
+      participants: 40,
+      status: 'In Progress'
+    }
   ];
 
-    const FilterDropdown = ({ label, options }) => {
-      const [selectedOption, setSelectedOption] = React.useState('');
+  const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options }) => {
+    const [selectedOption, setSelectedOption] = React.useState<string>('');
   
-      const handleChange = (event) => {
-        setSelectedOption(event.target.value);
-      };
-  
-      return (
-        <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-          <InputLabel>{label}</InputLabel>
-          <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
-            {options.map((option, index) => (
-              <MenuItem key={index} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      );
+    const handleChange = (event: SelectChangeEvent) => {
+      setSelectedOption(event.target.value);
     };
   
+    return (
+      <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <InputLabel>{label}</InputLabel>
+        <Select value={selectedOption} onChange={handleChange} label={label} sx={{ height: 45 }}>
+          {options.map((option, index) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  };
+
+  // Calculate statistics from activities
+  const stats = {
+    hygieneSessions: activities.filter(a => a.type === 'Hygiene Session').length,
+    communityEngagements: activities.filter(a => a.type === 'Community Engagement').length,
+    resourcesDistributed: activities.filter(a => a.type === 'Resource Distribution').length,
+    behaviorChangeInitiatives: activities.filter(a => a.type === 'Behavior Change').length
+  };
 
   return (
     <Box sx={{ padding: 3, backgroundColor: '#f5f5f9', minHeight: '100vh' }}>
@@ -83,7 +151,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  0
+                  {stats.hygieneSessions}
                 </Typography>
                 <FaHandsWash size={24} style={{ color: '#4caf50' }} />
               </Box>
@@ -98,7 +166,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  0
+                  {stats.communityEngagements}
                 </Typography>
                 <FaPeopleGroup size={24} style={{ color: '#2196f3' }} />
               </Box>
@@ -113,7 +181,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  0
+                  {stats.resourcesDistributed}
                 </Typography>
                 <FaBoxOpen size={24} style={{ color: '#9c27b0' }} />
               </Box>
@@ -128,7 +196,7 @@ const ActivitesDashboard = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                 <Typography variant="h4" component="div" fontWeight="bold">
-                  0
+                  {stats.behaviorChangeInitiatives}
                 </Typography>
                 <FaChartLine size={24} style={{ color: '#ff9800' }} />
               </Box>
