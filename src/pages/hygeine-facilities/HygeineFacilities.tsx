@@ -191,6 +191,8 @@ const HygieneFacilities: React.FC = () => {
     queryFn: () => apiController.get('/hand-washing/analytics'),
   });
 
+  console.log(initialAnalytics)
+
   const spaceTypeOptions = useMemo(() => [...new Set(allData?.map((item) => item.spaceType) ?? [])], [allData]);
   const wardOptions = useMemo(() => [...new Set(allData?.map((item) => item.ward) ?? [])], [allData]);
   const villageOptions = useMemo(
@@ -435,11 +437,13 @@ const HygieneFacilities: React.FC = () => {
                     value: item.value,
                     percentage: item.percentage,
                   })),
-                  arcLabel: (item) => item.percentage,
+                  arcLabel: (item) =>
+                    item.percentage.endsWith('%') ? item.percentage : `${item.percentage}%`,
                   arcLabelMinAngle: 20,
                   outerRadius: 120,
                   innerRadius: 30,
-                  tooltip: ({ datum }) => `${datum.label}: ${datum.value}`,
+                  tooltip: ({ datum }) =>
+                    `${datum.label}: ${datum.value} (${datum.percentage.endsWith('%') ? datum.percentage : datum.percentage + '%'})`,
                 },
               ]}
               width={750}

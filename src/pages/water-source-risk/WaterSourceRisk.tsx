@@ -198,6 +198,7 @@ const WaterSourceRisk = () => {
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
+  const [type, setType] = useState('');
   // Set markers visible by default.
   const [showMapMarkers, setShowMapMarkers] = useState(true);
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
@@ -216,6 +217,11 @@ const WaterSourceRisk = () => {
   // Generate filter options from location data.
   const wardOptions = useMemo(
     () => Array.from(new Set(waterRisks?.map(item => item.location.ward) || [])),
+    [waterRisks]
+  );
+
+  const typeOptions = useMemo(
+    () => Array.from(new Set(waterRisks?.map(item => item.waterSourceType) || [])),
     [waterRisks]
   );
 
@@ -254,9 +260,10 @@ const WaterSourceRisk = () => {
         item =>
           (!ward || item.location.ward === ward) &&
           (!village || item.location.village === village) &&
-          (!hamlet || item.location.hamlet === hamlet)
+          (!hamlet || item.location.hamlet === hamlet) &&
+          (!type || item.waterSourceType === type)
       ) || [],
-    [waterRisks, ward, village, hamlet]
+    [waterRisks, ward, village, hamlet, type]
   );
 
   // Compute analytics based on computed risk ratings.
@@ -275,16 +282,18 @@ const WaterSourceRisk = () => {
   }, [filteredWaterRisks]);
 
   // Handle filter changes.
-  const handleFilterChange = (type: 'ward' | 'village' | 'hamlet', value: string) => {
-    if (type === 'ward') {
+  const handleFilterChange = (filterType: 'ward' | 'village' | 'hamlet' | 'type', value: string) => {
+    if (filterType === 'ward') {
       setWard(value);
       setVillage('');
       setHamlet('');
-    } else if (type === 'village') {
+    } else if (filterType === 'village') {
       setVillage(value);
       setHamlet('');
-    } else {
+    } else if (filterType === 'hamlet') {
       setHamlet(value);
+    } else if (filterType === 'type') {
+      setType(value);
     }
     // Always show markers on map.
     setShowMapMarkers(true);
@@ -335,6 +344,14 @@ const WaterSourceRisk = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
+          {typeOptions.length > 0 && (
+            <FilterDropdown
+              label="Type"
+              value={type}
+              options={typeOptions}
+              onChange={(value) => handleFilterChange('type', value)}
+            />
+          )}
           {wardOptions.length > 0 && (
             <FilterDropdown
               label="Ward"
@@ -558,10 +575,49 @@ interface WaterSourceDetailsDialogProps {
 
 const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDetailsDialogProps) => {
   const navigate = useNavigate();
-  // State for tracking which risk chip was clicked in the modal.
   const [selectedRisk, setSelectedRisk] = useState<string | null>(null);
-  // Determine the overall risk rating.
   const riskRating = waterSource ? getRiskRating(waterSource) : null;
+
+  // Gather all contaminants (facilities) into a flat list for the contamination summary
+  const contaminants = useMemo(() => {
+    if (!waterSource) return [];
+    // Each facility type gets a label
+    const facilityTypes = [
+      { key: 'toilets', label: 'Toilet' },
+      { key: 'soakAways', label: 'Soak Away' },
+      { key: 'openDefecation', label: 'Open Defecation' },
+      { key: 'gutters', label: 'Gutter' },
+    ];
+    let result: {
+      id: string;
+      name: string;
+      distance: number;
+      type: string;
+      riskLevel: string;
+    }[] = [];
+    facilityTypes.forEach(({ key, label }) => {
+      // @ts-ignore
+      const arr: Facility[] = waterSource.facilities[key] || [];
+      arr.forEach(fac => {
+        result.push({
+          id: fac.facilityId,
+          name: fac.facilityId, // If you have a better name, replace here
+          distance: fac.distance,
+          type: label,
+          riskLevel: fac.riskLevel,
+        });
+      });
+    });
+    return result;
+  }, [waterSource]);
+
+  // Handler for contaminant details button
+  const handleContaminantDetails = (contaminant: { id: string; name: string; type: string; distance: number; riskLevel: string }) => {
+    // For now, just alert or log. Replace with modal or navigation as needed.
+    alert(
+      `Contaminant Details:\nName: ${contaminant.name}\nType: ${contaminant.type}\nDistance: ${contaminant.distance}m\nRisk Level: ${contaminant.riskLevel}`
+    );
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -724,6 +780,60 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
                     </Typography>
                   )}
                 </Stack>
+              </Card>
+            </Grid>
+            {/* Contamination Section */}
+            <Grid item xs={12}>
+              <Card
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  bgcolor: '#fff',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  mt: 2,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a237e', mb: 2 }}>
+                  Contamination Summary
+                </Typography>
+                {contaminants.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No contaminants found for this water source.
+                  </Typography>
+                ) : (
+                  <Box sx={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: 8 }}>Name</th>
+                          <th style={{ textAlign: 'left', padding: 8 }}>Distance (m)</th>
+                          <th style={{ textAlign: 'left', padding: 8 }}>Contaminant Type</th>
+                          <th style={{ textAlign: 'left', padding: 8 }}>Risk Level</th>
+                          <th style={{ textAlign: 'left', padding: 8 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contaminants.map(contaminant => (
+                          <tr key={contaminant.id}>
+                            <td style={{ padding: 8 }}>{contaminant.name}</td>
+                            <td style={{ padding: 8 }}>{contaminant.distance}</td>
+                            <td style={{ padding: 8 }}>{contaminant.type}</td>
+                            <td style={{ padding: 8 }}>{contaminant.riskLevel}</td>
+                            <td style={{ padding: 8 }}>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => handleContaminantDetails(contaminant)}
+                              >
+                                View Details
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Box>
+                )}
               </Card>
             </Grid>
           </Grid>
