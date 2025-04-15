@@ -37,9 +37,9 @@ const WashStatus = () => {
   ];
 
   const drinkingWaterData = [
-    { name: 'Basic ', value: 0, color: '#29B6F6' },
-    { name: 'Limited', value: 0, color: '#FEBC11' },
-    { name: 'None Service', value: 0, color: '#FFFF5D' },
+    { name: 'Basic Service', value: 0, color: '#29B6F6' },
+    { name: 'Limited Service', value: 0, color: '#ee8e00' },
+    { name: 'None Service', value: 0, color: '#ef4444' },
   ];
 
   // Data for Sanitation Service Ladder
@@ -52,9 +52,9 @@ const WashStatus = () => {
 
   // Data for Hygiene Service Ladder
   const hygieneData = [
-    { name: 'Basic Service', value: 0, color: '#F2B69E' },
-    { name: 'Limited Service', value: 0, color: '#F2EB88' },
-    { name: 'No Service', value: 0, color: '#C3AAEB' },
+    { name: 'Basic Service', value: 0, color: '#29B6F6' },
+    { name: 'Limited Service', value: 0, color: '#ee8e00' },
+    { name: 'None Service', value: 0, color: '#ef4444' },
   ];
 
   const RADIAN = Math.PI / 180;
@@ -399,7 +399,10 @@ const WashStatus = () => {
                       layout="vertical" 
                       align="right" 
                       verticalAlign="middle" 
-                      wrapperStyle={{ paddingLeft: '20px' }} 
+                      wrapperStyle={{ paddingLeft: '20px' }}
+                      formatter={(value, entry, index) => (
+                        <span style={{ color: '#000000' }}>{value}</span>
+                      )}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -422,13 +425,13 @@ const WashStatus = () => {
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12 }} 
+                      tick={{ fontSize: 12, fill: '#000000' }} 
                     />
                     <YAxis 
                       dataKey="name" 
                       type="category" 
                       width={100} 
-                      tick={{ fontSize: 12 }} 
+                      tick={{ fontSize: 12, fill: '#000000' }} 
                     />
                     <Tooltip />
                     <Bar dataKey="value" isAnimationActive={true}>
@@ -474,10 +477,13 @@ const WashStatus = () => {
                       layout="vertical" 
                       align="right" 
                       verticalAlign="middle" 
-                      wrapperStyle={{ paddingLeft: '20px' }} 
+                      wrapperStyle={{ paddingLeft: '20px' }}
+                      formatter={(value, entry, index) => (
+                        <span style={{ color: '#000000' }}>{value}</span>
+                      )}
                     />
                     <text x="30%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                      512.47
+                      {""}
                     </text>
                   </PieChart>
                 </ResponsiveContainer>

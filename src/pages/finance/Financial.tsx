@@ -118,7 +118,7 @@ const FinancialSummary = () => {
       </Box>
 
       {/* Alert */}
-      <Alert 
+      {/* <Alert 
         severity="error" 
         sx={{ 
           mb: 3, 
@@ -128,7 +128,7 @@ const FinancialSummary = () => {
         }}
       >
         Alert: There are 4 month(s) with pending operational payments!
-      </Alert>
+      </Alert> */}
 
       {/* Fund Categories */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
