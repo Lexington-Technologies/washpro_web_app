@@ -24,37 +24,68 @@ import { FaTint, FaHandsWash } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { FaHandHoldingDroplet } from 'react-icons/fa6';
 import { MdWaterDrop, MdOutlineSanitizer, MdSoap } from 'react-icons/md';
+import { useQuery } from '@tanstack/react-query';
+import { apiController } from '../../../axios';
 
 const WashStatus = () => {
-  const [selectedOption, setSelectedOption] = useState('Households');
+  const [selectedOption, setSelectedOption] = useState('household');
 
   const handleChange = (event) => {
     setSelectedOption(event.target.value);
   };
+
+  const { data: washStatusData } = useQuery({
+    queryKey: ['wash-status'],
+    queryFn: () => apiController.get(`analysis/wash-status?spaceType=${selectedOption}`),
+    enabled: !!selectedOption,
+  });
 
   // Data for community table
   const communityData = [
   ];
 
   const drinkingWaterData = [
-    { name: 'Basic Service', value: 0, color: '#29B6F6' },
-    { name: 'Limited Service', value: 0, color: '#ee8e00' },
-    { name: 'None Service', value: 0, color: '#ef4444' },
+    { name: washStatusData?.waterServiceLadder[0].name, 
+      value: washStatusData?.waterServiceLadder[0].value, 
+      color: '#29B6F6' },
+    { name: washStatusData?.waterServiceLadder[1].name, 
+      value: washStatusData?.waterServiceLadder[1].value, 
+      color: '#ee8e00' },
+    { name: washStatusData?.waterServiceLadder[2].name, 
+      value: washStatusData?.waterServiceLadder[2].value, 
+      color: '#ef4444' },
   ];
 
   // Data for Sanitation Service Ladder
   const sanitationData = [
-    { name: 'Advanced', value: 0, color: '#8CC265' },
-    { name: 'Basic Service', value: 0, color: '#F2EB88' },
-    { name: 'Limited Service', value: 0, color: '#F2B69E' },
-    { name: 'No Services', value: 0, color: '#F5857F' },
+    { name: washStatusData?.sanitationServiceLadder[0].name,
+      value: washStatusData?.sanitationServiceLadder[0].value,
+      color: '#8CC265'
+     },
+    { name: washStatusData?.sanitationServiceLadder[1].name,
+      value: washStatusData?.sanitationServiceLadder[1].value,
+      color: '#F2EB88'
+     },
+    { name: washStatusData?.sanitationServiceLadder[2].name,
+      value: washStatusData?.sanitationServiceLadder[2].value,
+      color: '#F2B69E'
+     },
   ];
 
   // Data for Hygiene Service Ladder
   const hygieneData = [
-    { name: 'Basic Service', value: 0, color: '#29B6F6' },
-    { name: 'Limited Service', value: 0, color: '#ee8e00' },
-    { name: 'None Service', value: 0, color: '#ef4444' },
+    { name: washStatusData?.hygieneServiceLadder[0].name,
+      value: washStatusData?.hygieneServiceLadder[0].value,
+      color: '#29B6F6'
+     },
+    { name: washStatusData?.hygieneServiceLadder[1].name,
+      value: washStatusData?.hygieneServiceLadder[1].value,
+      color: '#ee8e00'
+     },
+    { name: washStatusData?.hygieneServiceLadder[2].name, 
+      value: washStatusData?.hygieneServiceLadder[2].value, 
+      color: '#ef4444' 
+     },
   ];
 
   const RADIAN = Math.PI / 180;
@@ -135,10 +166,10 @@ const WashStatus = () => {
           marginTop: -2
               }}
             >
-              <MenuItem value="Households">Households</MenuItem>
-              <MenuItem value="School">School</MenuItem>
-              <MenuItem value="Health Facilities">Health Facilities</MenuItem>
-              <MenuItem value="Tsangaya">Tsangaya</MenuItem>
+              <MenuItem value="household">Households</MenuItem>
+              <MenuItem value="school">School</MenuItem>
+              <MenuItem value="healthFacility">Health Facilities</MenuItem>
+              <MenuItem value="tsangaya">Tsangaya</MenuItem>
             </Select>
           </FormControl>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -146,13 +177,13 @@ const WashStatus = () => {
           </Typography>
         </Box>
         
-        <Box sx={{ mb: 3 }}>
+        {/* <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
             <FilterDropdown label="Ward" options={['All']} />
             <FilterDropdown label="Village" options={['All']} />
             <FilterDropdown label="Hamlet" options={['All']} />
           </Stack>
-        </Box>
+        </Box> */}
 
         </Box>
         </Box>
@@ -181,7 +212,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                  {washStatusData?.waterAccess?.accessRate} %
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -189,7 +220,7 @@ const WashStatus = () => {
               
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Access</Typography>
+                  <Typography variant="body2">Access {washStatusData?.waterAccess?.basic}% - {washStatusData?.waterAccess?.limited}%</Typography>
                   <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
@@ -208,7 +239,7 @@ const WashStatus = () => {
               
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">No Access</Typography>
+                  <Typography variant="body2">No Access {washStatusData?.waterAccess?.noService}%</Typography>
                   <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
@@ -250,7 +281,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                {washStatusData?.sanitationAccess?.accessRate}%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -258,8 +289,8 @@ const WashStatus = () => {
               
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2">Access </Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.basic}% - {washStatusData?.sanitationAccess?.limited}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -278,7 +309,7 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.noService}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -319,7 +350,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                {washStatusData?.hygieneAccess?.accessRate}%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -328,7 +359,7 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.basic}% - {washStatusData?.hygieneAccess?.limited}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -347,7 +378,7 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.noService}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -421,7 +452,10 @@ const WashStatus = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300, marginLeft: -5 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sanitationData} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart 
+                    data={sanitationData} 
+                    layout="vertical" 
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 

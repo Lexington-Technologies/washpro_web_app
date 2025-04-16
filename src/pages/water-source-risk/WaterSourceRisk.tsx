@@ -211,9 +211,7 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
-
-  console.log('Water Risks:', waterRisks);
-
+  
   // Generate filter options from location data.
   const wardOptions = useMemo(
     () => Array.from(new Set(waterRisks?.map(item => item.location.ward) || [])),
