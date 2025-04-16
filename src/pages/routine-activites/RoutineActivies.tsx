@@ -31,17 +31,19 @@ import { Report1, Report2, Report3, Report4 } from '../../assets/report';
 
 const RoutineActivities = () => {
   const stats = [
-    { title: 'Total Sites', value: '0', icon: MdLocationOn, color: '#1E3A8A' },
-    { title: 'Active Surveys', value: '0', icon: HiClipboardList, color: '#1E3A8A' },
-    { title: 'Pending Reviews', value: '0%', icon: MdSchedule, color: '#1E3A8A' },
-    { title: 'Critical Alerts', value: '0%', icon: GoAlert, color: '#DC2626' },
+    { title: 'Total Sites', value: '24', icon: MdLocationOn, color: '#1E3A8A' },
+    { title: 'Active Surveys', value: '8', icon: HiClipboardList, color: '#1E3A8A' },
+    { title: 'Pending Reviews', value: '12%', icon: MdSchedule, color: '#1E3A8A' },
+    { title: 'Critical Alerts', value: '3%', icon: GoAlert, color: '#DC2626' },
   ];
 
   const locations = [
-    // { name: 'Kudan', type: 'Water Facility', lastUpdate: '2 hours ago', status: '-', statusColor: '#10B981' },
-    // { name: 'Doka', type: 'Sanitation', lastUpdate: '2 hours ago', status: '-', statusColor: '#EF4444' },
-    // { name: 'Kauru', type: 'Water Facility', lastUpdate: '2 hours ago', status: '-', statusColor: '#10B981' },
-    // { name: 'Hunkuyi', type: 'Sanitation', lastUpdate: '2 hours ago', status: '- ', statusColor: '#F59E0B' },
+    { name: 'Kudan', type: 'Water Facility', lastUpdate: '2 hours ago', status: 'Operational', statusColor: '#10B981' },
+    { name: 'Doka', type: 'Sanitation', lastUpdate: '2 hours ago', status: 'Critical', statusColor: '#EF4444' },
+    { name: 'Kauru', type: 'Water Facility', lastUpdate: '2 hours ago', status: 'Operational', statusColor: '#10B981' },
+    { name: 'Hunkuyi', type: 'Sanitation', lastUpdate: '2 hours ago', status: 'Maintenance', statusColor: '#F59E0B' },
+    { name: 'Zaria', type: 'Water Facility', lastUpdate: '1 day ago', status: 'Operational', statusColor: '#10B981' },
+    { name: 'Giwa', type: 'Sanitation', lastUpdate: '3 hours ago', status: 'Critical', statusColor: '#EF4444' },
   ];
 
   const recentPhotos = [Report1, Report2, Report3, Report4];
@@ -270,18 +272,18 @@ const RoutineActivities = () => {
             <Button>View All</Button>
           </Box>
           <ImageList cols={4} gap={16}>
-            {/* {recentPhotos.map((photo, index) => (
+            {recentPhotos.map((photo, index) => (
               <ImageListItem key={`${photo}-${index}`}>
-              <img
-                src={photo}
-                alt={`Monitoring photo ${index + 1}`}
-                style={{ borderRadius: 8 }}
-                onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
-                }}
-              />
+                <img
+                  src={photo}
+                  alt={`Monitoring photo ${index + 1}`}
+                  style={{ borderRadius: 8 }}
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Not+Found';
+                  }}
+                />
               </ImageListItem>
-            ))} */}
+            ))}
           </ImageList>
         </CardContent>
       </Card>

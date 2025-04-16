@@ -16,7 +16,16 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton} from '@mui/material';
+  IconButton,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText} from '@mui/material';
 import { 
   MdAdd, 
   MdKeyboardArrowDown, 
@@ -25,17 +34,109 @@ import {
   MdArrowDropDown
 } from 'react-icons/md';
 import { BsCheckCircleFill } from 'react-icons/bs';
+import { Autorenew, Build, CalendarMonth, CheckCircle, Healing, People, PriorityHigh, Schedule, Warning } from '@mui/icons-material';
+import React from 'react';
+
+// Tab Panel component
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`intervention-maintenance-tabpanel-${index}`}
+      aria-labelledby={`intervention-maintenance-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+// Tab props
+function a11yProps(index) {
+  return {
+    id: `intervention-maintenance-tab-${index}`,
+    'aria-controls': `intervention-maintenance-tabpanel-${index}`,
+  };
+}
+
+// Summary Cards Component
+function SummaryCards() {
+  const stats = [
+    {
+      title: "Total Active Interventions",
+      value: "14",
+      icon: Healing,
+      color: "#1E3A8A"
+    },
+    {
+      title: "Communities Impacted",
+      value: "7",
+      icon: People,
+      color: "#1E3A8A"
+    },
+    {
+      title: "Critical Tasks Pending",
+      value: "4",
+      icon: PriorityHigh,
+      color: "#DC2626"
+    }
+  ];
+
+  return (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      {stats.map((stat, index) => (
+        <Grid item xs={12} sm={6} md={4} key={index}>
+          <Card sx={{ height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <CardContent sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+              <Box
+                sx={{
+                  mr: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 50,
+                  height: 50,
+                  borderRadius: '50%',
+                  bgcolor: '#F3F4F6',
+                }}
+              >
+                {React.createElement(stat.icon, { style: { color: stat.color }, fontSize: "medium" })}
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  {stat.title}
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  fontWeight="bold" 
+                  color={stat.title === 'Critical Tasks Pending' ? '#DC2626' : '#1E3A8A'}
+                >
+                  {stat.value}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
 
 const InterventionOverview = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  
-  const handleClose = () => {
-    setAnchorEl(null);
+
+  const [value, setValue] = useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
   };
   
   return (
@@ -128,390 +229,250 @@ const InterventionOverview = () => {
           </Button>
         </Box>
       </Box>
-      
-      {/* Key Metrics Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ mr: 2, p: 1, borderRadius: 1, border: '2px solid #2c3e50', display: 'flex', alignItems: 'center' }}>
-                <BsCheckCircleFill size={30} color="#2c3e50" />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Total Active Interventions
-                </Typography>
-              </Box>
-            </Box>
-            <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
+
+      <SummaryCards />
         
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ mr: 2, p: 1 }}>
-                <MdPeople size={34} color="#2c3e50" />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Communities Impacted
-                </Typography>
-              </Box>
-            </Box>
-            <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ mr: 2, p: 1 }}>
-                <MdAssignmentLate size={34} color="#2c3e50" />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Critical Tasks Pending
-                </Typography>
-              </Box>
-            </Box>
-            <Typography variant="h3" fontWeight="bold" color="#2c3e50">
-              0
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-      
-      {/* Maintenance Schedule */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 1 }}>
-        <Typography variant="h6" fontWeight="medium" sx={{ mb: 2 }}>
-          Maintenance Schedule
-        </Typography>
-        
-        <Box>
-          <Box sx={{ 
-            py: 2, 
-            borderBottom: '1px solid #e0e0e0', 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
-          }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight="medium">
-          No Data
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-          -
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body1" sx={{ mr: 2 }}>
-          -
-              </Typography>
-              <Chip 
-          label="-" 
-          size="small" 
-          sx={{ 
-            bgcolor: '#e0e0e0', 
-            color: '#9e9e9e',
-            fontWeight: 'medium',
-            fontSize: '0.75rem'
-          }} 
-              />
-            </Box>
-          </Box>
-          
-          <Box sx={{ 
-            py: 2, 
-            borderBottom: '1px solid #e0e0e0', 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
-          }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight="medium">
-          No Data
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-          -
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body1" sx={{ mr: 2 }}>
-          -
-              </Typography>
-              <Chip 
-          label="-" 
-          size="small" 
-          sx={{ 
-            bgcolor: '#e0e0e0', 
-            color: '#9e9e9e',
-            fontWeight: 'medium',
-            fontSize: '0.75rem'
-          }} 
-              />
-            </Box>
-          </Box>
-          
-          <Box sx={{ 
-            py: 2, 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
-          }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight="medium">
-          No Data
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-          -
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body1" sx={{ mr: 2 }}>
-          -
-              </Typography>
-              <Chip 
-          label="-" 
-          size="small" 
-          sx={{ 
-            bgcolor: '#e0e0e0', 
-            color: '#9e9e9e',
-            fontWeight: 'medium',
-            fontSize: '0.75rem'
-          }} 
-              />
-            </Box>
-          </Box>
-        </Box>
-      </Paper>
-      
-      {/* Interventions Table */}
-      <Paper sx={{ p: 3, borderRadius: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="h6" fontWeight="medium">
-              Interventions
-            </Typography>
-            <IconButton size="small">
-              <MdArrowDropDown />
-            </IconButton>
-          </Box>
-          
-          {/* Dropdown Menu */}
-          {/* <Box>
-            <Button
-              id="select-button"
-              aria-controls={open ? 'select-menu' : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? 'true' : undefined}
-              onClick={handleClick}
-              sx={{ 
-                bgcolor: '#fff', 
-                border: '1px solid #e0e0e0',
-                boxShadow: 'none',
-                color: '#000',
-                textTransform: 'none',
-                '&:hover': {
-                  bgcolor: '#f5f5f5',
-                  boxShadow: 'none'
-                }
-              }}
-              endIcon={<MdKeyboardArrowDown />}
+      {/* Tabs */}
+      <Box sx={{ width: '100%' }}>
+        <Paper elevation={3} sx={{ borderRadius: 2 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs 
+              value={value} 
+              onChange={handleChange} 
+              variant="fullWidth" 
+              indicatorColor="primary"
+              textColor="primary"
+              aria-label="intervention and maintenance tabs"
             >
-              SELECT
-            </Button>
-            <Menu
-              id="select-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={handleClose} selected sx={{ bgcolor: '#e3f2fd', color: '#2196f3' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', px: 1 }}>
-                  <Typography>Intervention</Typography>
+              <Tab 
+                icon={<Healing />} 
+                iconPosition="start" 
+                label="Intervention" 
+                {...a11yProps(0)} 
+              />
+              <Tab 
+                icon={<Build />} 
+                iconPosition="start" 
+                label="Maintenance" 
+                {...a11yProps(1)} 
+              />
+            </Tabs>
+          </Box>
+
+          {/* Intervention Tab Content */}
+          <TabPanel value={value} index={0}>
+            <Typography variant="h6" gutterBottom>
+              Recent Interventions
+            </Typography>
+            
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Emergency Repair #1290
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    April 12, 2025
+                  </Typography>
                 </Box>
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <Typography>Projects</Typography>
-              </MenuItem>
-            </Menu>
-          </Box> */}
-        </Box>
-        
-        <TableContainer>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead sx={{ bgcolor: '#1a237e' }}>
-              <TableRow>
-                <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Ward</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Hamlet</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Space Type</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Status</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'medium' }}>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            {/* <TableBody>
-              <TableRow>
-                <TableCell>Hunkuyi</TableCell>
-                <TableCell>Chlorination</TableCell>
-                <TableCell>2025-01-05 - 2025-01-12</TableCell>
-                <TableCell>
-                  <Chip 
-                    label="In Progress" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#e3f2fd', 
-                      color: '#1976d2',
-                      fontWeight: 'medium'
-                    }} 
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="text" 
-                    sx={{ 
-                      color: '#1976d2',
-                      textTransform: 'none'
-                    }}
-                  >
-                    Action
-                  </Button>
-                </TableCell>
-              </TableRow>
-              
-              <TableRow>
-                <TableCell>Kudan Toun</TableCell>
-                <TableCell>Waste Disposal</TableCell>
-                <TableCell>2025-01-03 - 2025-01-10</TableCell>
-                <TableCell>
-                  <Chip 
-                    label="Pending" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#fff8e1', 
-                      color: '#f57c00',
-                      fontWeight: 'medium'
-                    }} 
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="text" 
-                    sx={{ 
-                      color: '#1976d2',
-                      textTransform: 'none'
-                    }}
-                  >
-                    Action
-                  </Button>
-                </TableCell>
-              </TableRow>
-              
-              <TableRow>
-                <TableCell>Doka</TableCell>
-                <TableCell>Community Training</TableCell>
-                <TableCell>2024-12-15 - 2024-12-20</TableCell>
-                <TableCell>
-                  <Chip 
-                    label="Completed" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#e8f5e9', 
-                      color: '#2e7d32',
-                      fontWeight: 'medium'
-                    }} 
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="text" 
-                    sx={{ 
-                      color: '#1976d2',
-                      textTransform: 'none'
-                    }}
-                  >
-                    Action
-                  </Button>
-                </TableCell>
-              </TableRow>
-              
-              <TableRow>
-                <TableCell>Likoro</TableCell>
-                <TableCell>Chlorination</TableCell>
-                <TableCell>2024-12-15 - 2024-12-20</TableCell>
-                <TableCell>
-                  <Chip 
-                    label="Pending" 
-                    size="small" 
-                    sx={{ 
-                      bgcolor: '#fff8e1', 
-                      color: '#f57c00',
-                      fontWeight: 'medium'
-                    }} 
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    variant="text" 
-                    sx={{ 
-                      color: '#1976d2',
-                      textTransform: 'none'
-                    }}
-                  >
-                    Action
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody> */}
-          </Table>
-        </TableContainer>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Showing 1 to 3 of 3 entries
-          </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button 
-              sx={{ 
-                color: '#9e9e9e',
-                textTransform: 'none'
-              }}
-              disabled
-            >
-              Previous
-            </Button>
+                
+                <Typography variant="body2" gutterBottom>
+                  Water pump failure in Building B. Emergency repair completed within 4 hours of report.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <CheckCircle color="success" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="success.main">
+                    Resolved
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
             
-            <Button 
-              sx={{ 
-                color: '#fff',
-                bgcolor: '#1a237e',
-                minWidth: '36px',
-                p: 0,
-                mx: 1,
-                '&:hover': {
-                  bgcolor: '#0d1752'
-                }
-              }}
-            >
-              1
-            </Button>
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Critical Intervention #1288
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    April 10, 2025
+                  </Typography>
+                </Box>
+                
+                <Typography variant="body2" gutterBottom>
+                  HVAC system failure in server room. Replaced defective compressor and restored cooling.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <CheckCircle color="success" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="success.main">
+                    Resolved
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
             
-            <Button 
-              sx={{ 
-                color: '#1976d2',
-                textTransform: 'none'
-              }}
-            >
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+            <Card variant="outlined">
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Urgent Repair #1285
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    April 8, 2025
+                  </Typography>
+                </Box>
+                
+                <Typography variant="body2" gutterBottom>
+                  Security door malfunction on main entrance. Replaced faulty lock mechanism and tested functionality.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Warning color="warning" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="warning.main">
+                    Pending verification
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                Scheduled Interventions
+              </Typography>
+              
+              <List>
+                <ListItem>
+                  <ListItemIcon>
+                    <Schedule color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Elevator Safety Inspection" 
+                    secondary="April 18, 2025 | Building A | Technician: Mark Johnson" 
+                  />
+                </ListItem>
+                
+                <Divider />
+                
+                <ListItem>
+                  <ListItemIcon>
+                    <Schedule color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Electrical Panel Upgrade" 
+                    secondary="April 22, 2025 | Main Facility | Technician: Sarah Williams" 
+                  />
+                </ListItem>
+                
+                <Divider />
+                
+                <ListItem>
+                  <ListItemIcon>
+                    <Schedule color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Fire Suppression System Test" 
+                    secondary="April 30, 2025 | All Buildings | Team: FireSafe Inc." 
+                  />
+                </ListItem>
+              </List>
+            </Box>
+          </TabPanel>
+
+          {/* Maintenance Tab Content */}
+          <TabPanel value={value} index={1}>
+            <Typography variant="h6" gutterBottom>
+              Maintenance Schedule
+            </Typography>
+            
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Quarterly HVAC Maintenance
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CalendarMonth fontSize="small" sx={{ mr: 0.5 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Due: April 25, 2025
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Typography variant="body2" gutterBottom>
+                  Full inspection and preventive maintenance of all HVAC systems across the facility.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Autorenew color="info" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="info.main">
+                    Recurring (Quarterly)
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Monthly Elevator Maintenance
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CalendarMonth fontSize="small" sx={{ mr: 0.5 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Due: April 20, 2025
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Typography variant="body2" gutterBottom>
+                  Standard maintenance check on all elevators including safety systems and mechanical components.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Autorenew color="info" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="info.main">
+                    Recurring (Monthly)
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            
+            <Card variant="outlined">
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle1" color="primary" fontWeight="bold">
+                    Annual Fire Safety Equipment Check
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CalendarMonth fontSize="small" sx={{ mr: 0.5 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Due: May 15, 2025
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Typography variant="body2" gutterBottom>
+                  Comprehensive inspection and certification of all fire safety equipment including extinguishers, alarms, and sprinkler systems.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Autorenew color="info" fontSize="small" sx={{ mr: 1 }} />
+                  <Typography variant="body2" color="info.main">
+                    Recurring (Annually)
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            
+            
+          </TabPanel>
+        </Paper>
+      </Box>
+
+
     </Box>
   );
 };

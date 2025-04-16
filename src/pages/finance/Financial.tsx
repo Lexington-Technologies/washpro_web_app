@@ -39,41 +39,43 @@ import {
   MdFileDownload 
 } from 'react-icons/md';
 
-// Sample data
-const fundCategories = [
-  { name: "Operational Fund", used: "₦0", total: "₦0", color: "#3B82F6" },
-  { name: "Maintenance Fund", used: "₦0", total: "₦0", color: "#4F46E5" },
-  { name: "Capital Expenditure", used: "₦0", total: "₦0", color: "#10B981" },
-  { name: "Aids & Grants", used: "₦0", total: "₦0", color: "#F59E0B" },
-  { name: "Community Financing", used: "₦0", total: "₦0", color: "#EF4444" }
-];
-
 const pieChartData = [
-  { name: "Operational", value: 0, color: "#3B82F6" },
-  { name: "Maintenance", value: 0, color: "#EC4899" },
-  { name: "Capital Expenditure", value: 0, color: "#06B6D4" },
-  { name: "Aids & Grants", value: 0, color: "#F97316" },
-  { name: "Community Financing", value: 0, color: "#FACC15" }
+  { name: "Operational", value: 50, color: "#3B82F6" },
+  { name: "Maintenance", value: 150, color: "#EC4899" },
+  { name: "Capital Expenditure", value: 80, color: "#06B6D4" },
+  { name: "Aids & Grants", value: 120, color: "#F97316" },
+  { name: "Community Financing", value: 20, color: "#FACC15" }
 ];
 
+ // Sample data for funds
+ const fundCategories = [
+  { name: "Maintenance Fund", used: "₦2,450,000", total: "₦3,000,000", color: "#4F46E5" },
+  { name: "Operational Fund", used: "₦1,780,000", total: "₦2,500,000", color: "#3B82F6" },
+  { name: "Capital Expenditure", used: "₦5,125,000", total: "₦8,000,000", color: "#10B981" },
+  { name: "Aids & Grants", used: "₦750,000", total: "₦1,200,000", color: "#F59E0B" },
+  { name: "Community Financing", used: "₦325,000", total: "₦500,000", color: "#EF4444" }
+];
+
+// Sample data for monthly expenditure
 const monthlyData = [
-  { name: 'Jan', operational: 0, maintenance: 0 },
-  { name: 'Feb', operational: 0, maintenance: 0 },
-  { name: 'Mar', operational: 0, maintenance: 0 },
-  { name: 'Apr', operational: 0, maintenance: 0 },
-  { name: 'May', operational: 0, maintenance: 0 },
-  { name: 'Jun', operational: 0, maintenance: 0 },
-  { name: 'Jul', operational: 0, maintenance: 0 },
-  { name: 'Aug', operational: 0, maintenance: 0 },
+  { name: 'Jan', operational: 350000, maintenance: 120000 },
+  { name: 'Feb', operational: 420000, maintenance: 180000 },
+  { name: 'Mar', operational: 380000, maintenance: 210000 },
+  { name: 'Apr', operational: 430000, maintenance: 290000 },
+  { name: 'May', operational: 510000, maintenance: 340000 },
+  { name: 'Jun', operational: 590000, maintenance: 470000 },
+  { name: 'Jul', operational: 480000, maintenance: 390000 },
+  { name: 'Aug', operational: 520000, maintenance: 450000 },
 ];
 
+// Sample data for payments
 const paymentsData = [
-  { month: 'Jan', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
-  { month: 'Feb', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
-  { month: 'March', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
-  { month: 'April', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
-  { month: 'May', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
-  { month: 'June', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
+  { month: 'Jan', initiated: '₦450,000', paid: '₦450,000', status: 'Completed', date: '31/01/2025' },
+  { month: 'Feb', initiated: '₦600,000', paid: '₦600,000', status: 'Completed', date: '28/02/2025' },
+  { month: 'Mar', initiated: '₦590,000', paid: '₦590,000', status: 'Completed', date: '31/03/2025' },
+  { month: 'Apr', initiated: '₦720,000', paid: '₦650,000', status: 'Partial', date: '15/04/2025' },
+  { month: 'May', initiated: '₦850,000', paid: '₦0', status: 'Pending', date: 'Scheduled 15/05/2025' },
+  { month: 'Jun', initiated: '₦1,060,000', paid: '₦0', status: 'Scheduled', date: 'Due 15/06/2025' },
 ];
 
 const FinancialSummary = () => {
@@ -116,7 +118,7 @@ const FinancialSummary = () => {
       </Box>
 
       {/* Alert */}
-      <Alert 
+      {/* <Alert 
         severity="error" 
         sx={{ 
           mb: 3, 
@@ -126,7 +128,7 @@ const FinancialSummary = () => {
         }}
       >
         Alert: There are 4 month(s) with pending operational payments!
-      </Alert>
+      </Alert> */}
 
       {/* Fund Categories */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
