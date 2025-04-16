@@ -118,10 +118,10 @@ const SideBar = ({
       title: "Toilet Facilities",
     },
     {
-      text: "Hand Washing Facilities",
+      text: "Hygeine Facilities",
       icon: <CleaningServices />,
-      path: "/hand-washing-facilities",
-      title: "Hand Washing Facilities",
+      path: "/hygeine-facilities",
+      title: "Hygeine Facilities",
     },
     {
       text: "Open Defecation",
@@ -193,18 +193,18 @@ const SideBar = ({
         { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
       ]
     },
-    {
-      text: "Knowledge Base",
-      icon: <RiHealthBookFill />,
-      path: "/knowledge-base",
-      title: "Knowledge Base",
-    },
-    {
-      text: "AI Assistant",
-      icon: <RiHealthBookFill />,
-      path: "/ai-assistant",
-      title: "AI Assistant",
-    },
+    // {
+    //   text: "Knowledge Base",
+    //   icon: <RiHealthBookFill />,
+    //   path: "/knowledge-base",
+    //   title: "Knowledge Base",
+    // },
+    // {
+    //   text: "AI Assistant",
+    //   icon: <RiHealthBookFill />,
+    //   path: "/ai-assistant",
+    //   title: "AI Assistant",
+    // },
     {
       text: "Reports",
       icon: <Report />,
