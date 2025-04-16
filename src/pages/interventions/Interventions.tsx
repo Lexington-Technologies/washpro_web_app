@@ -239,7 +239,7 @@ const InterventionOverview = () => {
             <Tabs 
               value={value} 
               onChange={handleChange} 
-              variant="fullWidth" 
+              variant="standard" 
               indicatorColor="primary"
               textColor="primary"
               aria-label="intervention and maintenance tabs"
@@ -259,8 +259,8 @@ const InterventionOverview = () => {
             </Tabs>
           </Box>
 
-          {/* Intervention Tab Content */}
-          <TabPanel value={value} index={0}>
+                   {/* Intervention Tab Content */}
+                   <TabPanel value={value} index={0}>
             <Typography variant="h6" gutterBottom>
               Recent Interventions
             </Typography>
@@ -269,7 +269,7 @@ const InterventionOverview = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="subtitle1" color="primary" fontWeight="bold">
-                    Emergency Repair #1290
+                    Water Supply Intervention #1290
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     April 12, 2025
@@ -277,7 +277,7 @@ const InterventionOverview = () => {
                 </Box>
                 
                 <Typography variant="body2" gutterBottom>
-                  Water pump failure in Building B. Emergency repair completed within 4 hours of report.
+                  Community water pump failure in KUDAN. Emergency repair and water supply restoration completed within 4 hours.
                 </Typography>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
@@ -293,7 +293,7 @@ const InterventionOverview = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="subtitle1" color="primary" fontWeight="bold">
-                    Critical Intervention #1288
+                    Sanitation Facility #1288
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     April 10, 2025
@@ -301,7 +301,7 @@ const InterventionOverview = () => {
                 </Box>
                 
                 <Typography variant="body2" gutterBottom>
-                  HVAC system failure in server room. Replaced defective compressor and restored cooling.
+                  Public toilet facility in DOKA requires urgent repairs and maintenance. Drainage system blockage resolved.
                 </Typography>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
@@ -317,7 +317,7 @@ const InterventionOverview = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="subtitle1" color="primary" fontWeight="bold">
-                    Urgent Repair #1285
+                    Water Source Repair #1285
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     April 8, 2025
@@ -325,59 +325,16 @@ const InterventionOverview = () => {
                 </Box>
                 
                 <Typography variant="body2" gutterBottom>
-                  Security door malfunction on main entrance. Replaced faulty lock mechanism and tested functionality.
+                  Community borehole in HUNKUYI showing low water pressure. Requires pump assessment and potential replacement.
                 </Typography>
-                
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                   <Warning color="warning" fontSize="small" sx={{ mr: 1 }} />
                   <Typography variant="body2" color="warning.main">
-                    Pending verification
+                    In Progress
                   </Typography>
                 </Box>
               </CardContent>
             </Card>
-            
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h6" gutterBottom>
-                Scheduled Interventions
-              </Typography>
-              
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <Schedule color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Elevator Safety Inspection" 
-                    secondary="April 18, 2025 | Building A | Technician: Mark Johnson" 
-                  />
-                </ListItem>
-                
-                <Divider />
-                
-                <ListItem>
-                  <ListItemIcon>
-                    <Schedule color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Electrical Panel Upgrade" 
-                    secondary="April 22, 2025 | Main Facility | Technician: Sarah Williams" 
-                  />
-                </ListItem>
-                
-                <Divider />
-                
-                <ListItem>
-                  <ListItemIcon>
-                    <Schedule color="primary" />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Fire Suppression System Test" 
-                    secondary="April 30, 2025 | All Buildings | Team: FireSafe Inc." 
-                  />
-                </ListItem>
-              </List>
-            </Box>
           </TabPanel>
 
           {/* Maintenance Tab Content */}
