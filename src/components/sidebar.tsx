@@ -42,7 +42,9 @@ import { MdSanitizer } from "react-icons/md";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "../assets/svg";
 import { BsFillShieldLockFill, BsWater } from "react-icons/bs";
+import { RiHealthBookFill } from "react-icons/ri";
 import { useAuthStore } from "../store";
+import { Calendar } from "lucide-react";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -63,8 +65,9 @@ const SideBar = ({
   const { logout } = useAuthStore();
 
   const [openWaste, setOpenWaste] = useState(false);
-  const [openRoutineActivities, setOpenRoutineActivities] = useState(false);
+  const [openAccounts, setOpenAccounts] = useState(false);
   const [openActivities, setOpenActivities] = useState(false);
+  const [openKnowledge, setOpenKnowledge] = useState(false);
 
   const handleLogout = () => {
     try {
@@ -103,6 +106,12 @@ const SideBar = ({
       title: "Water Sources",
     },
     {
+      text: "Calendar",
+      icon: <Calendar />,
+      path: "/calendar",
+      title: "Calendar",
+    },
+    {
       text: "Toilet Facilities",
       icon: <FaToilet />,
       path: "/toilet-facilities",
@@ -111,7 +120,7 @@ const SideBar = ({
     {
       text: "Hand Washing Facilities",
       icon: <CleaningServices />,
-      path: "/hygeine-facilities",
+      path: "/hand-washing-facilities",
       title: "Hand Washing Facilities",
     },
     {
@@ -161,19 +170,41 @@ const SideBar = ({
       path: "/risk-analysis",
       title: "Risk Analysis",
     },
-  ];
-
-
-  const routineActivitiesSubItems = [
-    { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
-    { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
-    { text: "Chlorination", icon: <Report />, path: "/chlorination", title: "Chlorination" },
-    { text: "Issues Log", icon: <Report />, path: "/issues-log", title: "Issues Log" },
-    { text: "LAM Reporting", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "LAM Report" },
-  ];
-
-  // commented out for now
-  const bottomMenuItems = [
+    {
+      text: "Routine Activities",
+      icon: <FaServicestack />,
+      path: "#",
+      title: "Routine Activities",
+      subItems: [
+        { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
+        { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
+        { text: "Chlorination", icon: <Report />, path: "/chlorination", title: "Chlorination" },
+        { text: "Issues Log", icon: <Report />, path: "/issues-log", title: "Issues Log" },
+        { text: "LAM Reporting", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "LAM Report" },
+      ]
+    },
+    {
+      text: "Accounts",
+      icon: <People />,
+      path: "#",
+      title: "Accounts",
+      subItems: [
+        { text: "Admins", icon: <FaUserCog />, path: "/users", title: "Admins" },
+        { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
+      ]
+    },
+    {
+      text: "Knowledge Base",
+      icon: <RiHealthBookFill />,
+      path: "/knowledge-base",
+      title: "Knowledge Base",
+    },
+    {
+      text: "AI Assistant",
+      icon: <RiHealthBookFill />,
+      path: "/ai-assistant",
+      title: "AI Assistant",
+    },
     {
       text: "Reports",
       icon: <Report />,
@@ -460,24 +491,18 @@ const SideBar = ({
             <div key={item.text}>
               {item.subItems ? renderDropdown(
                 item.text,
-                openWaste,
-                setOpenWaste,
+                item.text === "Waste Management" ? openWaste :
+                item.text === "Accounts" ? openAccounts :
+                item.text === "Routine Activities" ? openActivities :
+                openKnowledge,
+                item.text === "Waste Management" ? setOpenWaste :
+                item.text === "Accounts" ? setOpenAccounts :
+                item.text === "Routine Activities" ? setOpenActivities :
+                setOpenKnowledge,
                 item.subItems,
                 item.icon
               ) : renderMenuItem(item)}
             </div>
-          ))}
-          
-          {renderDropdown(
-            "Routine Activities",
-            openRoutineActivities,
-            setOpenRoutineActivities,
-            routineActivitiesSubItems,
-            <FaServicestack />
-          )}
-
-          {bottomMenuItems.map((item) => (
-            <div key={item.text}>{renderMenuItem(item)}</div>
           ))}
         </List>
       </Box>
