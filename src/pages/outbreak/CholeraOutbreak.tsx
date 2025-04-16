@@ -108,7 +108,7 @@ const fetchData = async (): Promise<DashboardData> => {
     locationData: [
       {
         id: 1,
-        location: 'Central Ward',
+        location: 'KUDAN',
         suspected: 45,
         confirmed: 28,
         deaths: 3,
@@ -119,7 +119,7 @@ const fetchData = async (): Promise<DashboardData> => {
       },
       {
         id: 2,
-        location: 'North Village',
+        location: 'DOKA',
         suspected: 32,
         confirmed: 18,
         deaths: 1,
@@ -130,7 +130,7 @@ const fetchData = async (): Promise<DashboardData> => {
       },
       {
         id: 3,
-        location: 'South Hamlet',
+        location: 'HUNKUYI',
         suspected: 15,
         confirmed: 8,
         deaths: 0,
@@ -141,7 +141,7 @@ const fetchData = async (): Promise<DashboardData> => {
       },
       {
         id: 4,
-        location: 'East Ward',
+        location: 'TABA',
         suspected: 28,
         confirmed: 15,
         deaths: 2,
@@ -152,7 +152,7 @@ const fetchData = async (): Promise<DashboardData> => {
       },
       {
         id: 5,
-        location: 'West Village',
+        location: 'ZABI',
         suspected: 12,
         confirmed: 6,
         deaths: 0,
@@ -160,6 +160,28 @@ const fetchData = async (): Promise<DashboardData> => {
         population: 6000,
         status: 'Low Risk',
         trend: 'Decreasing'
+      },
+      {
+        id: 6,
+        location: 'K/WALI NORTH',
+        suspected: 25,
+        confirmed: 12,
+        deaths: 1,
+        communitiesAffected: 3,
+        population: 7500,
+        status: 'Moderate Risk',
+        trend: 'Stable'
+      },
+      {
+        id: 7,
+        location: 'K/WALI SOUTH',
+        suspected: 20,
+        confirmed: 10,
+        deaths: 1,
+        communitiesAffected: 3,
+        population: 7000,
+        status: 'Moderate Risk',
+        trend: 'Stable'
       }
     ],
     metrics: [
@@ -738,7 +760,7 @@ const CholeraOutbreakDashboard = () => {
                   </Typography>
                   <Box sx={{ mb: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Site A23</Typography>
+                      <Typography variant="body1">KUDAN</Typography>
                       <Chip label="Critical" color="error" size="small" />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -746,7 +768,7 @@ const CholeraOutbreakDashboard = () => {
                     </Typography>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Site B15</Typography>
+                      <Typography variant="body1">K/WALI NORTH</Typography>
                       <Chip label="Warning" color="warning" size="small" />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -754,7 +776,7 @@ const CholeraOutbreakDashboard = () => {
                     </Typography>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Site C08</Typography>
+                      <Typography variant="body1">ZABI</Typography>
                       <Chip label="Clear" color="success" size="small" />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -837,12 +859,14 @@ const CholeraOutbreakDashboard = () => {
                       </Typography>
                     </Box>
                     <Box>
-                      {[
-                        { location: 'Central Ward', cases: 45, percentage: 35 },
-                        { location: 'North Village', cases: 32, percentage: 25 },
-                        { location: 'South Hamlet', cases: 15, percentage: 12 },
-                        { location: 'East Ward', cases: 28, percentage: 22 },
-                        { location: 'West Village', cases: 12, percentage: 6 },
+                    {[
+                        { location: 'KUDAN', cases: 45, percentage: 35 },
+                        { location: 'DOKA', cases: 32, percentage: 25 },
+                        { location: 'HUNKUYI', cases: 15, percentage: 12 },
+                        { location: 'TABA', cases: 28, percentage: 22 },
+                        { location: 'ZABI', cases: 12, percentage: 6 },
+                        { location: 'K/WALI NORTH', cases: 25, percentage: 20 },
+                        { location: 'K/WALI SOUTH', cases: 20, percentage: 15 }
                       ].map((item, index) => (
                         <Box key={index} sx={{ mb: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
