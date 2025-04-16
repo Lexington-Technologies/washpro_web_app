@@ -44,6 +44,12 @@ import {
     onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
     pagination?: PaginationState;
     onRowClick?: (row: T) => void;
+    wardFilter?: string;
+    villageFilter?: string;
+    hamletFilter?: string;
+    onFilterChange?: (filters: { ward?: string; village?: string; hamlet?: string }) => void;
+    searchQuery?: string;
+    onSearchChange?: (search: string) => void;
   }
   
   export function DataTable<T extends object>({
@@ -59,18 +65,24 @@ import {
     onPaginationChange,
     pagination: controlledPagination,
     onRowClick,
+    wardFilter = '',
+    villageFilter = '',
+    hamletFilter = '',
+    searchQuery,
+    onSearchChange,
+    onFilterChange,
   }: DataTableProps<T>) {
     const [sorting, setSorting] = useState<SortingState>([]);
+     // Use an internal search state for input control.
+    const [internalSearch, setInternalSearch] = useState<string>(searchQuery || '');
     const [globalFilter, setGlobalFilter] = useState('');
-    const [selectedWard, setSelectedWard] = useState('');
-    const [selectedVillage, setSelectedVillage] = useState('');
-    const [selectedHamlet, setSelectedHamlet] = useState('');
   
     const [localPagination, setLocalPagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
     });
   
+    // Use controlled pagination if provided; otherwise local state.
     const pagination = controlledPagination || localPagination;
     const setPagination = onPaginationChange || setLocalPagination;
   
@@ -105,18 +117,19 @@ import {
         pageCount: Math.ceil(totalCount / pagination.pageSize),
         enableSorting,
     });
-  
-    const handleFilterChange = (columnId: string, value: string) => {
-        table.getColumn(columnId)?.setFilterValue(value);
-    };
-  
+
     const getUniqueValues = (data: T[], key: keyof T) => {
         return Array.from(new Set(data.map(item => item[key]))).filter(Boolean);
     };
   
     const wards = getUniqueValues(tableData, 'ward');
-    const villages = selectedWard ? getUniqueValues(tableData.filter(item => item.ward === selectedWard), 'village') : [];
-    const hamlets = selectedVillage ? getUniqueValues(tableData.filter(item => item.village === selectedVillage), 'hamlet') : [];
+    const villages = wardFilter && wardFilter !== 'All'
+      ? getUniqueValues(tableData.filter(item => item.ward === wardFilter), 'village')
+      : [];
+    const hamlets = villageFilter && villageFilter !== 'All'
+      ? getUniqueValues(tableData.filter(item => item.village === villageFilter), 'hamlet')
+      : [];
+  
   
     const handlePageChange = (event: unknown, newPage: number) => {
         setPagination({ pageIndex: newPage, pageSize: pagination.pageSize });
@@ -131,89 +144,106 @@ import {
         <Box sx={{ width: '100%', py: 2, px: 3, bgcolor: '#f4f6f8', borderRadius: '12px' }}>
             {/* Filters and Search */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                {/* Ward Filter */}
                 <TextField
                     select
                     variant="outlined"
                     size="small"
-                    value={selectedWard}
-                    onChange={(e) => {
-                        setSelectedWard(e.target.value);
-                        handleFilterChange('ward', e.target.value);
-                        setSelectedVillage('');
-                        setSelectedHamlet('');
-                    }}
+                    value={wardFilter}
+                    onChange={(e) =>
+                      onFilterChange?.({ ward: e.target.value, village: '', hamlet: '' })
+                    }
                     SelectProps={{ native: true }}
                     sx={{ minWidth: 120 }}
                 >
                     <option value="">All Wards</option>
-                    {wards.map(ward => <option key={ward} value={ward}>{ward}</option>)}
+                    {wards.map(ward => (
+                      <option key={ward} value={ward}>
+                        {ward}
+                      </option>
+                    ))}
                 </TextField>
+  
+                {/* Village Filter */}
                 <TextField
                     select
                     variant="outlined"
                     size="small"
-                    value={selectedVillage}
-                    onChange={(e) => {
-                        setSelectedVillage(e.target.value);
-                        handleFilterChange('village', e.target.value);
-                        setSelectedHamlet('');
-                    }}
+                    value={villageFilter}
+                    onChange={(e) =>
+                      onFilterChange?.({ ward: wardFilter, village: e.target.value, hamlet: '' })
+                    }
                     SelectProps={{ native: true }}
-                    disabled={!selectedWard}
+                    disabled={!wardFilter}
                     sx={{ minWidth: 120 }}
                 >
                     <option value="">All Villages</option>
-                    {villages.map(v => <option key={v} value={v}>{v}</option>)}
+                    {villages.map(village => (
+                      <option key={village} value={village}>
+                        {village}
+                      </option>
+                    ))}
                 </TextField>
+  
+                {/* Hamlet Filter */}
                 <TextField
                     select
                     variant="outlined"
                     size="small"
-                    value={selectedHamlet}
-                    onChange={(e) => {
-                        setSelectedHamlet(e.target.value);
-                        handleFilterChange('hamlet', e.target.value);
-                    }}
+                    value={hamletFilter}
+                    onChange={(e) =>
+                      onFilterChange?.({ ward: wardFilter, village: villageFilter, hamlet: e.target.value })
+                    }
                     SelectProps={{ native: true }}
-                    disabled={!selectedVillage}
+                    disabled={!villageFilter}
                     sx={{ minWidth: 120 }}
                 >
                     <option value="">All Hamlets</option>
-                    {hamlets.map(h => <option key={h} value={h}>{h}</option>)}
+                    {hamlets.map(hamlet => (
+                      <option key={hamlet} value={hamlet}>
+                        {hamlet}
+                      </option>
+                    ))}
                 </TextField>
+  
                 {enableSearch && (
                     <TextField
                         fullWidth
                         size="small"
-                        value={globalFilter}
-                        onChange={e => setGlobalFilter(e.target.value)}
+                        value={internalSearch}
+                        onChange={e => setInternalSearch(e.target.value)}
+                        onKeyPress={e => {
+                        if (e.key === 'Enter' && onSearchChange) {
+                            onSearchChange(internalSearch);
+                        }
+                        }}
                         placeholder={searchPlaceholder}
                         sx={{
-                            width: '50%',
-                            marginLeft: 'auto',
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: '8px',
-                                backgroundColor: '#ffffff',
-                                '&:hover': { backgroundColor: '#f1f5f9' },
-                                '& fieldset': { borderColor: 'transparent' },
-                                '&:hover fieldset': { borderColor: 'transparent' },
-                                '&.Mui-focused fieldset': {
-                                    borderColor: 'primary.main',
-                                    borderWidth: '1px',
-                                },
+                        width: '50%',
+                        marginLeft: 'auto',
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            backgroundColor: '#ffffff',
+                            '&:hover': { backgroundColor: '#f1f5f9' },
+                            '& fieldset': { borderColor: 'transparent' },
+                            '&:hover fieldset': { borderColor: 'transparent' },
+                            '&.Mui-focused fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: '1px',
                             },
-                            '& input': { textTransform: 'capitalize' }
+                        },
+                        '& input': { textTransform: 'capitalize' }
                         }}
                         InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search sx={{ color: 'text.secondary' }} />
-                                </InputAdornment>
-                            ),
+                        startAdornment: (
+                            <InputAdornment position="start">
+                            <Search sx={{ color: 'text.secondary' }} />
+                            </InputAdornment>
+                        ),
                         }}
                     />
-                )}
-            </Box>
+                    )}
+                </Box>
   
             {/* Table */}
             <TableContainer component={Paper} sx={{
@@ -255,10 +285,10 @@ import {
                                                     alignItems: 'center',
                                                     color: header.column.getIsSorted() ? 'primary.main' : 'inherit',
                                                 }}>
-                                                    {{
-                                                        asc: <ArrowUpward sx={{ fontSize: 14 }} />,
-                                                        desc: <ArrowDownward sx={{ fontSize: 14 }} />
-                                                    }[header.column.getIsSorted() as string] ?? null}
+                                                    {({
+                                                      asc: <ArrowUpward sx={{ fontSize: 14 }} />,
+                                                      desc: <ArrowDownward sx={{ fontSize: 14 }} />
+                                                    }[header.column.getIsSorted() as string]) ?? null}
                                                 </Box>
                                             )}
                                         </Box>
@@ -270,7 +300,11 @@ import {
                     <TableBody>
                         {table.getRowModel().rows.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={columnsWithSN.length} align="center" sx={{ py: 12 }}>
+                                <TableCell
+                                    colSpan={columnsWithSN.length}
+                                    align="center"
+                                    sx={{ py: 12 }}
+                                >
                                     <Typography color="text.secondary" sx={{ fontSize: '0.875rem', textTransform: 'capitalize' }}>
                                         {noDataMessage}
                                     </Typography>
@@ -338,4 +372,5 @@ import {
         </Box>
     );
   }
+  
   
