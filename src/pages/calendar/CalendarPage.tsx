@@ -47,11 +47,11 @@ interface NewEventState {
   end: Date | null;
 }
 
-// Event type colors
+// Event type colors with gradients
 const eventColors = {
-  sanitation: '#2196f3', // Blue
-  program: '#4caf50',    // Green
-  other: '#ff9800'       // Orange
+  sanitation: 'linear-gradient(45deg, #2196f3 0%, #21cbf3 100%)',
+  program: 'linear-gradient(45deg, #4caf50 0%, #8bc34a 100%)',
+  other: 'linear-gradient(45deg, #ff9800 0%, #ffc107 100%)'
 };
 
 // Mock data for initial calendar events
@@ -119,7 +119,7 @@ const CalendarPage: React.FC = () => {
 
   const handleDateClick = (arg: any) => {
     const clickedDate = arg.date;
-    const endDate = new Date(clickedDate.getTime() + 60 * 60 * 1000); // 1 hour later
+    const endDate = new Date(clickedDate.getTime() + 60 * 60 * 1000);
     setSelectedDate(clickedDate);
     setNewEvent({
       ...newEvent,
@@ -169,7 +169,6 @@ const CalendarPage: React.FC = () => {
 
   const filteredEvents = events.filter(event => selectedTypes.includes(event.type));
 
-  // Add event handler for event updates
   const handleEventDrop = (info: any) => {
     const updatedEvents = events.map(event => {
       if (event.id === info.event.id) {
@@ -184,33 +183,112 @@ const CalendarPage: React.FC = () => {
     setEvents(updatedEvents);
   };
 
-  // Add event handler for event deletion
   const handleEventDelete = (eventId: string) => {
     setEvents(events.filter(event => event.id !== eventId));
   };
 
-  // Add event handler for event click
   const handleEventClick = (info: any) => {
     if (window.confirm(`Do you want to delete the event '${info.event.title}'?`)) {
       handleEventDelete(info.event.id);
     }
   };
 
+  const handleDayCellContent = (args: any) => {
+    const isToday = args.date.toDateString() === new Date().toDateString();
+    return {
+      html: `<div class="calendar-day${isToday ? ' today' : ''}">${args.dayNumberText}</div>`
+    };
+  };
+
+  const calendarStyles = `
+    @keyframes slideIn {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .fc-event {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 4px 8px !important;
+      animation: slideIn 0.4s ease-out;
+      cursor: pointer;
+    }
+
+    .fc-event:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .fc-daygrid-day:hover {
+      background: rgba(0,0,0,0.03);
+      transition: background 0.3s ease;
+    }
+
+    .fc-toolbar-title {
+      font-weight: 700 !important;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .fc-button-primary {
+      background: linear-gradient(45deg, #2196f3 0%, #21cbf3 100%) !important;
+      border: none !important;
+      border-radius: 8px !important;
+      transition: all 0.3s ease !important;
+      text-transform: uppercase !important;
+      font-weight: 600 !important;
+    }
+
+    .fc-button-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(33,150,243,0.3);
+    }
+
+    .today {
+      background: #2196f3;
+      color: white !important;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+  `;
+
   return (
     <Box sx={{ 
-      height: 'calc(100vh - 80px)', // Account for top padding and header
+      height: 'calc(100vh - 80px)',
       width: '100%',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column'
     }}>
-      <Paper sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.main' }}>
-          Calendar
+      <style>{calendarStyles}</style>
+      
+      <Paper sx={{ 
+        p: 2, 
+        mb: 2, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+      }}>
+        <Typography variant="h5" sx={{ 
+          fontWeight: 700, 
+          color: 'primary.main',
+          textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
+        }}>
+          WASH Calendar
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Tooltip title="Filter Events">
-            <IconButton size="small">
+            <IconButton size="small" sx={{ color: 'primary.main' }}>
               <FilterList />
             </IconButton>
           </Tooltip>
@@ -219,11 +297,17 @@ const CalendarPage: React.FC = () => {
               key={type}
               label={type.charAt(0).toUpperCase() + type.slice(1)}
               sx={{
-                bgcolor: selectedTypes.includes(type as EventType) ? color : 'transparent',
+                background: selectedTypes.includes(type as EventType) ? color : 'transparent',
                 color: selectedTypes.includes(type as EventType) ? 'white' : 'inherit',
-                border: `1px solid ${color}`,
+                border: 'none',
+                transition: 'all 0.3s ease',
+                transform: 'scale(1)',
                 '&:hover': {
-                  bgcolor: selectedTypes.includes(type as EventType) ? color : 'transparent',
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                },
+                '& .MuiChip-label': {
+                  fontWeight: 600
                 }
               }}
               onClick={() => toggleEventType(type as EventType)}
@@ -234,9 +318,14 @@ const CalendarPage: React.FC = () => {
               color="primary" 
               onClick={() => setOpenDialog(true)}
               sx={{ 
-                bgcolor: 'primary.main',
+                background: 'linear-gradient(45deg, #2196f3 0%, #21cbf3 100%)',
                 color: 'white',
-                '&:hover': { bgcolor: 'primary.dark' }
+                boxShadow: '0 4px 12px rgba(33,150,243,0.3)',
+                transition: 'all 0.3s ease',
+                '&:hover': { 
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 6px 16px rgba(33,150,243,0.4)'
+                }
               }}
             >
               <AddIcon />
@@ -248,9 +337,15 @@ const CalendarPage: React.FC = () => {
       <Paper sx={{ 
         p: 2, 
         flex: 1,
-        minHeight: 0, // Important for proper flex behavior
+        minHeight: 0,
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        transition: 'transform 0.3s, box-shadow 0.3s',
+        borderRadius: '16px',
+        background: 'white',
+        '&:hover': {
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }
       }}>
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -262,8 +357,17 @@ const CalendarPage: React.FC = () => {
           }}
           events={filteredEvents.map(event => ({
             ...event,
-            backgroundColor: eventColors[event.type],
-            borderColor: eventColors[event.type]
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            classNames: ['event-card'],
+            extendedProps: {
+              style: {
+                background: eventColors[event.type],
+                color: '#ffffff',
+                fontSize: '0.9em',
+                fontWeight: 500,
+              }
+            }
           }))}
           dateClick={handleDateClick}
           height="100%"
@@ -273,11 +377,37 @@ const CalendarPage: React.FC = () => {
           dayMaxEvents={true}
           eventDrop={handleEventDrop}
           eventClick={handleEventClick}
+          dayCellContent={handleDayCellContent}
         />
       </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Add New Event</DialogTitle>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="sm" 
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            transform: 'translateY(-20px)',
+            opacity: 0,
+            transition: 'all 0.3s ease',
+            borderRadius: '16px',
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          },
+          '& .MuiDialog-paper.MuiDialog-paperScrollBody': {
+            transform: 'translateY(0)',
+            opacity: 1,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          fontWeight: 700, 
+          color: 'primary.main',
+          borderBottom: '1px solid rgba(0,0,0,0.1)',
+          pb: 1
+        }}>
+          Create New Event
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
@@ -285,6 +415,18 @@ const CalendarPage: React.FC = () => {
               fullWidth
               value={newEvent.title}
               onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  transition: 'all 0.3s ease',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#2196f3'
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '2px'
+                  }
+                }
+              }}
             />
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DateTimePicker
@@ -292,6 +434,19 @@ const CalendarPage: React.FC = () => {
                 value={newEvent.start}
                 onChange={(date: Date | null) => setNewEvent({ ...newEvent, start: date })}
                 sx={{ width: '100%' }}
+                slotProps={{
+                  textField: {
+                    sx: {
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        transition: 'all 0.3s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#2196f3'
+                        }
+                      }
+                    }
+                  }
+                }}
               />
               <DateTimePicker
                 label="End Date & Time"
@@ -299,6 +454,19 @@ const CalendarPage: React.FC = () => {
                 onChange={(date: Date | null) => setNewEvent({ ...newEvent, end: date })}
                 sx={{ width: '100%' }}
                 minDateTime={newEvent.start || undefined}
+                slotProps={{
+                  textField: {
+                    sx: {
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        transition: 'all 0.3s ease',
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#2196f3'
+                        }
+                      }
+                    }
+                  }
+                }}
               />
             </LocalizationProvider>
             <FormControl fullWidth>
@@ -307,6 +475,12 @@ const CalendarPage: React.FC = () => {
                 value={newEvent.type || 'other'}
                 label="Event Type"
                 onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as EventType })}
+                sx={{
+                  borderRadius: '8px',
+                  '& .MuiSelect-select': {
+                    padding: '12px 14px'
+                  }
+                }}
               >
                 <MenuItem value="sanitation">Sanitation</MenuItem>
                 <MenuItem value="program">Program</MenuItem>
@@ -318,6 +492,15 @@ const CalendarPage: React.FC = () => {
               fullWidth
               value={newEvent.location}
               onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  transition: 'all 0.3s ease',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#2196f3'
+                  }
+                }
+              }}
             />
             <TextField
               label="Description"
@@ -326,17 +509,49 @@ const CalendarPage: React.FC = () => {
               rows={3}
               value={newEvent.description}
               onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '8px',
+                  transition: 'all 0.3s ease',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#2196f3'
+                  }
+                }
+              }}
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleCloseDialog} 
+            sx={{
+              color: '#666',
+              '&:hover': {
+                background: 'rgba(0,0,0,0.05)'
+              }
+            }}
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={handleAddEvent} 
             variant="contained" 
             disabled={!newEvent.title}
+            sx={{
+              background: 'linear-gradient(45deg, #2196f3 0%, #21cbf3 100%)',
+              borderRadius: '8px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              boxShadow: '0 4px 12px rgba(33,150,243,0.3)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 16px rgba(33,150,243,0.4)'
+              }
+            }}
           >
-            Add Event
+            Create Event
           </Button>
         </DialogActions>
       </Dialog>
@@ -344,4 +559,4 @@ const CalendarPage: React.FC = () => {
   );
 };
 
-export default CalendarPage; 
+export default CalendarPage;
