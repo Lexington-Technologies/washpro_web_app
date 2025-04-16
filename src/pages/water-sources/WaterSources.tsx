@@ -92,6 +92,7 @@ const WaterSourcesDashboard: React.FC = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { data: analytics } = useQuery({
     queryKey: ['water-sources-analytics', wardFilter, villageFilter, hamletFilter],
     queryFn: () =>
@@ -101,11 +102,29 @@ const WaterSourcesDashboard: React.FC = () => {
         }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
       ),
   });
-  console.log('Analytics:', analytics);
+
   const { data: tableData, isLoading: isTableLoading } = useQuery({
-    queryKey: ['water-sources'],
-    queryFn: () => apiController.get('/water-sources'),
+    queryKey: [
+      "water-sources",
+      pagination.pageIndex,
+      pagination.pageSize,
+      searchQuery,
+      wardFilter,
+      villageFilter,
+      hamletFilter,
+    ],
+    queryFn: () =>
+      apiController.get(
+        `/water-sources?limit=${pagination.pageSize}&page=${
+          pagination.pageIndex + 1
+        }&search=${searchQuery}&ward=${
+          wardFilter !== "All" ? wardFilter : ""
+        }&village=${villageFilter !== "All" ? villageFilter : ""}&hamlet=${
+          hamletFilter !== "All" ? hamletFilter : ""
+        }`
+      ),
   });
+
   const isLoading = isTableLoading;
   const totalWaterPoints = analytics?.totalWaterPoints || 0;
   const proportionImproved =
@@ -326,12 +345,16 @@ const WaterSourcesDashboard: React.FC = () => {
             Water Sources Overview
           </Typography>
           <Paper sx={{ overflowX: 'auto' }}>
-            <DataTable
+          <DataTable
+              data={tableData?.data || []}
               columns={columns}
-              data={tableData}
+              totalCount={tableData?.pagination?.total || 0}
               pagination={pagination}
               onPaginationChange={setPagination}
+              isLoading={isTableLoading}
               onRowClick={(row) => navigateToDetails(row._id)}
+              enableSearch={true}
+              searchPlaceholder="Search by ward, village, or hamlet"
             />
           </Paper>
         </Box>
