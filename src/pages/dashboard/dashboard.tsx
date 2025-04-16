@@ -176,6 +176,7 @@ const Dashboard = () => {
     facilityCards,
     waterAnalytics,
     sanitationAnalytics,
+    populationAnalytics,
     locationAnalytics,
   } = filteredData;
 
@@ -194,18 +195,6 @@ const Dashboard = () => {
       ...CARD_COLORS.facility[1]
     },
     { 
-      title: 'Total Handwashing Facilities', 
-      value: facilityCards?.find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, 
-      icon: <FaHandHoldingDroplet size={20} />, 
-      ...CARD_COLORS.facility[6]
-    },
-    { 
-      title: 'Total Dumpsites', 
-      value: facilityCards?.find((card) => card.name === 'Total Dumpsites')?.count || 0, 
-      icon: <FaTrash size={20} />, 
-      ...CARD_COLORS.facility[4]
-    },
-    { 
       title: 'Total Gutters', 
       value: facilityCards?.find((card) => card.name === 'Total Gutters')?.count || 0, 
       icon: <FaWater size={20} />, 
@@ -218,10 +207,22 @@ const Dashboard = () => {
       ...CARD_COLORS.facility[3]
     },
     { 
+      title: 'Total Dumpsites', 
+      value: facilityCards?.find((card) => card.name === 'Total Dumpsites')?.count || 0, 
+      icon: <FaTrash size={20} />, 
+      ...CARD_COLORS.facility[4]
+    },
+    { 
       title: 'Total Open Defecation Sites', 
       value: facilityCards?.find((card) => card.name === 'Total Open Defecation Sites')?.count || 0, 
       icon: <FaPoop size={20} />, 
       ...CARD_COLORS.facility[5]
+    },
+    { 
+      title: 'Total Handwashing Facilities', 
+      value: facilityCards?.find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, 
+      icon: <FaHandHoldingDroplet size={20} />, 
+      ...CARD_COLORS.facility[6]
     },
   ];
 
@@ -263,7 +264,7 @@ const Dashboard = () => {
   const wardData = locationAnalytics?.wardDistribution || [];
 
   // Custom Tooltip to display extra details on hover
-  const CustomTooltip = ({ active, payload }) => {
+  const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <Box sx={{ backgroundColor: 'white', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
@@ -509,7 +510,7 @@ const Dashboard = () => {
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
               <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Community Captured Distribution
+                Ward Distribution
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
