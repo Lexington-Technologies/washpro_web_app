@@ -163,6 +163,7 @@ const SideBar = ({
     },
   ];
 
+  
   const routineActivitiesSubItems = [
     { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
     { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
