@@ -163,7 +163,7 @@ const SideBar = ({
     },
   ];
 
-  
+
   const routineActivitiesSubItems = [
     { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
     { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
@@ -172,6 +172,7 @@ const SideBar = ({
     { text: "LAM Reporting", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "LAM Report" },
   ];
 
+  // commented out for now
   const bottomMenuItems = [
     {
       text: "Reports",
