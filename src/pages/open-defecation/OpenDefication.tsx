@@ -129,7 +129,7 @@ const OpenDefication = () => {
   const [hamlet, setHamlet] = useState('All');
 
   const { data, isLoading } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecations', { limit, page, search }],
+    queryKey: ['open-defecation', { limit, page, search }],
     queryFn: () =>
       apiController.get<OpenDefecation[]>(
         `/open-defecations?limit=${limit}&page=${page}&search=${search}`
@@ -137,12 +137,12 @@ const OpenDefication = () => {
   });
 
   const { data: analytics } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecations-analytics', { limit, page, search }],
+    queryKey: ['open-defecation-analytics', { limit, page, search }],
     queryFn: () =>
       apiController.get<OpenDefecation[]>(
-        `/open-defecation/analytics`),
+        `/open-defecations/analytics?limit=${limit}&page=${page}&search=${search}`
+      ),
   });
-
   console.log('odf',analytics);
 
 
