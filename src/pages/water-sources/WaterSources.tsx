@@ -43,14 +43,7 @@ interface StatCardProps {
 }
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
   <StyledPaper>
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        height: '100%',
-      }}
-    >
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
       <Box>
         <Typography color="text.secondary" variant="body2">
           {title}
@@ -93,15 +86,14 @@ interface WaterSource {
 }
 
 const WaterSourcesDashboard: React.FC = () => {
-  // State for filter parameters; the dropdowns show the filter values directly from the analytics response.
   const [wardFilter, setWardFilter] = useState<string>('All');
   const [villageFilter, setVillageFilter] = useState<string>('All');
   const [hamletFilter, setHamletFilter] = useState<string>('All');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // The analytics endpoint now receives the filter values.
   const { data: analytics } = useQuery({
     queryKey: ['water-sources-analytics', wardFilter, villageFilter, hamletFilter],
     queryFn: () =>
@@ -110,27 +102,33 @@ const WaterSourcesDashboard: React.FC = () => {
           villageFilter !== 'All' ? villageFilter : ''
         }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
       ),
-    select: (response) => response,
   });
 
-  console.log('Analytics:', analytics);
+  console.log(analytics)
 
-  // Get table data (this could also be filtered on the backend if needed)
   const { data: tableData, isLoading: isTableLoading } = useQuery({
-    queryKey: ['water-sources', wardFilter, villageFilter, hamletFilter],
+    queryKey: [
+      "water-sources",
+      pagination.pageIndex,
+      pagination.pageSize,
+      searchTerm,
+      wardFilter,
+      villageFilter,
+      hamletFilter,
+    ],
     queryFn: () =>
-      // Optionally, you may update your API to return table data based on the filter as well.
       apiController.get(
-        `/water-sources?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
-          villageFilter !== 'All' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
+        `/water-sources?limit=${pagination.pageSize}&page=${
+          pagination.pageIndex + 1
+        }&search=${searchTerm}&ward=${
+          wardFilter !== "All" ? wardFilter : ""
+        }&village=${villageFilter !== "All" ? villageFilter : ""}&hamlet=${
+          hamletFilter !== "All" ? hamletFilter : ""
+        }`
       ),
-    select: (response) => response,
   });
 
   const isLoading = isTableLoading;
-
-  // Use analytics values directly.
   const totalWaterPoints = analytics?.totalWaterPoints || 0;
   const proportionImproved =
     analytics?.proportionImproved !== undefined
@@ -138,21 +136,9 @@ const WaterSourcesDashboard: React.FC = () => {
       : '0';
   const avgDistance = analytics?.avgDistance || '0';
   const householdsUsingUnimproved = analytics?.householdsUsingUnimproved || '0';
-
-  // The filter options are displayed from the backend analytics response.
-  const wardOptions = useMemo(() => {
-    return analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All'];
-  }, [analytics]);
-
-  const villageOptions = useMemo(() => {
-    return analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All'];
-  }, [analytics]);
-
-  const hamletOptions = useMemo(() => {
-    return analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All'];
-  }, [analytics]);
-
-  // Prepare chart data using analytics values from the backend.
+  const wardOptions = useMemo(() => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']), [analytics]);
+  const villageOptions = useMemo(() => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']), [analytics]);
+  const hamletOptions = useMemo(() => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']), [analytics]);
   const pieChartData = useMemo(() => {
     if (!analytics || !analytics.typeDistribution) return [];
     const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722'];
@@ -163,7 +149,7 @@ const WaterSourcesDashboard: React.FC = () => {
       color: colorPalette[index % colorPalette.length],
     }));
   }, [analytics]);
-
+  const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
   const barChartData = useMemo(() => {
     if (!analytics || !analytics.functionalStatusDistribution) return [];
     return Object.entries(analytics.functionalStatusDistribution).map(([type, values]) => ({
@@ -172,17 +158,12 @@ const WaterSourcesDashboard: React.FC = () => {
       nonFunctional: values['Non Functional'],
     }));
   }, [analytics]);
-
   const columnHelper = createColumnHelper<WaterSource>();
   const columns = [
     columnHelper.accessor('picture', {
       header: 'Picture',
       cell: (props) => (
-        <Avatar
-          src={getImageSrc(props.row.original.picture)}
-          alt="water source"
-          sx={{ borderRadius: '100%' }}
-        />
+        <Avatar src={getImageSrc(props.row.original.picture)} alt="water source" sx={{ borderRadius: '100%' }} />
       ),
     }),
     columnHelper.accessor('ward', { header: 'Ward', cell: (info) => info.getValue() }),
@@ -212,26 +193,19 @@ const WaterSourcesDashboard: React.FC = () => {
       ),
     }),
   ];
-
   if (isLoading) {
     return (
-      <Box
-        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress size={60} thickness={4} />
       </Box>
     );
   }
-
   const navigateToDetails = (id: string) => {
     navigate(`/water-sources/${id}?${queryParams.toString()}`);
   };
-
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      <Box
-        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
             Water Sources Dashboard
@@ -241,19 +215,10 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <Stack
-            direction="row"
-            spacing={2}
-            flexWrap="wrap"
-            sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}
-          >
+          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Ward</InputLabel>
-              <Select
-                value={wardFilter}
-                onChange={(e) => setWardFilter(e.target.value)}
-                label="Ward"
-              >
+              <Select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} label="Ward">
                 {wardOptions.map((option, index) => (
                   <MenuItem key={index} value={option}>
                     {option}
@@ -263,11 +228,7 @@ const WaterSourcesDashboard: React.FC = () => {
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Village</InputLabel>
-              <Select
-                value={villageFilter}
-                onChange={(e) => setVillageFilter(e.target.value)}
-                label="Village"
-              >
+              <Select value={villageFilter} onChange={(e) => setVillageFilter(e.target.value)} label="Village">
                 {villageOptions.map((option, index) => (
                   <MenuItem key={index} value={option}>
                     {option}
@@ -277,11 +238,7 @@ const WaterSourcesDashboard: React.FC = () => {
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Hamlet</InputLabel>
-              <Select
-                value={hamletFilter}
-                onChange={(e) => setHamletFilter(e.target.value)}
-                label="Hamlet"
-              >
+              <Select value={hamletFilter} onChange={(e) => setHamletFilter(e.target.value)} label="Hamlet">
                 {hamletOptions.map((option, index) => (
                   <MenuItem key={index} value={option}>
                     {option}
@@ -336,10 +293,11 @@ const WaterSourcesDashboard: React.FC = () => {
               series={[
                 {
                   data: pieChartData,
-                  arcLabel: (item) => `${item.value}`,
+                  arcLabel: (item) => totalPieValue > 0 ? `${((item.value / totalPieValue) * 100).toFixed(1)}%` : '0%',
                   arcLabelMinAngle: 10,
                   outerRadius: 180,
                   innerRadius: 40,
+                  tooltip: ({ datum }) => `${datum.label}: ${datum.value}`,
                 },
               ]}
               width={Math.min(760, window.innerWidth - 40)}
@@ -392,9 +350,24 @@ const WaterSourcesDashboard: React.FC = () => {
           <Paper sx={{ overflowX: 'auto' }}>
             <DataTable
               columns={columns}
-              data={tableData}
+              data={tableData?.data || []}
               pagination={pagination}
+              totalCount={tableData?.pagination?.total || 0}
               onPaginationChange={setPagination}
+              onFilterChange={({ ward, village, hamlet }) => {
+                setWardFilter(ward || 'All');
+                setVillageFilter(village || 'All');
+                setHamletFilter(hamlet || 'All');
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
+              wardFilter={wardFilter}
+              villageFilter={villageFilter}
+              hamletFilter={hamletFilter}
+              searchQuery={searchTerm}
+              onSearchChange={(newSearch) => {
+                setSearchTerm(newSearch);
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
               onRowClick={(row) => navigateToDetails(row._id)}
             />
           </Paper>

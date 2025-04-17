@@ -44,6 +44,7 @@ import { Logo } from "../assets/svg";
 import { BsFillShieldLockFill, BsWater } from "react-icons/bs";
 import { RiHealthBookFill } from "react-icons/ri";
 import { useAuthStore } from "../store";
+import { Calendar } from "lucide-react";
 
 interface SideBarProps {
   isCollapsed: boolean;
@@ -63,12 +64,11 @@ const SideBar = ({
   const navigate = useNavigate();
   const { logout } = useAuthStore();
 
-  // State for dropdown menus
   const [openWaste, setOpenWaste] = useState(false);
-  const [openUsers, setOpenUsers] = useState(false);
+  const [openAccounts, setOpenAccounts] = useState(false);
   const [openActivities, setOpenActivities] = useState(false);
+  const [openKnowledge, setOpenKnowledge] = useState(false);
 
-  // Handle logout
   const handleLogout = () => {
     try {
       logout();
@@ -78,17 +78,14 @@ const SideBar = ({
     }
   };
 
-  // Close drawer on mobile
   const handleClose = () => {
     if (isMobile) onDrawerToggle();
   };
 
-  // Close drawer on navigation
   const handleNavigation = () => {
     if (isMobile) onDrawerToggle();
   };
 
-  // Main menu items
   const mainMenuItems = [
     {
       text: "Dashboard",
@@ -97,18 +94,22 @@ const SideBar = ({
       title: "Dashboard",
     },
     {
+      text: "Wash Status",
+      icon: <BsWater />,
+      path: "/wash-status",
+      title: "Wash Status",
+    },
+    {
       text: "Water Sources",
       icon: <WaterDropOutlined />,
       path: "/water-sources",
       title: "Water Sources",
-      subItems: [
-        {
-          text: "Water Source Risk",
-          icon: <GiWaterRecycling style={{ fontSize: 24 }} />,
-          path: "/water-source-risk",
-          title: "Water Source Risk",
-        },
-      ],
+    },
+    {
+      text: "Calendar",
+      icon: <Calendar />,
+      path: "/calendar",
+      title: "Calendar",
     },
     {
       text: "Toilet Facilities",
@@ -123,22 +124,27 @@ const SideBar = ({
       title: "Hygeine Facilities",
     },
     {
-      text: "Wash Status",
-      icon: <BsWater />,
-      path: "/wash-status",
-      title: "Wash Status",
-    },
-    {
       text: "Open Defecation",
       icon: <FaPoop />,
       path: "/open-defecation",
       title: "Open Defecation",
     },
     {
-      text: "Calendar",
-      icon: <Schedule />,
-      path: "/calendar",
-      title: "Calendar",
+      text: "Waste Management",
+      icon: <GiHazardSign style={{ fontSize: 24 }} />,
+      path: "#",
+      title: "Waste Management",
+      subItems: [
+        { text: "Gutters", icon: <Waves />, path: "/gutters", title: "Gutters" },
+        { text: "Dumpsites", icon: <Delete />, path: "/dump-sites", title: "Dump Sites" },
+        { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
+      ]
+    },
+    {
+      text: "Water Source Risk",
+      icon: <GiWaterRecycling style={{ fontSize: 24 }} />,
+      path: "/water-source-risk",
+      title: "Water Source Risk",
     },
     {
       text: "Intervention",
@@ -146,62 +152,12 @@ const SideBar = ({
       path: "/interventions",
       title: "Intervention",
     },
-    // {
-    //   text: "Wash",
-    //   icon: <RiPlantLine />,
-    //   path: "/wash",
-    //   title: "Wash",
-    // },
-    {
-      text: "Routine Activities",
-      icon: <FaServicestack />,
-      path: "/routine-activities",
-      title: "Routine Activities",
-    },
     {
       text: "Financing",
       icon: <Report />,
       path: "/financial-summary",
       title: "Financing",
     },
-    // {
-    //   text: "AI Assistant",
-    //   icon: <SmartToy />,
-    //   path: "/ai-assistant",
-    //   title: "AI Assistant",
-    // },
-    {
-      text: "Knowledge Base",
-      icon: <RiHealthBookFill />,
-      path: "/knowledge-base",
-      title: "Knowledge Base",
-    },
-  ];
-
-  // Waste submenu items
-  const wasteSubItems = [
-    { text: "Dump Sites", icon: <Delete />, path: "/dump-sites", title: "Dump Sites" },
-    { text: "Gutters", icon: <Waves />, path: "/gutters", title: "Gutters" },
-    { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
-  ];
-
-  // Users submenu items
-  const usersSubItems = [
-    { text: "Admins", icon: <FaUserCog />, path: "/users", title: "Admins" },
-    { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
-  ];
-
-  // Activities submenu items
-  const activitiesSubItems = [
-    { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
-    { text: "Chlorination", icon: <Report />, path: "/chlorination", title: "Chlorination" },
-    { text: "Issues Log", icon: <Report />, path: "/issues-log", title: "Issues Log" },
-    { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
-    { text: "Lam Report", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "Lam Report" },
-  ];
-
-  // Bottom menu items
-  const bottomMenuItems = [
     {
       text: "Cholera Outbreak",
       icon: <WarningAmber />,
@@ -215,6 +171,41 @@ const SideBar = ({
       title: "Risk Analysis",
     },
     {
+      text: "Routine Activities",
+      icon: <FaServicestack />,
+      path: "#",
+      title: "Routine Activities",
+      subItems: [
+        { text: "Sanitation", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/sanitation", title: "Sanitation" },
+        { text: "Activities", icon: <FaServicestack />, path: "/activities", title: "Activities" },
+        { text: "Chlorination", icon: <Report />, path: "/chlorination", title: "Chlorination" },
+        { text: "Issues Log", icon: <Report />, path: "/issues-log", title: "Issues Log" },
+        { text: "LAM Reporting", icon: <MdSanitizer style={{ fontSize: 24 }} />, path: "/lam-report", title: "LAM Report" },
+      ]
+    },
+    {
+      text: "Accounts",
+      icon: <People />,
+      path: "#",
+      title: "Accounts",
+      subItems: [
+        { text: "Admins", icon: <FaUserCog />, path: "/users", title: "Admins" },
+        { text: "Enumerators", icon: <People />, path: "/enumerator", title: "Enumerators" },
+      ]
+    },
+    // {
+    //   text: "Knowledge Base",
+    //   icon: <RiHealthBookFill />,
+    //   path: "/knowledge-base",
+    //   title: "Knowledge Base",
+    // },
+    // {
+    //   text: "AI Assistant",
+    //   icon: <RiHealthBookFill />,
+    //   path: "/ai-assistant",
+    //   title: "AI Assistant",
+    // },
+    {
       text: "Reports",
       icon: <Report />,
       path: "/reports",
@@ -222,7 +213,6 @@ const SideBar = ({
     },
   ];
 
-  // Render a single menu item
   const renderMenuItem = (item: any) => (
     <Tooltip
       title={isCollapsed ? item.title : ""}
@@ -277,7 +267,64 @@ const SideBar = ({
     </Tooltip>
   );
 
-  // Render dropdown items
+  const renderChildMenuItem = (item: any) => (
+    <Tooltip
+      title={isCollapsed ? item.title : ""}
+      placement="right"
+      disableHoverListener={!isCollapsed}
+      key={item.text}
+    >
+      <ListItem disablePadding>
+        <ListItemButton
+          component={NavLink}
+          to={item.path}
+          onClick={handleNavigation}
+          sx={{
+            py: 1.5,
+            mx: 1,
+            mb: 0.5,
+            ml: isCollapsed ? 1 : 4,
+            justifyContent: isCollapsed ? "center" : "flex-start",
+            borderRadius: "6px",
+            transition: "all 0.2s",
+            backgroundColor: theme.palette.primary.lighter,
+            borderLeft: `3px solid ${theme.palette.primary.main}`,
+            '&:hover': {
+              backgroundColor: theme.palette.primary.light,
+            },
+            "&.active": {
+              backgroundColor: theme.palette.primary.dark,
+              color: "white",
+              borderLeftColor: theme.palette.primary.contrastText,
+              "& .MuiListItemIcon-root": { color: "white" },
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: "auto",
+              color: "inherit",
+              mr: isCollapsed ? 0 : 2,
+              justifyContent: "center",
+              transition: "margin-right 0.3s",
+            }}
+          >
+            {item.icon}
+          </ListItemIcon>
+          {!isCollapsed && (
+            <ListItemText
+              primary={item.text}
+              primaryTypographyProps={{
+                fontSize: "0.875rem",
+                fontWeight: 500,
+              }}
+            />
+          )}
+        </ListItemButton>
+      </ListItem>
+    </Tooltip>
+  );
+
   const renderDropdown = (
     title: string,
     open: boolean,
@@ -295,8 +342,12 @@ const SideBar = ({
             mb: 0.5,
             borderRadius: "8px",
             justifyContent: isCollapsed ? "center" : "flex-start",
-            color: "#25306B",
-            "&:hover": { bgcolor: theme.palette.action.hover },
+            color: open ? theme.palette.primary.main : "#25306B",
+            backgroundColor: open ? theme.palette.action.selected : "inherit",
+            "&:hover": { 
+              bgcolor: open ? theme.palette.action.hover : theme.palette.action.hover 
+            },
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <Tooltip
@@ -319,24 +370,41 @@ const SideBar = ({
             <>
               <ListItemText
                 primary={title}
-                primaryTypographyProps={{ fontSize: "0.875rem", fontWeight: 500 }}
+                primaryTypographyProps={{ 
+                  fontSize: "0.875rem", 
+                  fontWeight: 600,
+                  color: "inherit"
+                }}
               />
-              {open ? <ExpandLess /> : <ExpandMore />}
+              {open ? (
+                <ExpandLess sx={{ color: "inherit" }} />
+              ) : (
+                <ExpandMore sx={{ color: "inherit" }} />
+              )}
             </>
           )}
         </ListItemButton>
       </ListItem>
-      <Collapse in={open} timeout="auto" unmountOnExit>
+      <Collapse 
+        in={open} 
+        timeout="auto" 
+        unmountOnExit
+        sx={{
+          background: `linear-gradient(to right, ${theme.palette.primary.lighter} 20%, transparent 100%)`,
+          borderRadius: '8px',
+          mx: 1,
+          mb: 1,
+        }}
+      >
         <List component="div" disablePadding>
           {items.map((item) => (
-            <div key={item.text}>{renderMenuItem(item)}</div>
+            <div key={item.text}>{renderChildMenuItem(item)}</div>
           ))}
         </List>
       </Collapse>
     </>
   );
 
-  // Sidebar content
   const sidebarContent = (
     <Box
       sx={{
@@ -350,7 +418,6 @@ const SideBar = ({
         px: 1,
       }}
     >
-      {/* Logo and Toggle Section */}
       <Box
         sx={{
           p: 2,
@@ -365,18 +432,17 @@ const SideBar = ({
       >
         <Link to="/">
           <Box
-          component='img'
+            component='img'
             src={Logo}
             alt="Logo"
             style={{
-              width: isCollapsed ? 50 : 160,
+              width: isCollapsed ? 50 : 220,
               height: isCollapsed ? 50 : "auto",
               objectFit: "contain",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
         </Link>
-        {/* Desktop Toggle Button */}
         {!isMobile && (
           <IconButton
             onClick={onToggle}
@@ -398,7 +464,6 @@ const SideBar = ({
             )}
           </IconButton>
         )}
-        {/* Mobile Close Button */}
         {isMobile && (
           <IconButton
             onClick={onDrawerToggle}
@@ -412,7 +477,6 @@ const SideBar = ({
           </IconButton>
         )}
       </Box>
-      {/* Scrollable Menu Items */}
       <Box
         sx={{
           flex: 1,
@@ -423,47 +487,25 @@ const SideBar = ({
         }}
       >
         <List>
-          {/* Main Menu Items */}
-          {mainMenuItems.map((item, index) => (
+          {mainMenuItems.map((item) => (
             <div key={item.text}>
-              {renderMenuItem(item)}
-              {item.subItems &&
-                item.subItems.map((subItem) => (
-                  <div key={subItem.text}>{renderMenuItem(subItem)}</div>
-                ))}
+              {item.subItems ? renderDropdown(
+                item.text,
+                item.text === "Waste Management" ? openWaste :
+                item.text === "Accounts" ? openAccounts :
+                item.text === "Routine Activities" ? openActivities :
+                openKnowledge,
+                item.text === "Waste Management" ? setOpenWaste :
+                item.text === "Accounts" ? setOpenAccounts :
+                item.text === "Routine Activities" ? setOpenActivities :
+                setOpenKnowledge,
+                item.subItems,
+                item.icon
+              ) : renderMenuItem(item)}
             </div>
-          ))}
-          {/* Waste Dropdown */}
-          {renderDropdown(
-            "Waste Management",
-            openWaste,
-            setOpenWaste,
-            wasteSubItems,
-            <GiHazardSign style={{ fontSize: 24 }} />
-          )} 
-          {/* Users Dropdown */}
-          {renderDropdown(
-            "Accounts",
-            openUsers,
-            setOpenUsers,
-            usersSubItems,
-            <People />
-          )}
-          {/* Activities Dropdown */}
-          {renderDropdown(
-            "Activities Status",
-            openActivities,
-            setOpenActivities,
-            activitiesSubItems,
-            <FaServicestack />
-          )}
-          {/* Bottom Menu Items */}
-          {bottomMenuItems.map((item) => (
-            <div key={item.text}>{renderMenuItem(item)}</div>
           ))}
         </List>
       </Box>
-      {/* Logout Button */}
       <Divider />
       <ListItem disablePadding>
         <ListItemButton

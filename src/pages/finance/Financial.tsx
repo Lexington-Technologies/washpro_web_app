@@ -18,7 +18,17 @@ import {
   MenuItem,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  Stack,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   PieChart,
@@ -39,60 +49,107 @@ import {
   MdFileDownload 
 } from 'react-icons/md';
 
-// Sample data
-const fundCategories = [
-  { name: "Operational Fund", used: "₦0", total: "₦0", color: "#3B82F6" },
-  { name: "Maintenance Fund", used: "₦0", total: "₦0", color: "#4F46E5" },
-  { name: "Capital Expenditure", used: "₦0", total: "₦0", color: "#10B981" },
-  { name: "Aids & Grants", used: "₦0", total: "₦0", color: "#F59E0B" },
-  { name: "Community Financing", used: "₦0", total: "₦0", color: "#EF4444" }
-];
-
 const pieChartData = [
-  { name: "Operational", value: 0, color: "#3B82F6" },
-  { name: "Maintenance", value: 0, color: "#EC4899" },
-  { name: "Capital Expenditure", value: 0, color: "#06B6D4" },
-  { name: "Aids & Grants", value: 0, color: "#F97316" },
-  { name: "Community Financing", value: 0, color: "#FACC15" }
+  { name: "Operational", value: 50, color: "#3B82F6" },
+  { name: "Maintenance", value: 150, color: "#EC4899" },
+  { name: "Capital Expenditure", value: 80, color: "#06B6D4" },
+  { name: "Aids & Grants", value: 120, color: "#F97316" },
+  { name: "Community Financing", value: 20, color: "#FACC15" }
 ];
 
+ // Sample data for funds
+ const fundCategories = [
+  { name: "Maintenance Fund", used: "₦2,450,000", total: "₦3,000,000", color: "#4F46E5" },
+  { name: "Operational Fund", used: "₦1,780,000", total: "₦2,500,000", color: "#3B82F6" },
+  { name: "Capital Expenditure", used: "₦5,125,000", total: "₦8,000,000", color: "#10B981" },
+  { name: "Aids & Grants", used: "₦750,000", total: "₦1,200,000", color: "#F59E0B" },
+  { name: "Community Financing", used: "₦325,000", total: "₦500,000", color: "#EF4444" }
+];
+
+// Sample data for monthly expenditure
 const monthlyData = [
-  { name: 'Jan', operational: 0, maintenance: 0 },
-  { name: 'Feb', operational: 0, maintenance: 0 },
-  { name: 'Mar', operational: 0, maintenance: 0 },
-  { name: 'Apr', operational: 0, maintenance: 0 },
-  { name: 'May', operational: 0, maintenance: 0 },
-  { name: 'Jun', operational: 0, maintenance: 0 },
-  { name: 'Jul', operational: 0, maintenance: 0 },
-  { name: 'Aug', operational: 0, maintenance: 0 },
+  { name: 'Jan', operational: 350000, maintenance: 120000 },
+  { name: 'Feb', operational: 420000, maintenance: 180000 },
+  { name: 'Mar', operational: 380000, maintenance: 210000 },
+  { name: 'Apr', operational: 430000, maintenance: 290000 },
+  { name: 'May', operational: 510000, maintenance: 340000 },
+  { name: 'Jun', operational: 590000, maintenance: 470000 },
+  { name: 'Jul', operational: 480000, maintenance: 390000 },
+  { name: 'Aug', operational: 520000, maintenance: 450000 },
 ];
 
+// Sample data for payments
 const paymentsData = [
-  { month: 'Jan', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
-  { month: 'Feb', initiated: '₦0', paid: '₦0', status: '-', date: '- - -' },
-  { month: 'March', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
-  { month: 'April', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
-  { month: 'May', initiated: '₦0', paid: '₦0', status: '-', date: '- - - ' },
-  { month: 'June', initiated: '₦0', paid: 'N0', status: '-', date: '- - -' },
+  { month: 'Jan', initiated: '₦450,000', paid: '₦450,000', status: 'Completed', date: '31/01/2025' },
+  { month: 'Feb', initiated: '₦600,000', paid: '₦600,000', status: 'Completed', date: '28/02/2025' },
+  { month: 'Mar', initiated: '₦590,000', paid: '₦590,000', status: 'Completed', date: '31/03/2025' },
+  { month: 'Apr', initiated: '₦720,000', paid: '₦650,000', status: 'Partial', date: '15/04/2025' },
+  { month: 'May', initiated: '₦850,000', paid: '₦0', status: 'Pending', date: 'Scheduled 15/05/2025' },
+  { month: 'Jun', initiated: '₦1,060,000', paid: '₦0', status: 'Scheduled', date: 'Due 15/06/2025' },
 ];
 
 const FinancialSummary = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFund, setSelectedFund] = useState("Operational Fund");
   const [timeRange, setTimeRange] = useState("6M");
+  const [openModal, setOpenModal] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    fundCategory: '',
+    amount: '',
+    date: '',
+    description: '',
+    status: 'Completed'
+  });
 
-  const handleClick = (event) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = (option) => {
+  const handleClose = (option?: string) => {
     if (option) {
       setSelectedFund(option);
     }
     setAnchorEl(null);
   };
 
-  const getStatusChip = (status) => {
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setPaymentData({
+      fundCategory: '',
+      amount: '',
+      date: '',
+      description: '',
+      status: 'Completed'
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPaymentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setPaymentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    // Here you would typically make an API call to save the payment
+    console.log('Payment data:', paymentData);
+    handleCloseModal();
+  };
+
+  const getStatusChip = (status: string) => {
     if (status === 'Paid') {
       return <Chip label="Paid" size="small" sx={{ bgcolor: '#DEF7EC', color: '#03543E', fontSize: '0.75rem' }} />;
     } else if (status === 'Partial') {
@@ -110,13 +167,14 @@ const FinancialSummary = () => {
           variant="contained" 
           startIcon={<MdAdd />} 
           sx={{ bgcolor: '#10B981', '&:hover': { bgcolor: '#047857' } }}
+          onClick={handleOpenModal}
         >
           Record Payment
         </Button>
       </Box>
 
       {/* Alert */}
-      <Alert 
+      {/* <Alert 
         severity="error" 
         sx={{ 
           mb: 3, 
@@ -126,7 +184,7 @@ const FinancialSummary = () => {
         }}
       >
         Alert: There are 4 month(s) with pending operational payments!
-      </Alert>
+      </Alert> */}
 
       {/* Fund Categories */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -376,6 +434,110 @@ const FinancialSummary = () => {
           </Table>
         </TableContainer>
       </Box>
+
+      {/* Record Payment Modal */}
+      <Dialog 
+        open={openModal} 
+        onClose={handleCloseModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+          <Typography variant="h6" fontWeight="bold">Record New Payment</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <FormControl fullWidth>
+              <InputLabel>Fund Category</InputLabel>
+              <Select
+                name="fundCategory"
+                value={paymentData.fundCategory}
+                label="Fund Category"
+                onChange={handleSelectChange}
+              >
+                {fundCategories.map((category) => (
+                  <MenuItem key={category.name} value={category.name}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              name="amount"
+              label="Amount (₦)"
+              value={paymentData.amount}
+              onChange={handleInputChange}
+              fullWidth
+              type="number"
+              InputProps={{
+                startAdornment: <Typography sx={{ mr: 1 }}>₦</Typography>,
+              }}
+            />
+
+            <TextField
+              name="date"
+              label="Payment Date"
+              type="date"
+              value={paymentData.date}
+              onChange={handleInputChange}
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                name="status"
+                value={paymentData.status}
+                label="Status"
+                onChange={handleSelectChange}
+              >
+                <MenuItem value="Completed">Completed</MenuItem>
+                <MenuItem value="Partial">Partial</MenuItem>
+                <MenuItem value="Pending">Pending</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              name="description"
+              label="Description"
+              value={paymentData.description}
+              onChange={handleInputChange}
+              fullWidth
+              multiline
+              rows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #E5E7EB' }}>
+          <Button 
+            onClick={handleCloseModal}
+            sx={{ 
+              color: '#6B7280',
+              '&:hover': {
+                bgcolor: 'rgba(107, 114, 128, 0.1)'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            onClick={handleSubmit}
+            sx={{ 
+              bgcolor: '#10B981',
+              '&:hover': {
+                bgcolor: '#047857'
+              }
+            }}
+          >
+            Record Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

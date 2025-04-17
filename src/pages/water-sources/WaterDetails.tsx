@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn, MapPinHouse, Droplet } from 'lucide-react';
 import React, { useState } from 'react';
 import { GiWell } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -327,13 +327,13 @@ const OverviewTab = ({
             <DetailItem icon={MapPin} label="Location" value={`${waterSource?.hamlet}, ${waterSource?.village}`} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={GiWell} label="Water Source Type" value={waterSource?.type} />
+            <DetailItem icon={Droplet} label="Water Source Type" value={waterSource?.type} />
           </Grid>
         </Grid>
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={HeartPulse} label="Space Type" value={waterSource?.spaceType} />
+            <DetailItem icon={MapPinHouse} label="Space Type" value={waterSource?.spaceType} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={Cog} label="Water Source Status" value={waterSource?.status} />
@@ -669,7 +669,7 @@ const DetailItem = ({ icon: Icon, label, value }: { icon: any; label: string; va
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-      <Icon size={20} style={{ color: iconColor, marginTop: 4 }} />
+      <Icon size={25} style={{ color: iconColor, marginTop: 4 }} />
       <Box>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           {label}

@@ -41,6 +41,7 @@ interface ToiletFacility {
   village: string;
   hamlet: string;
   unmaintainedReasons: string
+  numberOfSharedHouse: string;
   spaceType: string;
   compactments: number;
   dependent: number;
@@ -212,7 +213,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
             <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
           </Grid>
           <Grid item xs={6}>
-          <DetailItem icon={FiAlertOctagon} label="Unmaintained Reasons" value={toiletFacility.unmaintainedReasons?.join(', ')} />
+            <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
           </Grid>
         </Grid>
 
@@ -222,7 +223,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
             <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={People} label="Dependent" value={toiletFacility.dependent} />
+            <DetailItem icon={People} label="Number of shared households" value={toiletFacility.numberOfSharedHouse} />
           </Grid>
         </Grid>
 

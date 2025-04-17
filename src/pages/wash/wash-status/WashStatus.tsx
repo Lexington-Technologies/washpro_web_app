@@ -24,37 +24,155 @@ import { FaTint, FaHandsWash } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { FaHandHoldingDroplet } from 'react-icons/fa6';
 import { MdWaterDrop, MdOutlineSanitizer, MdSoap } from 'react-icons/md';
+import { useQuery } from '@tanstack/react-query';
+import { apiController } from '../../../axios';
+
+// Add type definitions
+interface WashAccessData {
+  name: string;
+  drinkingWater: string;
+  basicSanitation: string;
+  hygieneFacilities: string;
+}
+
+interface WashStatusData {
+  waterAccess: {
+    accessRate: number;
+    basic: number;
+    limited: number;
+    noService: number;
+  };
+  sanitationAccess: {
+    accessRate: number;
+    basic: number;
+    limited: number;
+    noService: number;
+  };
+  hygieneAccess: {
+    accessRate: number;
+    basic: number;
+    limited: number;
+    noService: number;
+  };
+  waterServiceLadder: Array<{ name: string; value: number }>;
+  sanitationServiceLadder: Array<{ name: string; value: number }>;
+  hygieneServiceLadder: Array<{ name: string; value: number }>;
+}
+
+// Sample data for different space types
+const sampleData: Record<string, WashAccessData[]> = {
+  household: [
+    { name: 'Household 1', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Household 2', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Household 3', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Household 4', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Limited' },
+    { name: 'Household 5', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Household 6', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Household 7', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Household 8', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Household 9', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Household 10', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Limited' },
+  ],
+  school: [
+    { name: 'School A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'School B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'School C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'School D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'School E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'School F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'School G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'School H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'School I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'School J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+  ],
+  healthFacility: [
+    { name: 'Hospital A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Clinic B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Health Center C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Hospital D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Clinic E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Health Center F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Hospital G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Clinic H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Health Center I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Hospital J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+  ],
+  tsangaya: [
+    { name: 'Tsangaya A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Tsangaya C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Tsangaya F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
+    { name: 'Tsangaya I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
+    { name: 'Tsangaya J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+  ],
+};
 
 const WashStatus = () => {
-  const [selectedOption, setSelectedOption] = useState('Households');
+  const [selectedOption, setSelectedOption] = useState<string>('household');
 
-  const handleChange = (event) => {
-    setSelectedOption(event.target.value);
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setSelectedOption(event.target.value as string);
   };
+
+  const { data: washStatusData } = useQuery<WashStatusData>({
+    queryKey: ['wash-status'],
+    queryFn: () => apiController.get(`analysis/wash-status?spaceType=${selectedOption}`),
+    enabled: !!selectedOption,
+  });
+
+  // Get the appropriate data based on selected option
+  const tableData = sampleData[selectedOption] || [];
 
   // Data for community table
   const communityData = [
   ];
 
   const drinkingWaterData = [
-    { name: 'Basic ', value: 0, color: '#29B6F6' },
-    { name: 'Limited', value: 0, color: '#FEBC11' },
-    { name: 'None Service', value: 0, color: '#FFFF5D' },
+    { name: washStatusData?.waterServiceLadder[0].name, 
+      value: washStatusData?.waterServiceLadder[0].value, 
+      color: '#29B6F6' },
+    { name: washStatusData?.waterServiceLadder[1].name, 
+      value: washStatusData?.waterServiceLadder[1].value, 
+      color: '#ee8e00' },
+    { name: washStatusData?.waterServiceLadder[2].name, 
+      value: washStatusData?.waterServiceLadder[2].value, 
+      color: '#ef4444' },
   ];
 
   // Data for Sanitation Service Ladder
   const sanitationData = [
-    { name: 'Advanced', value: 0, color: '#8CC265' },
-    { name: 'Basic Service', value: 0, color: '#F2EB88' },
-    { name: 'Limited Service', value: 0, color: '#F2B69E' },
-    { name: 'No Services', value: 0, color: '#F5857F' },
+    { name: washStatusData?.sanitationServiceLadder[0].name,
+      value: washStatusData?.sanitationServiceLadder[0].value,
+      color: '#8CC265'
+     },
+    { name: washStatusData?.sanitationServiceLadder[1].name,
+      value: washStatusData?.sanitationServiceLadder[1].value,
+      color: '#F2EB88'
+     },
+    { name: washStatusData?.sanitationServiceLadder[2].name,
+      value: washStatusData?.sanitationServiceLadder[2].value,
+      color: '#F2B69E'
+     },
   ];
 
   // Data for Hygiene Service Ladder
   const hygieneData = [
-    { name: 'Basic Service', value: 0, color: '#F2B69E' },
-    { name: 'Limited Service', value: 0, color: '#F2EB88' },
-    { name: 'No Service', value: 0, color: '#C3AAEB' },
+    { name: washStatusData?.hygieneServiceLadder[0].name,
+      value: washStatusData?.hygieneServiceLadder[0].value,
+      color: '#29B6F6'
+     },
+    { name: washStatusData?.hygieneServiceLadder[1].name,
+      value: washStatusData?.hygieneServiceLadder[1].value,
+      color: '#ee8e00'
+     },
+    { name: washStatusData?.hygieneServiceLadder[2].name, 
+      value: washStatusData?.hygieneServiceLadder[2].value, 
+      color: '#ef4444' 
+     },
   ];
 
   const RADIAN = Math.PI / 180;
@@ -119,26 +237,26 @@ const WashStatus = () => {
               onChange={handleChange}
               label="Select Option"
               sx={{
-          backgroundColor: '#F1F1F5', // Background color
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#25306B', // Border color
-          },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#25306B', // Border color on hover
-          },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#25306B', // Border color when focused
-          },
-          fontWeight: 'bold', // Add font weight
-          color: '#1a237e', // Add text color
-          fontSize: 25,
-          marginTop: -2
-              }}
-            >
-              <MenuItem value="Households">Households</MenuItem>
-              <MenuItem value="School">School</MenuItem>
-              <MenuItem value="Health Facilities">Health Facilities</MenuItem>
-              <MenuItem value="Tsangaya">Tsangaya</MenuItem>
+                  backgroundColor: '#F1F1F5', // Background color
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#25306B', // Border color
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#25306B', // Border color on hover
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#25306B', // Border color when focused
+                  },
+                  fontWeight: 'bold', // Add font weight
+                  color: '#1a237e', // Add text color
+                  fontSize: 20,
+                  marginTop: -2
+                  }}
+                >
+              <MenuItem value="household">Households</MenuItem>
+              <MenuItem value="school">School</MenuItem>
+              <MenuItem value="healthFacility">Health Facilities</MenuItem>
+              <MenuItem value="tsangaya">Tsangaya</MenuItem>
             </Select>
           </FormControl>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -146,13 +264,13 @@ const WashStatus = () => {
           </Typography>
         </Box>
         
-        <Box sx={{ mb: 3 }}>
+        {/* <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
             <FilterDropdown label="Ward" options={['All']} />
             <FilterDropdown label="Village" options={['All']} />
             <FilterDropdown label="Hamlet" options={['All']} />
           </Stack>
-        </Box>
+        </Box> */}
 
         </Box>
         </Box>
@@ -181,7 +299,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                  {washStatusData?.waterAccess?.accessRate} %
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -189,7 +307,7 @@ const WashStatus = () => {
               
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Access</Typography>
+                  <Typography variant="body2">Access {washStatusData?.waterAccess?.basic}% - {washStatusData?.waterAccess?.limited}%</Typography>
                   <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
@@ -208,7 +326,7 @@ const WashStatus = () => {
               
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">No Access</Typography>
+                  <Typography variant="body2">No Access {washStatusData?.waterAccess?.noService}%</Typography>
                   <Typography variant="body2" fontWeight="bold">0</Typography>
                 </Box>
                 <LinearProgress 
@@ -250,7 +368,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                {washStatusData?.sanitationAccess?.accessRate}%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -258,8 +376,8 @@ const WashStatus = () => {
               
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2">Access </Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.basic}% - {washStatusData?.sanitationAccess?.limited}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -278,7 +396,7 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.noService}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -319,7 +437,7 @@ const WashStatus = () => {
                 </Box>
               </Box>
               <Typography variant="h3" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-                0%
+                {washStatusData?.hygieneAccess?.accessRate}%
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Access Rate
@@ -328,7 +446,7 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.basic}% - {washStatusData?.hygieneAccess?.limited}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -347,7 +465,7 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.noService}%</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -399,7 +517,10 @@ const WashStatus = () => {
                       layout="vertical" 
                       align="right" 
                       verticalAlign="middle" 
-                      wrapperStyle={{ paddingLeft: '20px' }} 
+                      wrapperStyle={{ paddingLeft: '20px' }}
+                      formatter={(value, entry, index) => (
+                        <span style={{ color: '#000000' }}>{value}</span>
+                      )}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -418,17 +539,20 @@ const WashStatus = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300, marginLeft: -5 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sanitationData} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart 
+                    data={sanitationData} 
+                    layout="vertical" 
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12 }} 
+                      tick={{ fontSize: 12, fill: '#000000' }} 
                     />
                     <YAxis 
                       dataKey="name" 
                       type="category" 
                       width={100} 
-                      tick={{ fontSize: 12 }} 
+                      tick={{ fontSize: 12, fill: '#000000' }} 
                     />
                     <Tooltip />
                     <Bar dataKey="value" isAnimationActive={true}>
@@ -453,17 +577,16 @@ const WashStatus = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                <PieChart>
                     <Pie
                       data={hygieneData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={false}
-                      paddingAngle={2}
                     >
                       {hygieneData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -474,11 +597,11 @@ const WashStatus = () => {
                       layout="vertical" 
                       align="right" 
                       verticalAlign="middle" 
-                      wrapperStyle={{ paddingLeft: '20px' }} 
+                      wrapperStyle={{ paddingLeft: '20px' }}
+                      formatter={(value, entry, index) => (
+                        <span style={{ color: '#000000' }}>{value}</span>
+                      )}
                     />
-                    <text x="30%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                      512.47
-                    </text>
                   </PieChart>
                 </ResponsiveContainer>
               </Box>
@@ -490,27 +613,29 @@ const WashStatus = () => {
       {/* Community Table */}
       <Box sx={{ mb: 4, backgroundColor: 'white', p: 2 }}>
         <Typography variant="h6" component="div" sx={{ mb: 2 }}>
-          School Basic WASH Access
+          {selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} Basic WASH Access
         </Typography>
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }}>
             <TableHead sx={{ backgroundColor: '#1e3a8a' }}>
               <TableRow>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>School Name</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {selectedOption.charAt(0).toUpperCase() + selectedOption.slice(1)} Name
+                </TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Drinking Water</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Basic Sanitation</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Hygiene Facilities</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {communityData.map((row) => (
+              {tableData.map((row) => (
                 <TableRow key={row.name}>
                   <TableCell component="th" scope="row">
                     {row.name}
                   </TableCell>
-                  <TableCell>{row.households}</TableCell>
                   <TableCell>{row.drinkingWater}</TableCell>
-                  <TableCell>{row.sanitation}</TableCell>
+                  <TableCell>{row.basicSanitation}</TableCell>
+                  <TableCell>{row.hygieneFacilities}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

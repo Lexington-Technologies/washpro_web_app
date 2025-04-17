@@ -131,6 +131,8 @@ const WaterSourceDetails: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  console.log('Water Source:', waterSource);
+
   const handleWaterSourceImageClick = () => setIsWaterSourceImageOpen(true);
   const handlePersonImageClick = () => setIsPersonImageOpen(true);
 
@@ -161,7 +163,7 @@ const WaterSourceDetails: React.FC = () => {
             </IconButton>
             <Box>
               <Typography variant="h4" fontWeight="500">
-                {'Water Source Details'}
+                {'Water Source Risk'}
               </Typography>
               <Typography color="text.secondary">
                 {waterSource?.ward}, {waterSource?.village}
@@ -342,22 +344,17 @@ const OverviewTab = ({
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
         <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependants" value={waterSource?.dependent || 'Not specified'} />
-          </Grid>
-            <Grid item xs={6}>
-            <DetailItem icon={GiWell} label="Water Source Condition" value={waterSource?.wellConditions?.length ? waterSource.wellConditions[0] : 'Not specified'} />
-            </Grid>
-        </Grid>
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem
+        <DetailItem
               icon={Calendar}
               label="Last Updated"
               value={format(new Date(waterSource?.updatedAt), 'PPP')}
             />
           </Grid>
+            <Grid item xs={6}>
+            <DetailItem icon={GiWell} label="Water Source Condition" value={waterSource?.wellConditions?.length ? waterSource.wellConditions[0] : 'Not specified'} />
+            </Grid>
         </Grid>
+    
 
         
         <Divider sx={{ my: 2 }} />

@@ -40,6 +40,38 @@ import ScienceIcon from '@mui/icons-material/Science';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import DangerousIcon from '@mui/icons-material/Dangerous';
 
+// Type Definitions
+interface FilterDropdownProps {
+  label: string;
+  options: string[];
+}
+
+interface KPICard {
+  icon: JSX.Element;
+  label: string;
+  value: string;
+  color: string;
+}
+
+interface WaterSource {
+  type: string;
+  distance: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+  additionalInfo?: string;
+}
+
+interface EnvironmentalRisk {
+  type: string;
+  description: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+}
+
+interface WasteManagement {
+  type: string;
+  description: string;
+  riskLevel: 'high' | 'moderate' | 'low';
+}
+
 // Mock data for chart
 // const chartData = {
 //   labels: [
@@ -282,9 +314,9 @@ const FilterDropdown = ({ label, options, onChange }) => {
 };
 
 const RiskAnalysisSection = () => {
-  const [timeRange, setTimeRange] = useState('6M');
+  const [timeRange, setTimeRange] = useState<string>('6M');
 
-  const handleTimeRangeChange = (event, newTimeRange) => {
+  const handleTimeRangeChange = (event: React.MouseEvent<HTMLElement>, newTimeRange: string | null) => {
     if (newTimeRange !== null) {
       setTimeRange(newTimeRange);
     }
@@ -529,6 +561,7 @@ const RiskAnalysisSection = () => {
         ))}
       </Grid>
 </Grid>
+
             </Grid>
           </Paper>
         </Grid>
@@ -634,6 +667,7 @@ const RiskAnalysisDashboard = () => {
             { icon: <MdWaterDrop size={24} />, label: 'Water Sources', value: '2692', color: '#1890ff' },
             { icon: <MdCheckCircle size={24} />, label: 'Cases Resolved', value: '0', color: '#52c41a' },
           ].map((item, index) => (
+
             <Grid item xs={12} sm={6} md={3} key={index}>
               <Card sx={{ height: '100%', minHeight: '150px', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1 }}>

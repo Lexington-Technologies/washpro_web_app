@@ -16,6 +16,7 @@ import {
   Stack,
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
+import { BarChart } from '@mui/x-charts/BarChart';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -91,6 +92,11 @@ interface HygieneAnalytics {
     value: number;
     percentage: string;
   }[];
+  filters?: {
+    wards?: string[];
+    villages?: string[];
+    hamlets?: string[];
+  };
 }
 
 const columnHelper = createColumnHelper<HygieneFacility>();
@@ -98,11 +104,7 @@ const columns = [
   columnHelper.accessor('picture', {
     header: 'Picture',
     cell: (props) => (
-      <Avatar
-        src={props.row.original.picture}
-        alt="facility"
-        sx={{ borderRadius: '100%' }}
-      />
+      <Avatar src={props.row.original.picture} alt="facility" sx={{ borderRadius: '100%' }} />
     ),
   }),
   columnHelper.accessor('ward', {
@@ -129,11 +131,7 @@ const columns = [
     header: 'Type',
     cell: (info) => (
       <Stack direction="row" spacing={1} alignItems="center">
-        <Chip
-          variant="outlined"
-          label={info.row.original.type}
-          color={info.row.original.type === 'Tippy Tap' ? 'success' : 'primary'}
-        />
+        <Chip variant="outlined" label={info.row.original.type} color={info.row.original.type === 'Tippy Tap' ? 'success' : 'primary'} />
       </Stack>
     ),
   }),
@@ -155,27 +153,31 @@ const columns = [
 ];
 
 const sanitizeAnalytics = (analytics?: HygieneAnalytics | null): HygieneAnalytics => {
-  if (!analytics) return {
-    totalFacilities: 0,
-    schoolsWithFacilitiesRatio: '0',
-    avgFacilitiesPerHealthCenter: '0',
-    householdsWithoutFacilities: '0',
-    distributionByType: [],
-    distributionByLocation: []
-  };
+  if (!analytics)
+    return {
+      totalFacilities: 0,
+      schoolsWithFacilitiesRatio: '0',
+      avgFacilitiesPerHealthCenter: '0',
+      householdsWithoutFacilities: '0',
+      distributionByType: [],
+      distributionByLocation: [],
+    };
 
   return {
     ...analytics,
-    schoolsWithFacilitiesRatio: analytics.schoolsWithFacilitiesRatio === 'No data' ? '0' : analytics.schoolsWithFacilitiesRatio,
-    avgFacilitiesPerHealthCenter: analytics.avgFacilitiesPerHealthCenter === 'No data' ? '0' : analytics.avgFacilitiesPerHealthCenter,
-    householdsWithoutFacilities: analytics.householdsWithoutFacilities === 'No data' ? '0' : analytics.householdsWithoutFacilities,
+    schoolsWithFacilitiesRatio:
+      analytics.schoolsWithFacilitiesRatio === 'No data' ? '0' : analytics.schoolsWithFacilitiesRatio,
+    avgFacilitiesPerHealthCenter:
+      analytics.avgFacilitiesPerHealthCenter === 'No data' ? '0' : analytics.avgFacilitiesPerHealthCenter,
+    householdsWithoutFacilities:
+      analytics.householdsWithoutFacilities === 'No data' ? '0' : analytics.householdsWithoutFacilities,
   };
 };
 
 const HygieneFacilities: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+  const locationObj = useLocation();
+  const queryParams = new URLSearchParams(locationObj.search);
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -184,90 +186,92 @@ const HygieneFacilities: React.FC = () => {
   const [villageFilter, setVillageFilter] = useState('');
   const [hamletFilter, setHamletFilter] = useState('');
 
-  const { data: allData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
-    queryKey: ['hand-washing'],
-    queryFn: () => apiController.get('/hand-washing'),
+  const { data: analytics } = useQuery<HygieneAnalytics, Error>({
+    queryKey: ['hand-washing-analytics', wardFilter, villageFilter, hamletFilter],
+    queryFn: () =>
+      apiController.get(
+        `/hand-washing/analytics?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
+          villageFilter !== '' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
+      ),
+  });
+  console.log(analytics)
+
+  const { data: tableData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
+    queryKey: ['hand-washing', wardFilter, villageFilter, hamletFilter],
+    queryFn: () =>
+      apiController.get(
+        `/hand-washing?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
+          villageFilter !== '' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
+      ),
   });
 
-  const { data: initialAnalytics } = useQuery<HygieneAnalytics, Error>({
-    queryKey: ['hand-washing-analytics'],
-    queryFn: () => apiController.get('/hand-washing/analytics'),
-  });
 
-  const spaceTypeOptions = useMemo(() => 
-    [...new Set(allData?.map((item) => item.spaceType) ?? [])], 
-    [allData]
+  const spaceTypeOptions = useMemo(() => [...new Set(tableData?.map((item) => item.spaceType) ?? [])], [tableData]);
+  const wardOptions = useMemo(
+    () => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']),
+    [analytics]
+  );
+  const villageOptions = useMemo(
+    () => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']),
+    [analytics]
+  );
+  const hamletOptions = useMemo(
+    () => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']),
+    [analytics]
   );
 
-  const wardOptions = useMemo(() => 
-    [...new Set(allData?.map((item) => item.ward) ?? [])], 
-    [allData]
-  );
-
-  const villageOptions = useMemo(() => 
-    [...new Set(
-      allData?.filter(item => !wardFilter || item.ward === wardFilter)
-        .map((item) => item.village) ?? []
-    )], 
-    [allData, wardFilter]
-  );
-
-  const hamletOptions = useMemo(() => 
-    [...new Set(
-      allData?.filter(item => 
-        (!wardFilter || item.ward === wardFilter) &&
-        (!villageFilter || item.village === villageFilter)
-      )
-      .map((item) => item.hamlet) ?? []
-    )], 
-    [allData, wardFilter, villageFilter]
-  );
-
-  const filteredData = useMemo(() => 
-    allData?.filter(item => 
-      (!spaceTypeFilter || item.spaceType === spaceTypeFilter) &&
-      (!wardFilter || item.ward === wardFilter) &&
-      (!villageFilter || item.village === villageFilter) &&
-      (!hamletFilter || item.hamlet === hamletFilter)
-    ) || [],
-    [allData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]
+  const filteredData = useMemo(
+    () =>
+      tableData?.filter(
+        (item) =>
+          (!spaceTypeFilter || item.spaceType === spaceTypeFilter) &&
+          (!wardFilter || item.ward === wardFilter) &&
+          (!villageFilter || item.village === villageFilter) &&
+          (!hamletFilter || item.hamlet === hamletFilter)
+      ) || [],
+    [tableData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]
   );
 
   const effectiveAnalytics = useMemo(() => {
-    const baseAnalytics = !spaceTypeFilter && !wardFilter && !villageFilter && !hamletFilter
-      ? initialAnalytics
-      : {
-          totalFacilities: filteredData.length,
-          schoolsWithFacilitiesRatio: initialAnalytics?.schoolsWithFacilitiesRatio || '0',
-          avgFacilitiesPerHealthCenter: initialAnalytics?.avgFacilitiesPerHealthCenter || '0',
-          householdsWithoutFacilities: initialAnalytics?.householdsWithoutFacilities || '0',
-          distributionByType: Object.entries(
-            filteredData.reduce((acc, item) => ({
-              ...acc,
-              [item.type]: (acc[item.type] || 0) + 1
-            }), {} as Record<string, number>)
-          ).map(([name, value]) => ({
-            name,
-            value,
-            percentage: ((value / filteredData.length) * 100).toFixed(1) + '%'
-          })),
-          distributionByLocation: Object.entries(
-            filteredData.reduce((acc, item) => ({
-              ...acc,
-              [item.location]: (acc[item.location] || 0) + 1
-            }), {} as Record<string, number>)
-          ).map(([name, value]) => ({
-            name,
-            value,
-            percentage: ((value / filteredData.length) * 100).toFixed(1) + '%'
-          }))
-        };
+    const baseAnalytics =
+      !spaceTypeFilter && !wardFilter && !villageFilter && !hamletFilter
+        ? analytics
+        : {
+            totalFacilities: filteredData.length,
+            schoolsWithFacilitiesRatio: analytics?.schoolsWithFacilitiesRatio || '0',
+            avgFacilitiesPerHealthCenter: analytics?.avgFacilitiesPerHealthCenter || '0',
+            householdsWithoutFacilities: analytics?.householdsWithoutFacilities || '0',
+            distributionByType: Object.entries(
+              filteredData.reduce((acc, item) => {
+                acc[item.type] = (acc[item.type] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>)
+            ).map(([name, value]) => ({
+              name,
+              value,
+              percentage:
+                filteredData.length > 0 ? ((value / filteredData.length) * 100).toFixed(1) + '%' : '0%',
+            })),
+            distributionByLocation: Object.entries(
+              filteredData.reduce((acc, item) => {
+                acc[item.location] = (acc[item.location] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>)
+            ).map(([name, value]) => ({
+              name,
+              value,
+              percentage:
+                filteredData.length > 0 ? ((value / filteredData.length) * 100).toFixed(1) + '%' : '0%',
+            })),
+          };
 
     return sanitizeAnalytics(baseAnalytics);
-  }, [initialAnalytics, filteredData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]);
+  }, [analytics, filteredData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]);
 
-  const paginatedData = useMemo(() => 
-    filteredData.slice(page * pageSize, (page + 1) * pageSize),
+  const paginatedData = useMemo(
+    () => filteredData.slice(page * pageSize, (page + 1) * pageSize),
     [filteredData, page, pageSize]
   );
 
@@ -294,7 +298,7 @@ const HygieneFacilities: React.FC = () => {
         label={label}
         sx={{ height: 45 }}
       >
-        <MenuItem value="">All {label}</MenuItem>
+        <MenuItem value="">{`All ${label}`}</MenuItem>
         {options.map((option, index) => (
           <MenuItem key={index} value={option}>
             {option}
@@ -306,7 +310,9 @@ const HygieneFacilities: React.FC = () => {
 
   if (isTableLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
         <CircularProgress size={60} thickness={4} />
       </Box>
     );
@@ -389,69 +395,65 @@ const HygieneFacilities: React.FC = () => {
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-      <Grid item xs={12} md={6}>
-  <Card sx={{ p: 2, height: '100%' }}>
-    <Typography variant="h6" mb={2}>Distribution by Type</Typography>
-    <PieChart
-      series={[{
-        data: effectiveAnalytics.distributionByType.map((item, index) => ({
-          id: index,
-          label: `${item.name}: ${item.percentage}`,
-          value: item.value,
-          percentage: item.percentage,
-        })),
-        arcLabel: (item) => `${item.percentage}`,
-        arcLabelMinAngle: 20,
-        outerRadius: 120,
-        innerRadius: 30,
-        colors: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336'], // Fixed color palette
-      }]}
-      width={650}
-      height={350}
-      sx={{
-        [`& .${pieArcLabelClasses.root}`]: {
-          fontSize: '0.85rem',
-          fontWeight: 'bold',
-          fill: '#333',
-          textShadow: '0 1px 2px rgba(255,255,255,0.7)',
-        },
-      }}
-      tooltip={{ trigger: 'item' }}
-    />
-  </Card>
-</Grid>
+        {/* Distribution by Type as a BarChart */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>
+              Distribution by Type
+            </Typography>
+            <BarChart
+              xAxis={[
+                {
+                  scaleType: 'band',
+                  data: effectiveAnalytics.distributionByType.map((item) => item.name),
+                },
+              ]}
+              series={[
+                {
+                  data: effectiveAnalytics.distributionByType.map((item) => item.value),
+                  label: 'Facilities',
+                  color: '#4CAF50',
+                },
+              ]}
+              width={650}
+              height={350}
+            />
+          </Card>
+        </Grid>
 
-<Grid item xs={12} md={6}>
-  <Card sx={{ p: 2, height: '100%' }}>
-    <Typography variant="h6" mb={2}>Distribution by Location</Typography>
-    <PieChart
-      series={[{
-        data: effectiveAnalytics.distributionByLocation.map((item, index) => ({
-          id: index,
-          label: `${item.name}: ${item.percentage}`,
-          value: item.value,
-          percentage: item.percentage,
-        })),
-        arcLabel: (item) => `${item.percentage}`,
-        arcLabelMinAngle: 20,
-        outerRadius: 120,
-        innerRadius: 30,
-        colors: ['#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336'], // Fixed color palette
-      }]}
-      width={750}
-      height={350}
-      sx={{
-        [`& .${pieArcLabelClasses.root}`]: {
-          fontSize: '0.85rem',
-          fontWeight: 'bold',
-          fill: '#333',
-          textShadow: '0 1px 2px rgba(255,255,255,0.7)',
-        },
-      }}
-      tooltip={{ trigger: 'item' }}
-    />
-  </Card>
-</Grid>
+        {/* Distribution by Location as a PieChart */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>
+              Distribution by Location
+            </Typography>
+            <PieChart
+              series={[
+                {
+                  data: effectiveAnalytics.distributionByLocation.map((item, index) => ({
+                    id: index,
+                    label: item.name,
+                    value: item.value,
+                  })),
+                  arcLabel: (item) => `${((item.value / effectiveAnalytics.totalFacilities) * 100).toFixed(1)}%`,
+                  arcLabelMinAngle: 20,
+                  outerRadius: 120,
+                  innerRadius: 30,
+                },
+              ]}
+              width={750}
+              height={350}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontSize: '0.85rem',
+                  fontWeight: 'bold',
+                  fill: '#333',
+                  textShadow: '0 1px 2px rgba(255,255,255,0.7)',
+                },
+              }}
+            />
+          </Card>
+        </Grid>
       </Grid>
 
       <Card sx={{ mt: 3 }}>
@@ -468,7 +470,7 @@ const HygieneFacilities: React.FC = () => {
               setPageSize(pageSize);
             }}
             totalCount={filteredData.length}
-            onRowClick={(row) => navigateToDetails(row.original._id)}
+            onRowClick={(row) => navigateToDetails(row._id)}
           />
         </Box>
       </Card>

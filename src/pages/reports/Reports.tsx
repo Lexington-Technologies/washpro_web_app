@@ -172,15 +172,15 @@ const ReportCard: React.FC<{
     let shareLink = '';
 
     switch (platform) {
-      case 'facebook':
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-        break;
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
-        break;
-      case 'linkedin':
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-        break;
+      // case 'facebook':
+      //   shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+      //   break;
+      // case 'twitter':
+      //   shareLink = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+      //   break;
+      // case 'linkedin':
+      //   shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+      //   break;
       case 'whatsapp':
         shareLink = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
         break;
@@ -356,7 +356,7 @@ const ReportCard: React.FC<{
         <MenuItem onClick={() => handleShare('email')} dense>
           <Email sx={{ mr: 1, color: '#ea4335' }} /> Email
         </MenuItem>
-        <MenuItem onClick={() => handleShare('chat')} dense>
+        {/* <MenuItem onClick={() => handleShare('chat')} dense>
           <Chat sx={{ mr: 1, color: '#00bcd4' }} /> Chat User
         </MenuItem>
         <Divider />
@@ -368,7 +368,7 @@ const ReportCard: React.FC<{
         </MenuItem>
         <MenuItem onClick={() => handleShare('linkedin')} dense>
           <LinkedIn sx={{ mr: 1, color: '#0a66c2' }} /> LinkedIn
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem onClick={() => handleShare('whatsapp')} dense>
           <WhatsApp sx={{ mr: 1, color: '#25d366' }} /> WhatsApp
         </MenuItem>
