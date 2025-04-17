@@ -311,7 +311,7 @@ const GutterDashboard: React.FC = () => {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Total Water Points"
+            title="Total Gutter Points"
             value={Number(totalGutters).toLocaleString()}
             icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"

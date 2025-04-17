@@ -163,10 +163,10 @@ const DumpSites: React.FC = () => {
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}><StatCard title="Total Water Points" value={Number(totalSites).toLocaleString()} icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Improved Sources" value={proportionImproved} icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />} bgColor="#E8F5E9" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Distance to Improved water point (m)" value={avgDistance === 'Data not available' || avgDistance === '0' ? '0' : avgDistance} icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Unimproved Drinkable DumpSites" value={householdsUsingUnimproved === '0' ? '0' : householdsUsingUnimproved} icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />} bgColor="#FFEBEE" /></Grid>
+        <Grid item xs={12} md={3}><StatCard title="Total Dumpsite" value={Number(totalSites).toLocaleString()} icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
+        <Grid item xs={12} md={3}><StatCard title="Improved Dumpsite" value={'1,072'} icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />} bgColor="#E8F5E9" /></Grid>
+        <Grid item xs={12} md={3}><StatCard title="Avg. Distance to Improved Water (m)" value={'30m'} icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
+        <Grid item xs={12} md={3}><StatCard title="Unimproved DumpSites" value={'1,298'} icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />} bgColor="#FFEBEE" /></Grid>
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
