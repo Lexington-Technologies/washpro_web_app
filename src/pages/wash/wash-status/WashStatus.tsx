@@ -106,15 +106,15 @@ const mockWashStatusData: Record<string, WashStatusData> = {
       basic: 35,
       limited: 30,
       noService: 35,
-      noOfAccess: 1814, // 35% of 5182
-      noOfNoAccess: 1814 // 35% of 5182
+      noOfAccess: '1,814', // 35% of 5182
+      noOfNoAccess: '3,368' // 65% of 5182
     },
     sanitationAccess: {
       accessRate: 75,
       basic: 75,
       limited: 20,
       noService: 5,
-      noOfAccess: 3887, // 75% of 5182
+      noOfAccess: '3,887', // 75% of 5182
       noOfNoAccess: 259 // 5% of 5182
     },
     hygieneAccess: {
@@ -123,7 +123,7 @@ const mockWashStatusData: Record<string, WashStatusData> = {
       limited: 10,
       noService: 85,
       noOfAccess: 259, // 5% of 5182
-      noOfNoAccess: 4405 // 85% of 5182
+      noOfNoAccess: '4,405' // 85% of 5182
     },
     waterServiceLadder: [
       { name: 'Basic', value: 35 },
