@@ -722,3 +722,998 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options, value =
 };
 
 export default OpenDefication;
+
+
+
+// import { useState, useMemo } from 'react';
+// import {
+//   Avatar,
+//   Box,
+//   Card,
+//   IconButton,
+//   Paper,
+//   Typography,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   Grid,
+//   Chip,
+//   Stack,
+//   FormControl,
+//   InputLabel,
+//   Select,
+//   MenuItem,
+//   CircularProgress,
+// } from '@mui/material';
+// import { useQuery } from '@tanstack/react-query';
+// import { createColumnHelper } from '@tanstack/react-table';
+// import { apiController } from '../../axios';
+// import { DataTable } from '../../components/Table/DataTable';
+// import { LocationOn, Business, School, Nature, Public, People } from '@mui/icons-material';
+// import { HomeIcon } from 'lucide-react';
+// import CloseIcon from '@mui/icons-material/Close';
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   Tooltip,
+//   Legend,
+//   PieChart,
+//   Pie,
+//   Cell,
+//   ResponsiveContainer,
+// } from 'recharts';
+// import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+// import VisibilityIcon from '@mui/icons-material/Visibility';
+// import WarningIcon from '@mui/icons-material/Warning';
+// import { FaChartLine } from 'react-icons/fa';
+// import React from 'react';
+
+// interface OpenDefecation {
+//   _id: string;
+//   picture: string;
+//   ward: string;
+//   village: string;
+//   hamlet: string;
+//   spaceType: string;
+//   space: string;
+//   footTraffic: string;
+//   peakTime: string[] | string;
+//   demographics: string[];
+//   environmentalCharacteristics: string[] | string;
+//   dailyAverage: string;
+//   createdBy: string;
+//   capturedAt: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   geolocation: {
+//     type: string;
+//     coordinates: number[];
+//   };
+// }
+
+// interface AnalyticsData {
+//   totalSites: number;
+//   spaceTypeDistribution: Record<string, { count: number; percentage: string }>;
+//   peakTimeDistribution: Record<string, number>;
+//   environmentalSpaceDistribution: Record<string, { count: number; percentage: string }>;
+//   demographicsDistribution: Record<string, number>;
+//   footTrafficDistribution: Record<string, number>;
+//   densityDistribution: Record<string, number>;
+//   filters: {
+//     wards: string[];
+//     villages: string[];
+//     hamlets: string[];
+//   };
+// }
+
+// interface FilterDropdownProps {
+//   label: string;
+//   options: string[];
+//   value?: string;
+//   onChange?: (value: string) => void;
+// }
+
+// const columnHelper = createColumnHelper<OpenDefecation>();
+
+// const columns = [
+//   columnHelper.accessor('picture', {
+//     header: 'Picture',
+//     cell: (props) => (
+//       <Avatar src={props.getValue()} alt="open defecation" sx={{ width: 50, height: 50 }} />
+//     ),
+//   }),
+//   columnHelper.accessor('ward', {
+//     header: 'Ward',
+//     cell: (info) => info.getValue(),
+//   }),
+//   columnHelper.accessor('village', {
+//     header: 'Village',
+//     cell: (info) => info.getValue(),
+//   }),
+//   columnHelper.accessor('hamlet', {
+//     header: 'Hamlet',
+//     cell: (info) => info.getValue(),
+//   }),
+//   columnHelper.accessor('spaceType', {
+//     header: 'Public Space',
+//     cell: (info) => info.getValue(),
+//   }),
+//   columnHelper.accessor('peakTime', {
+//     header: 'Peak Time',
+//     cell: (props) => {
+//       const value = props.getValue();
+//       const peakTimeArray = Array.isArray(value)
+//         ? value
+//         : typeof value === 'string'
+//         ? [value]
+//         : [];
+//       return peakTimeArray.join(', ') || 'N/A';
+//     },
+//   }),
+//   columnHelper.accessor('capturedAt', {
+//     header: 'Captured At',
+//     cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+//   }),
+// ];
+
+// const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
+
+// const OpenDefication = () => {
+//   const [page, setPage] = useState(1);
+//   const [limit, setLimit] = useState(10);
+//   const [search, setSearch] = useState('');
+//   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
+//   const [modalOpen, setModalOpen] = useState(false);
+//   const [ward, setWard] = useState('All');
+//   const [village, setVillage] = useState('All');
+//   const [hamlet, setHamlet] = useState('All');
+
+//   const { data: locationsData, isLoading } = useQuery<OpenDefecation[], Error>({
+//     queryKey: ['open-defecations', { limit, page, search }],
+//     queryFn: () =>
+//       apiController.get<OpenDefecation[]>(
+//         `/open-defecations?limit=${limit}&page=${page}&search=${search}`
+//       ),
+//   });
+
+//   const { data: analyticsResponse, isLoading: isLoadingAnalytics } = useQuery<{ ok: boolean, data: AnalyticsData, message: string }, Error>({
+//     queryKey: ['open-defecations-analytics'],
+//     queryFn: () =>
+//       apiController.get<{ ok: boolean, data: AnalyticsData, message: string }>(
+//         `/open-defecations/analytics`),
+//   });
+
+//   const analyticsData = analyticsResponse?.data;
+
+//   // Memoized risk assessment function with safety checks
+//   const assessRisk = useMemo(
+//     () => (item: OpenDefecation) => {
+//       const footTraffic = item.footTraffic ? item.footTraffic.toLowerCase() : '';
+      
+//       // Ensure peakTime is an array
+//       const peakTimes = Array.isArray(item.peakTime)
+//         ? item.peakTime
+//         : typeof item.peakTime === 'string'
+//         ? [item.peakTime]
+//         : [];
+//       const isPeakTimeNight = peakTimes.some((time) => time.toLowerCase().includes('night'));
+
+//       // Ensure environmentalCharacteristics is an array
+//       const environmentalChars = Array.isArray(item.environmentalCharacteristics)
+//         ? item.environmentalCharacteristics
+//         : typeof item.environmentalCharacteristics === 'string'
+//         ? [item.environmentalCharacteristics]
+//         : [];
+//       const isNearWater = environmentalChars.some(
+//         (char) =>
+//           char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
+//       );
+
+//       if (footTraffic === 'high' && isPeakTimeNight) {
+//         return { level: 'critical', cause: 'High foot traffic during night hours' };
+//       } else if (isNearWater) {
+//         return { level: 'critical', cause: 'Proximity to water sources' };
+//       } else if (footTraffic === 'medium') {
+//         return { level: 'moderate', cause: 'Moderate foot traffic' };
+//       }
+//       return { level: 'good', cause: 'Low risk area' };
+//     },
+//     []
+//   );
+
+//   // Handle marker click
+//   const handleMarkerClick = (item: OpenDefecation) => {
+//     setSelectedLocation(item);
+//     setModalOpen(true);
+//   };
+
+//   // Generate filter options from analytics data when available
+//   const wardOptions = useMemo(() => {
+//     if (analyticsData?.filters?.wards) {
+//       return ['All', ...analyticsData.filters.wards];
+//     }
+//     if (!locationsData) return ['All'];
+//     return ['All', ...new Set(locationsData.map((item) => item.ward))];
+//   }, [locationsData, analyticsData]);
+
+//   const villageOptions = useMemo(() => {
+//     if (analyticsData?.filters?.villages) {
+//       return ['All', ...analyticsData.filters.villages];
+//     }
+//     if (!locationsData) return ['All'];
+//     const filteredVillages = locationsData
+//       .filter((item) => ward === 'All' || item.ward === ward)
+//       .map((item) => item.village);
+//     return ['All', ...new Set(filteredVillages)];
+//   }, [locationsData, ward, analyticsData]);
+
+//   const hamletOptions = useMemo(() => {
+//     if (analyticsData?.filters?.hamlets) {
+//       return ['All', ...analyticsData.filters.hamlets];
+//     }
+//     if (!locationsData) return ['All'];
+//     const filteredHamlets = locationsData
+//       .filter((item) => (ward === 'All' || item.ward === ward) && (village === 'All' || item.village === village))
+//       .map((item) => item.hamlet);
+//     return ['All', ...new Set(filteredHamlets)];
+//   }, [locationsData, ward, village, analyticsData]);
+
+//   // Filtered data
+//   const filteredData = useMemo(() => {
+//     if (!locationsData) return [];
+//     return locationsData.filter(
+//       (item) =>
+//         (ward === 'All' || item.ward === ward) &&
+//         (village === 'All' || item.village === village) &&
+//         (hamlet === 'All' || item.hamlet === hamlet)
+//     );
+//   }, [locationsData, ward, village, hamlet]);
+
+//   // Process analytics data for charts
+  
+//   // Space Type Distribution for Pie Chart
+//   const spaceTypeData = useMemo(() => {
+//     if (!analyticsData?.spaceTypeDistribution) return [];
+    
+//     return Object.entries(analyticsData.spaceTypeDistribution)
+//       .map(([type, data]) => ({
+//         name: type,
+//         value: data.count,
+//         percentage: data.percentage,
+//         formattedPercentage: data.percentage
+//       }))
+//       .sort((a, b) => b.value - a.value); // Sort by count descending
+//   }, [analyticsData]);
+  
+//   // Split the data for visualization - top 5 categories and "Others" combined
+//   const displaySpaceTypeData = useMemo(() => {
+//     if (spaceTypeData.length <= 5) return spaceTypeData;
+    
+//     const mainData = spaceTypeData.slice(0, 5);
+//     const otherData = spaceTypeData.slice(5);
+    
+//     const combinedOthersCount = otherData.reduce((sum, item) => sum + item.value, 0);
+//     const combinedOthersPercentage = ((combinedOthersCount / (analyticsData?.totalSites || 0)) * 100).toFixed(2) + '%';
+    
+//     return mainData.concat(otherData.length ? [{
+//       name: 'Other Categories',
+//       value: combinedOthersCount,
+//       percentage: combinedOthersPercentage,
+//       formattedPercentage: combinedOthersPercentage,
+//       isOthers: true
+//     }] : []);
+//   }, [spaceTypeData, analyticsData?.totalSites]);
+  
+//   // Custom colors with better contrast
+//   const SPACE_TYPE_COLORS = [
+//     '#2E7D32', // Dark green
+//     '#1976D2', // Blue
+//     '#D32F2F', // Red
+//     '#7B1FA2', // Purple
+//     '#F57C00', // Orange
+//     '#00796B', // Teal
+//     '#C2185B', // Pink
+//     '#455A64', // Blue Gray
+//     '#827717'  // Olive
+//   ];
+
+//   // Peak Time Distribution for Bar Chart
+//   const peakTimeData = useMemo(() => {
+//     if (!analyticsData?.peakTimeDistribution) return [];
+//     return Object.entries(analyticsData.peakTimeDistribution).map(([time, count]) => ({
+//       time,
+//       count
+//     }));
+//   }, [analyticsData]);
+
+//   console.log("peakTimeData", peakTimeData);
+  
+
+//   // Environmental Space Distribution
+//   const environmentalSpaceData = useMemo(() => {
+//     if (!analyticsData?.environmentalSpaceDistribution) return [];
+//     return Object.entries(analyticsData.environmentalSpaceDistribution).map(([space, data]) => ({
+//       space,
+//       count: data.count,
+//       percentage: data.percentage
+//     }));
+//   }, [analyticsData]);
+
+//   // Demographics Distribution - Processing the complex structure
+//   const demographicsData = useMemo(() => {
+//     if (!analyticsData?.demographicsDistribution) return [];
+    
+//     // Aggregate counts by demographics type
+//     const aggregatedData: Record<string, number> = {};
+    
+//     Object.entries(analyticsData.demographicsDistribution).forEach(([key, count]) => {
+//       try {
+//         // Check if key is a JSON string and parse it
+//         if (key.startsWith('[') && key.endsWith(']')) {
+//           const groups = JSON.parse(key);
+//           groups.forEach((group: string) => {
+//             aggregatedData[group] = (aggregatedData[group] || 0) + (count as number);
+//           });
+//         } else {
+//           // Direct key
+//           aggregatedData[key] = (aggregatedData[key] || 0) + (count as number);
+//         }
+//       } catch (e) {
+//         // Fallback if parsing fails
+//         aggregatedData[key] = (aggregatedData[key] || 0) + (count as number);
+//       }
+//     });
+    
+//     return Object.entries(aggregatedData)
+//       .map(([group, count]) => ({ group, count }))
+//       .sort((a, b) => b.count - a.count);
+//   }, [analyticsData]);
+
+//   // Foot Traffic Distribution
+//   const footTrafficData = useMemo(() => {
+//     if (!analyticsData?.footTrafficDistribution) return [];
+//     return Object.entries(analyticsData.footTrafficDistribution).map(([level, count]) => ({
+//       level,
+//       count
+//     }));
+//   }, [analyticsData]);
+
+//   const COLORS = ['#4CAF50', '#FFC107', '#FF5722', '#2196F3', '#9C27B0', '#3F51B5', '#E91E63', '#607D8B', '#795548'];
+
+//   if (isLoading) {
+//     return (
+//       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+//         <CircularProgress size={60} thickness={4} />
+//       </Box>
+//     );
+//   }
+
+//   return (
+//     <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
+//       {/* Header */}
+//       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+//         <Box>
+//           <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600, mb: 0.5 }}>
+//             Open Defecation Analytics
+//           </Typography>
+//           <Typography variant="body2" color="text.secondary">
+//             Detailed insights and analytics about open defecation sites
+//           </Typography>
+//         </Box>
+//         <Box sx={{ mb: 3 }}>
+//           <Stack direction="row" spacing={2}>
+//             <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
+//             <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
+//             <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
+//           </Stack>
+//         </Box>
+//       </Box>
+
+//       {/* Stats Cards */}
+//       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+//         <StatsCard
+//           title="Total Sites"
+//           value={analyticsData?.totalSites || filteredData.length}
+//           icon={<VisibilityIcon />}
+//           iconColor="#2196f3"
+//         />
+//         <StatsCard
+//           title="High Risk Areas"
+//           value={analyticsData?.footTrafficDistribution?.High || 
+//                  filteredData.filter((item) => assessRisk(item).level === 'critical').length}
+//           icon={<WarningIcon />}
+//           iconColor="#f44336"
+//         />
+//         <StatsCard
+//           title="Peak Time: Evening"
+//           value={analyticsData?.peakTimeDistribution?.Evening || 0}
+//           icon={<FaChartLine style={{ color: '#CA8A04' }} />}
+//           iconColor="#ff9800"
+//         />
+//       </Box>
+
+//       {/* Distribution Charts */}
+//       <Grid container spacing={3} sx={{ mb: 3 }}>
+//         <Grid item xs={12} md={6}>
+//         <Paper sx={{ p: 2, borderRadius: 2 }}>
+//     <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//       Space Type Distribution
+//     </Typography>
+//     <ResponsiveContainer width="100%" height={300}>
+//       <PieChart>
+//         <Pie
+//           data={displaySpaceTypeData}
+//           dataKey="value"
+//           nameKey="name"
+//           cx="50%"
+//           cy="50%"
+//           outerRadius={100}
+//           innerRadius={40}
+//           paddingAngle={1}
+//           labelLine={false}
+//           label={({ name, value, percent }) => 
+//             value > 3 ? `${(percent * 100).toFixed(0)}%` : ''
+//           }
+//         >
+//           {displaySpaceTypeData.map((entry, index) => (
+//             <Cell 
+//               key={`cell-${index}`} 
+//               fill={entry.isOthers ? '#9E9E9E' : SPACE_TYPE_COLORS[index % SPACE_TYPE_COLORS.length]} 
+//               stroke="#fff"
+//               strokeWidth={2}
+//             />
+//           ))}
+//         </Pie>
+//         <Tooltip 
+//           formatter={(value, name, props) => [
+//             `${value} sites (${props.payload.percentage})`, 
+//             name
+//           ]} 
+//         />
+//         <Legend 
+//           layout="vertical" 
+//           align="right"
+//           verticalAlign="middle"
+//           formatter={(value, entry) => {
+//             const { payload } = entry;
+//             return `${value} (${payload.percentage})`;
+//           }}
+//         />
+//       </PieChart>
+//     </ResponsiveContainer>
+//   </Paper>
+//         </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Paper sx={{ p: 2, borderRadius: 2 }}>
+//             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//               Peak Time Distribution
+//             </Typography>
+//             <ResponsiveContainer width="100%" height={300}>
+//               <BarChart data={peakTimeData}>
+//                 <XAxis dataKey="time" />
+//                 <YAxis />
+//                 <Tooltip formatter={(value) => [`${value} sites`, 'Count']} />
+//                 <Legend />
+//                 <Bar dataKey="count" name="Number of Sites" fill="#3b82f6" />
+//               </BarChart>
+//             </ResponsiveContainer>
+//           </Paper>
+//         </Grid>
+//       </Grid>
+
+//       {/* Demographics and Environmental Distribution */}
+//       <Grid container spacing={3} sx={{ mb: 3 }}>
+//         <Grid item xs={12} md={6}>
+//           <Paper sx={{ p: 2, borderRadius: 2 }}>
+//             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//               Demographics Distribution
+//             </Typography>
+//             <ResponsiveContainer width="100%" height={300}>
+//               <BarChart data={demographicsData} layout="vertical">
+//                 <XAxis type="number" />
+//                 <YAxis dataKey="group" type="category" width={100} />
+//                 <Tooltip />
+//                 <Legend />
+//                 <Bar dataKey="count" name="Number of Sites" fill="#8e24aa" />
+//               </BarChart>
+//             </ResponsiveContainer>
+//           </Paper>
+//         </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Paper sx={{ p: 2, borderRadius: 2 }}>
+//             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//               Environmental Space Distribution
+//             </Typography>
+//             <ResponsiveContainer width="100%" height={300}>
+//               <BarChart data={environmentalSpaceData.slice(0, 5)} layout="vertical">
+//                 <XAxis type="number" />
+//                 <YAxis dataKey="space" type="category" width={100} />
+//                 <Tooltip formatter={(value, name, props) => [
+//                   `${value} sites (${props.payload.percentage})`,
+//                   'Count'
+//                 ]} />
+//                 <Legend />
+//                 <Bar dataKey="count" name="Number of Sites" fill="#4caf50" />
+//               </BarChart>
+//             </ResponsiveContainer>
+//           </Paper>
+//         </Grid>
+//       </Grid>
+
+//       {/* Foot Traffic and Risk Analysis */}
+//       <Grid container spacing={3} sx={{ mb: 3 }}>
+//         <Grid item xs={12} md={6}>
+//           <Paper sx={{ p: 2, borderRadius: 2 }}>
+//             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//               Foot Traffic Distribution
+//             </Typography>
+//             <ResponsiveContainer width="100%" height={300}>
+//               <PieChart>
+//                 <Pie
+//                   data={footTrafficData}
+//                   dataKey="count"
+//                   nameKey="level"
+//                   cx="50%"
+//                   cy="50%"
+//                   outerRadius={100}
+//                   fill="#8884d8"
+//                   label={({ level, count }) => `${level}: ${count}`}
+//                 >
+//                   <Cell key="cell-low" fill="#4CAF50" />
+//                   <Cell key="cell-moderate" fill="#FFA726" />
+//                   <Cell key="cell-high" fill="#EF5350" />
+//                 </Pie>
+//                 <Tooltip formatter={(value) => [`${value} sites`, 'Count']} />
+//                 <Legend />
+//               </PieChart>
+//             </ResponsiveContainer>
+//           </Paper>
+//         </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Paper sx={{ p: 2, borderRadius: 2, height: '100%' }}>
+//             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+//               Key Insights
+//             </Typography>
+//             <Box sx={{ p: 2 }}>
+//               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+//                 <Avatar sx={{ bgcolor: 'primary.light', mr: 2 }}>
+//                   <Public />
+//                 </Avatar>
+//                 <Box>
+//                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
+//                     Most Common Space Type
+//                   </Typography>
+//                   <Typography variant="body2" color="text.secondary">
+//                     {spaceTypeData.length > 0 ? 
+//                       `${spaceTypeData[0].name} (${spaceTypeData[0].percentage})` : 
+//                       'Loading...'}
+//                   </Typography>
+//                 </Box>
+//               </Box>
+              
+//               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+//                 <Avatar sx={{ bgcolor: 'warning.light', mr: 2 }}>
+//                   <People />
+//                 </Avatar>
+//                 <Box>
+//                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
+//                     Primary Demographic
+//                   </Typography>
+//                   <Typography variant="body2" color="text.secondary">
+//                     {demographicsData.length > 0 ? 
+//                       `${demographicsData[0].group} (${demographicsData[0].count} sites)` : 
+//                       'Loading...'}
+//                   </Typography>
+//                 </Box>
+//               </Box>
+              
+//               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+//                 <Avatar sx={{ bgcolor: 'success.light', mr: 2 }}>
+//                   <Nature />
+//                 </Avatar>
+//                 <Box>
+//                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
+//                     Common Environmental Setting
+//                   </Typography>
+//                   <Typography variant="body2" color="text.secondary">
+//                     {environmentalSpaceData.length > 0 ? 
+//                       `${environmentalSpaceData[0].space} (${environmentalSpaceData[0].percentage})` : 
+//                       'Loading...'}
+//                   </Typography>
+//                 </Box>
+//               </Box>
+              
+//               <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//                 <Avatar sx={{ bgcolor: 'error.light', mr: 2 }}>
+//                   <School />
+//                 </Avatar>
+//                 <Box>
+//                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
+//                     Educational Institutions Affected
+//                   </Typography>
+//                   <Typography variant="body2" color="text.secondary">
+//                     {analyticsData?.spaceTypeDistribution?.School ? 
+//                       `${analyticsData.spaceTypeDistribution.School.count} sites (${analyticsData.spaceTypeDistribution.School.percentage})` : 
+//                       'Data not available'}
+//                   </Typography>
+//                 </Box>
+//               </Box>
+//             </Box>
+//           </Paper>
+//         </Grid>
+//       </Grid>
+
+//       {/* Enhanced Map Section */}
+//       <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+//         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+//           Risk Distribution Map
+//         </Typography>
+
+//         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+//           <Box sx={{ height: '70vh', borderRadius: 2, overflow: 'hidden' }}>
+//             <Map
+//               defaultZoom={14}
+//               defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
+//               mapId={GOOGLE_MAPS_API_KEY}
+//               gestureHandling="greedy"
+//               disableDefaultUI={false}
+//             >
+//               {filteredData.map((openDefecation) => {
+//                 const position = {
+//                   lat: openDefecation.geolocation.coordinates[1],
+//                   lng: openDefecation.geolocation.coordinates[0],
+//                 };
+//                 const riskLevel = assessRisk(openDefecation).level;
+
+//                 return (
+//                   <AdvancedMarker
+//                     key={openDefecation._id}
+//                     position={position}
+//                     onClick={() => handleMarkerClick(openDefecation)}
+//                   >
+//                     <Pin
+//                       background={
+//                         riskLevel === 'critical'
+//                           ? '#B71C1C'
+//                           : riskLevel === 'moderate'
+//                           ? '#FFA726'
+//                           : '#4CAF50'
+//                       }
+//                       glyphColor="#FFF"
+//                       borderColor="#7F0000"
+//                     />
+//                   </AdvancedMarker>
+//                 );
+//               })}
+//             </Map>
+//           </Box>
+//         </APIProvider>
+//       </Paper>
+
+//       {/* Location Details Modal */}
+//       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="md" fullWidth>
+//         <DialogTitle
+//           sx={{
+//             m: 0,
+//             p: 2,
+//             bgcolor: '#f8f9fa',
+//             display: 'flex',
+//             justifyContent: 'space-between',
+//             alignItems: 'center',
+//             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+//           }}
+//         >
+//           <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: '#1a237e' }}>
+//             Location Details
+//           </Typography>
+//           <IconButton
+//             onClick={() => setModalOpen(false)}
+//             sx={{
+//               color: '#1a237e',
+//               '&:hover': {
+//                 backgroundColor: 'rgba(0, 0, 0, 0.05)',
+//               },
+//             }}
+//           >
+//             <CloseIcon />
+//           </IconButton>
+//         </DialogTitle>
+//         <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
+//           {selectedLocation && (
+//             <Box sx={{ p: 2 }}>
+//               <Grid container spacing={3}>
+//                 {/* Image Section */}
+//                 <Grid item xs={12} md={6}>
+//                   <Card
+//                     sx={{
+//                       p: 2,
+//                       borderRadius: 2,
+//                       bgcolor: '#fff',
+//                       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+//                       height: '60%',
+//                       display: 'flex',
+//                       alignItems: 'center',
+//                       justifyContent: 'center',
+//                     }}
+//                   >
+//                     {selectedLocation.picture ? (
+//                       <Box
+//                         component="img"
+//                         src={selectedLocation.picture}
+//                         alt="Location"
+//                         sx={{
+//                           width: '100%',
+//                           height: 'auto',
+//                           maxHeight: 300,
+//                           borderRadius: 2,
+//                           objectFit: 'cover',
+//                           transition: 'transform 0.3s ease-in-out',
+//                           '&:hover': {
+//                             transform: 'scale(1.02)',
+//                           },
+//                         }}
+//                       />
+//                     ) : (
+//                       <Typography
+//                         variant="body1"
+//                         color="text.secondary"
+//                         sx={{ textAlign: 'center', fontStyle: 'italic' }}
+//                       >
+//                         Image not available
+//                       </Typography>
+//                     )}
+//                   </Card>
+
+//                   {/* Additional Information */}
+//                   <Card
+//                     sx={{
+//                       p: 3,
+//                       borderRadius: 2,
+//                       bgcolor: '#fff',
+//                       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+//                       mt: 3,
+//                     }}
+//                   >
+//                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+//                       Additional Information
+//                     </Typography>
+//                     <Grid container spacing={2}>
+//                       <Grid item xs={6}>
+//                         <Typography variant="caption" color="text.secondary">
+//                           Public Space
+//                         </Typography>
+//                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
+//                           {selectedLocation.spaceType}
+//                         </Typography>
+//                       </Grid>
+//                       <Grid item xs={6}>
+//                         <Typography variant="caption" color="text.secondary">
+//                           Foot Traffic
+//                         </Typography>
+//                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
+//                           {selectedLocation.footTraffic}
+//                         </Typography>
+//                       </Grid>
+//                       <Grid item xs={12}>
+//                         <Typography variant="caption" color="text.secondary">
+//                           Peak Times
+//                         </Typography>
+//                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
+//                           {Array.isArray(selectedLocation.peakTime)
+//                             ? selectedLocation.peakTime.map((time, index) => (
+//                                 <Chip
+//                                   variant="outlined"
+//                                   key={index}
+//                                   label={time}
+//                                   size="small"
+//                                   sx={{
+//                                     '&:hover': {
+//                                       backgroundColor: 'primary.light',
+//                                       color: 'primary.contrastText',
+//                                     },
+//                                   }}
+//                                 />
+//                               ))
+//                             : (
+//                               <Chip
+//                                 variant="outlined"
+//                                 label={selectedLocation.peakTime || 'N/A'}
+//                                 size="small"
+//                                 sx={{
+//                                   '&:hover': {
+//                                     backgroundColor: 'primary.light',
+//                                     color: 'primary.contrastText',
+//                                   },
+//                                 }}
+//                               />
+//                             )}
+//                         </Box>
+//                       </Grid>
+//                     </Grid>
+//                   </Card>
+//                 </Grid>
+
+//                 {/* Details Section */}
+//                 <Grid item xs={12} md={6}>
+//                   {/* Risk Assessment */}
+//                   <Card
+//                     sx={{
+//                       p: 3,
+//                       borderRadius: 2,
+//                       bgcolor: '#fff',
+//                       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+//                       mb: 3,
+//                     }}
+//                   >
+//                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+//                       Risk Assessment
+//                     </Typography>
+//                     <Chip
+//                       label={assessRisk(selectedLocation).level.toUpperCase()}
+//                       color={
+//                         assessRisk(selectedLocation).level === 'critical'
+//                           ? 'error'
+//                           : assessRisk(selectedLocation).level === 'moderate'
+//                           ? 'warning'
+//                           : 'success'
+//                       }
+//                       sx={{
+//                         mb: 1,
+//                         fontWeight: 600,
+//                         '&:hover': {
+//                           opacity: 0.9,
+//                         },
+//                       }}
+//                     />
+//                     <Typography variant="body2" color="text.secondary">
+//                       {assessRisk(selectedLocation).cause}
+//                     </Typography>
+//                   </Card>
+
+//                   {/* Location Details */}
+//                     <Card
+//                     sx={{
+//                       p: 3,
+//                       borderRadius: 2,
+//                       bgcolor: '#fff',
+//                       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+//                       mb: 3,
+//                     }}
+//                   >
+//                     <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
+//                       Location Details
+//                     </Typography>
+//                     <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+//                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+//                         <Avatar sx={{ bgcolor: 'primary.light' }}>
+//                           <LocationOn />
+//                         </Avatar>
+//                         <Box>
+//                           <Typography variant="caption" color="text.secondary">
+//                             Ward
+//                           </Typography>
+//                           <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+//                             {selectedLocation.ward}
+//                           </Typography>
+//                         </Box>
+//                       </Box>
+
+//                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+//                         <Avatar sx={{ bgcolor: 'success.light' }}>
+//                           <Business />
+//                         </Avatar>
+//                         <Box>
+//                           <Typography variant="caption" color="text.secondary">
+//                             Village
+//                           </Typography>
+//                           <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+//                             {selectedLocation.village}
+//                           </Typography>
+//                         </Box>
+//                       </Box>
+
+//                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+//                         <Avatar sx={{ bgcolor: 'warning.light' }}>
+//                           <HomeIcon />
+//                         </Avatar>
+//                         <Box>
+//                           <Typography variant="caption" color="text.secondary">
+//                             Hamlet
+//                           </Typography>
+//                           <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+//                             {selectedLocation.hamlet}
+//                           </Typography>
+//                         </Box>
+//                       </Box>
+//                     </Box>
+//                   </Card>
+//                 </Grid>
+//               </Grid>
+//             </Box>
+//           )}
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Recent Observations Table */}
+//       <Paper sx={{ p: 2, borderRadius: 2, mt: 4 }}>
+//         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+//           <Typography variant="h6" sx={{ fontWeight: 600 }}>
+//             Open Defecation Overview
+//           </Typography>
+//         </Box>
+
+//         <DataTable
+//           setSearch={setSearch}
+//           setPage={setPage}
+//           setLimit={setLimit}
+//           isLoading={isLoading}
+//           columns={columns}
+//           data={filteredData}
+//         />
+//       </Paper>
+//     </Box>
+//   );
+// };
+
+// // Stats Card Component
+// interface StatsCardProps {
+//   title: string;
+//   value: string | number | undefined;
+//   icon: React.ReactElement;
+//   iconColor: string;
+// }
+
+// const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) => (
+//   <Card sx={{ flex: 1, p: 2, borderRadius: 2 }}>
+//     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+//       {title}
+//     </Typography>
+//     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+//       <Typography variant="h4" sx={{ fontWeight: 600 }}>
+//         {value}
+//       </Typography>
+//       <Box
+//         sx={{
+//           bgcolor: `${iconColor}15`,
+//           p: 1,
+//           borderRadius: '50%',
+//           display: 'flex',
+//           alignItems: 'center',
+//           justifyContent: 'center',
+//         }}
+//       >
+//         {React.cloneElement(icon, { sx: { color: iconColor } })}
+//       </Box>
+//     </Box>
+//   </Card>
+// );
+
+// const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options, value = 'All', onChange }) => {
+//   return (
+//     <Box sx={{ minWidth: 210, height: 40 }}>
+//       <FormControl fullWidth size="small">
+//         <InputLabel>{label}</InputLabel>
+//         <Select
+//           value={value}
+//           label={label}
+//           onChange={(e) => onChange?.(e.target.value)}
+//           sx={{
+//             '& .MuiOutlinedInput-notchedOutline': {
+//               borderColor: 'rgba(0, 0, 0, 0.12)',
+//             },
+//           }}
+//         >
+//           {options.map((option) => (
+//             <MenuItem key={option} value={option}>
+//               {option}
+//             </MenuItem>
+//           ))}
+//         </Select>
+//       </FormControl>
+//     </Box>
+//   );
+// };
+
+// export default OpenDefication;
