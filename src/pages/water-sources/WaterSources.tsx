@@ -215,7 +215,7 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
+          {/* <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Ward</InputLabel>
               <Select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} label="Ward">
@@ -246,7 +246,7 @@ const WaterSourcesDashboard: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
-          </Stack>
+          </Stack> */}
         </Box>
       </Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>

@@ -148,7 +148,7 @@ const DumpSites: React.FC = () => {
             Comprehensive overview of DumpSites
           </Typography>
         </Box>
-        <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
+        {/* <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
           {[{ label: 'Ward', value: wardFilter, setValue: setWardFilter, options: wardOptions }, { label: 'Village', value: villageFilter, setValue: setVillageFilter, options: villageOptions }, { label: 'Hamlet', value: hamletFilter, setValue: setHamletFilter, options: hamletOptions }].map(({ label, value, setValue, options }, idx) => (
             <FormControl key={idx} size="small" sx={{ minWidth: 120 }}>
               <InputLabel>{label}</InputLabel>
@@ -159,7 +159,7 @@ const DumpSites: React.FC = () => {
               </Select>
             </FormControl>
           ))}
-        </Stack>
+        </Stack> */}
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>

@@ -74,6 +74,7 @@ interface HygieneFacility {
   location: string;
   type: string;
   handwashingMaterials: string[] | string;
+  capturedAt: string;
   _id: string;
 }
 
@@ -123,17 +124,11 @@ const columns = [
     header: 'Space Type',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('location', {
-    header: 'Location',
-    cell: (info) => {
-      const value = info.getValue();
-      if (typeof value === 'string' || typeof value === 'number' || value instanceof Date) {
-        return new Date(value).toLocaleString();
-      }
-      return 'Invalid Date';
-    },
+  columnHelper.accessor('capturedAt', {
+    header: 'Date & Time',
+    cell: (info) => new Date(info.getValue()).toLocaleString(),
   }),
-  columnHelper.accessor('type', {
+columnHelper.accessor('type', {
     header: 'Type',
     cell: (info) => (
       <Stack direction="row" spacing={1} alignItems="center">
@@ -201,7 +196,6 @@ const HygieneFacilities: React.FC = () => {
         }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
       ),
   });
-  console.log(analytics)
 
   const { data: tableData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
     queryKey: ['hand-washing', wardFilter, villageFilter, hamletFilter],
@@ -212,6 +206,8 @@ const HygieneFacilities: React.FC = () => {
         }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
       ),
   });
+
+  console.log(tableData)
 
 
   const spaceTypeOptions = useMemo(() => [...new Set(tableData?.map((item) => item.spaceType) ?? [])], [tableData]);
@@ -335,7 +331,7 @@ const HygieneFacilities: React.FC = () => {
             Detailed insights about hygiene facilities in different locations
           </Typography>
         </Box>
-        <Box sx={{ mb: 3 }}>
+        {/* <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
             <FilterDropdown
               label="Space Type"
@@ -362,7 +358,7 @@ const HygieneFacilities: React.FC = () => {
               onChange={setHamletFilter}
             />
           </Stack>
-        </Box>
+        </Box> */}
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -453,8 +449,8 @@ const HygieneFacilities: React.FC = () => {
                 [`& .${pieArcLabelClasses.root}`]: {
                   fontSize: '0.85rem',
                   fontWeight: 'bold',
-                  fill: '#333',
-                  textShadow: '0 1px 2px rgba(255,255,255,0.7)',
+                  fill: '#fff',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.7)',
                 },
               }}
             />

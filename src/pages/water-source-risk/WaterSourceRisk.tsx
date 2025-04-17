@@ -343,7 +343,7 @@ const WaterSourceRisk = () => {
             Filtered water sources analysis
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
+        {/* <Stack direction="row" spacing={1}>
           {typeOptions.length > 0 && (
             <FilterDropdown
               label="Type"
@@ -376,7 +376,7 @@ const WaterSourceRisk = () => {
               onChange={(value) => handleFilterChange('hamlet', value)}
             />
           )}
-        </Stack>
+        </Stack> */}
       </Box>
 
       {/* Analytics Cards */}

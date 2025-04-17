@@ -242,7 +242,7 @@ const Dashboard = () => {
             Overview of water, sanitation and hygiene facilities and population
           </Typography>
         </Typography>
-        <Box sx={{ mb: 3 }}>
+        {/* <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
             <FilterDropdown
               label="Ward"
@@ -263,7 +263,7 @@ const Dashboard = () => {
               options={filterOptions.Hamlet}
             />
           </Stack>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Facilities Captured Section */}

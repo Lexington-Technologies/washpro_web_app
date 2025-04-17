@@ -241,14 +241,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
             <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk?.join(', ')} />
           </Grid>
           <Grid item xs={6}>
-            <DetailItem icon={People} label="Number of shared households" value={toiletFacility.numberOfSharedHouse} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem
+          <DetailItem
               icon={Calendar}
               label="Last Updated"
               value={format(new Date(toiletFacility.updatedAt), 'PPP')}
