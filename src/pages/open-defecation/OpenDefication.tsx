@@ -92,7 +92,7 @@ const OpenDefication = () => {
 
   const { data:analyticsData, isLoading:analyticsLoading } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecation-analytics'],
-    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations'),
+    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations/analytics'),
   });
 console.log(analyticsData)
 

@@ -22,7 +22,7 @@ import {
   FaSchool,
   FaCity,
 } from 'react-icons/fa';
-import { FaHandHoldingDroplet, FaHeartPulse, FaPoop } from 'react-icons/fa6';
+import { FaHandHoldingDroplet, FaHeartPulse, FaPeopleArrows, FaPoop, FaUsers } from 'react-icons/fa6';
 import {
   BarChart,
   Bar,
@@ -162,7 +162,7 @@ const Dashboard = () => {
     { 
       title: 'Total Population', 
       value: 34000 || 0,
-      icon: <FaCity size={20} />,
+      icon: <FaUsers size={20} />,
       ...CARD_COLORS.facility[0]
     },
   ];
