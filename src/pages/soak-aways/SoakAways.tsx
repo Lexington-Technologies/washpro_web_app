@@ -185,7 +185,11 @@ const columns = [
     header: 'Categories',
     cell: info => info.getValue(),
   }),
-  columnHelper.accessor('type', {
+  columnHelper.accessor('capturedAt', {
+    header: 'Date & Time',
+    cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+  }),
+  columnHelper.accessor('space', {
     header: 'Tags',
     cell: info => {
       return (

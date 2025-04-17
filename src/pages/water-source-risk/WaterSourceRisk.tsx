@@ -435,7 +435,8 @@ const WaterSourceRisk = () => {
               defaultZoom={11}
               defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
               mapId={GOOGLE_MAPS_API_KEY}
-              options={{ gestureHandling: 'greedy', disableDefaultUI: false }}
+              gestureHandling="greedy"
+              disableDefaultUI={false}
             >
               {showMapMarkers &&
                 filteredWaterRisks.map((waterRisk) => {
@@ -618,7 +619,8 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
   const ImagePreviewDialog = (
     <Dialog open={!!selectedImage} onClose={() => setSelectedImage(null)} maxWidth="md">
       <DialogContent>
-        <img 
+        <Box
+          component="img"
           src={selectedImage || ''} 
           alt="Full size preview" 
           style={{ width: '100%', height: 'auto' }}

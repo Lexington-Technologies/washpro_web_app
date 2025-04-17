@@ -114,6 +114,10 @@ const DumpSites: React.FC = () => {
     columnHelper.accessor('village', { cell: info => info.getValue() }),
     columnHelper.accessor('hamlet', { cell: info => info.getValue() }),
     columnHelper.accessor('spaceType', { header: 'Categories', cell: info => info.getValue() }),
+    columnHelper.accessor('capturedAt', {
+      header: 'Date & Time',
+      cell: (info) => new Date(info.getValue()).toLocaleString(),
+    }),  
     columnHelper.accessor('type', {
       header: 'Tags',
       cell: info => (

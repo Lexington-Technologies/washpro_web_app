@@ -229,6 +229,10 @@ const GutterDashboard: React.FC = () => {
       header: 'Categories',
       cell: info => info.getValue(),
     }),
+    columnHelper.accessor('capturedAt', {
+      header: 'Date & Time',
+      cell: (info) => new Date(info.getValue()).toLocaleString(),
+    }),  
     columnHelper.accessor('type', {
       header: 'Tags',
       cell: info => {

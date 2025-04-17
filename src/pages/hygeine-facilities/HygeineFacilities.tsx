@@ -125,7 +125,13 @@ const columns = [
   }),
   columnHelper.accessor('location', {
     header: 'Location',
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const value = info.getValue();
+      if (typeof value === 'string' || typeof value === 'number' || value instanceof Date) {
+        return new Date(value).toLocaleString();
+      }
+      return 'Invalid Date';
+    },
   }),
   columnHelper.accessor('type', {
     header: 'Type',

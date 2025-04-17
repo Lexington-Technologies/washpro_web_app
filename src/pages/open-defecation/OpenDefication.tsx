@@ -66,6 +66,10 @@ const columns = [
     header: 'Village',
     cell: (info) => info.getValue(),
   }),
+  columnHelper.accessor('geolocation.coordinates', {
+    header: 'Date & Time',
+    cell: (info) => new Date(info.getValue() as string).toLocaleString(),
+  }),
   columnHelper.accessor('hamlet', {
     header: 'Hamlet',
     cell: (info) => info.getValue(),

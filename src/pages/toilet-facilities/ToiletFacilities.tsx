@@ -194,6 +194,10 @@ const ToiletFacilities: React.FC = () => {
     columnHelper.accessor('village', { header: 'Village', cell: (info) => info.getValue() }),
     columnHelper.accessor('hamlet', { header: 'Hamlet', cell: (info) => info.getValue() }),
     columnHelper.accessor('spaceType', { header: 'Category', cell: (info) => info.getValue() }),
+    columnHelper.accessor('capturedAt', {
+      header: 'Date & Time',
+      cell: (info) => new Date(info.getValue()).toLocaleString(),
+    }),
     columnHelper.accessor('type', {
       header: 'Tags',
       cell: (info) => (

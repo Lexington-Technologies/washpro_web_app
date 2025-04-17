@@ -171,8 +171,8 @@ const WaterSourcesDashboard: React.FC = () => {
     columnHelper.accessor('hamlet', { header: 'Hamlet', cell: (info) => info.getValue() }),
     columnHelper.accessor('spaceType', { header: 'Category', cell: (info) => info.getValue() }),
     columnHelper.accessor('capturedAt', {
-      header: 'Date',
-      cell: (info) => new Date(info.getValue()).toLocaleDateString(),
+      header: 'Date & Time',
+      cell: (info) => new Date(info.getValue()).toLocaleString(),
     }),
     columnHelper.accessor('type', {
       header: 'Tags',
