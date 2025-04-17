@@ -90,7 +90,7 @@ const OpenDefication = () => {
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
 
-  const { data:analyticsData, isLoading:analyticsLoading } = useQuery<OpenDefecation[], Error>({
+  const { data:analyticsData } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecation-analytics'],
     queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations/analytics'),
   });

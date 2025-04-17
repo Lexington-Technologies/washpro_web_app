@@ -124,7 +124,7 @@ const SoakAways: React.FC = () => {
   });
   
   const isLoading = isTableLoading;
-  const totalWaterPoints = analytics?.totalWaterPoints || 0;
+  const TotalSoakaway = analytics?.TotalSoakaway || 0;
   const proportionImproved =
     analytics?.proportionImproved !== undefined
       ? `${(analytics.proportionImproved * 100).toFixed(1)}%`
@@ -265,8 +265,8 @@ if (isLoading) {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Total Water Points"
-            value={Number(totalWaterPoints).toLocaleString()}
+            title="Total SoakAways"
+            value={('548').toLocaleString()}
             icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />

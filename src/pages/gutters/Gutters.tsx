@@ -386,7 +386,7 @@ const GutterDashboard: React.FC = () => {
         sx={{
           [`& .${pieArcLabelClasses.root}`]: {
             fontWeight: 'bold',
-            fill: '#333',
+            fill: '#fff',
             fontSize: '0.85rem',
           },
         }}

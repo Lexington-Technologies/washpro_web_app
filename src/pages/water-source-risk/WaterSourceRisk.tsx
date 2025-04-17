@@ -211,6 +211,8 @@ const WaterSourceRisk = () => {
       return response;
     },
   });
+
+  console.log(waterRisks)
   
   // Generate filter options from location data.
   const wardOptions = useMemo(
@@ -576,6 +578,9 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
   const [selectedRisk, setSelectedRisk] = useState<string | null>(null);
   const riskRating = waterSource ? getRiskRating(waterSource) : null;
 
+  // Add this new state at the top of the WaterSourceDetailsDialog component
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   // Gather all contaminants (facilities) into a flat list for the contamination summary
   const contaminants = useMemo(() => {
     if (!waterSource) return [];
@@ -609,270 +614,309 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
     return result;
   }, [waterSource]);
 
-  // Handler for contaminant details button
-  const handleContaminantDetails = (contaminant: { id: string; name: string; type: string; distance: number; riskLevel: string }) => {
-    // For now, just alert or log. Replace with modal or navigation as needed.
-    alert(
-      `Contaminant Details:\nName: ${contaminant.name}\nType: ${contaminant.type}\nDistance: ${contaminant.distance}m\nRisk Level: ${contaminant.riskLevel}`
-    );
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle
-        sx={{
-          p: 3,
-          bgcolor: '#1a237e',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          color: '#fff',
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight={600}>
-            Water Source Details
-          </Typography>
-          <IconButton onClick={onClose} sx={{ color: '#fff' }}>
-            <X size={20} />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
-        {waterSource && (
-          <Grid container spacing={3}>
-            {/* Image Card */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  bgcolor: '#fff',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {waterSource.location.picture ? (
-                  <Box
-                    component="img"
-                    src={waterSource.location.picture}
-                    alt="Water Source"
-                    sx={{
-                      width: '100%',
-                      height: 'auto',
-                      maxHeight: 300,
-                      borderRadius: 2,
-                      objectFit: 'cover',
-                      transition: 'transform 0.3s ease-in-out',
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', fontStyle: 'italic' }}>
-                    Image not available
-                  </Typography>
-                )}
-              </Card>
-            </Grid>
-            {/* Location Details Card */}
-            <Grid item xs={12} md={6}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  bgcolor: '#fff',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
-                  <MapPin size={20} style={{ marginRight: 8 }} />
-                  Location Details
-                </Typography>
-                <Stack spacing={2}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} sm={4}>
-                      <DetailItem icon={() => <Home color="primary" />} label="Ward" value={waterSource.location.ward} />
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <DetailItem icon={() => <LocationCity color="success" />} label="Village" value={waterSource.location.village} />
-                    </Grid>
-                    <Grid item xs={6} sm={4}>
-                      <DetailItem icon={() => <PinDrop color="error" />} label="Hamlet" value={waterSource.location.hamlet} />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <DetailItem
-                        icon={() => <CompassCalibrationSharp color="info" />}
-                        label="Coordinates"
-                        value={`${waterSource.location.coordinates[1]}, ${waterSource.location.coordinates[0]}`}
-                      />
-                    </Grid>
-                  </Grid>
-                </Stack>
-              </Card>
-            </Grid>
-            {/* Risk Summary Card */}
-            <Grid item xs={12}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  bgcolor: '#fff',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a237e' }}>
-                    <AlertCircle size={20} style={{ marginRight: 8 }} />
-                    Risk Summary
-                  </Typography>
-                  {riskRating && (
-                    <Chip
-                      label={`RISK: ${riskRating.toUpperCase()}`}
-                      sx={{
-                        color: riskColorMapping[riskRating],
-                        backgroundColor: `${riskColorMapping[riskRating]}15`,
-                        fontWeight: 'bold',
-                      }}
-                    />
-                  )}
-                </Box>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Chip
-                      label={`Critical: ${waterSource.summary.toilets.critical}`}
-                      onClick={() => setSelectedRisk('Critical')}
-                      sx={{
-                        bgcolor: '#fee2e2',
-                        color: '#dc2626',
-                        fontWeight: 600,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <Chip
-                      label={`Moderate: ${waterSource.summary.toilets.moderate}`}
-                      onClick={() => setSelectedRisk('Moderate')}
-                      sx={{
-                        bgcolor: '#ffedd5',
-                        color: '#f97316',
-                        fontWeight: 600,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                      }}
-                    />
-                    <Chip
-                      label={`Good: ${waterSource.summary.toilets.good}`}
-                      onClick={() => setSelectedRisk('Good')}
-                      sx={{
-                        bgcolor: '#dcfce7',
-                        color: '#16a34a',
-                        fontWeight: 600,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                      }}
-                    />
-                  </Box>
-                  {selectedRisk && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                      Selected Risk: <strong>{selectedRisk}</strong>
-                    </Typography>
-                  )}
-                </Stack>
-              </Card>
-            </Grid>
-            {/* Contamination Section */}
-            <Grid item xs={12}>
-              <Card
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  bgcolor: '#fff',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                  mt: 2,
-                }}
-              >
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a237e', mb: 2 }}>
-                  Contamination Summary
-                </Typography>
-                {contaminants.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    No contaminants found for this water source.
-                  </Typography>
-                ) : (
-                  <Box sx={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: 'left', padding: 8 }}>Name</th>
-                          <th style={{ textAlign: 'left', padding: 8 }}>Distance (m)</th>
-                          <th style={{ textAlign: 'left', padding: 8 }}>Contaminant Type</th>
-                          <th style={{ textAlign: 'left', padding: 8 }}>Risk Level</th>
-                          <th style={{ textAlign: 'left', padding: 8 }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {contaminants.map(contaminant => (
-                          <tr key={contaminant.id}>
-                            <td style={{ padding: 8 }}>{contaminant.name}</td>
-                            <td style={{ padding: 8 }}>{contaminant.distance}</td>
-                            <td style={{ padding: 8 }}>{contaminant.type}</td>
-                            <td style={{ padding: 8 }}>{contaminant.riskLevel}</td>
-                            <td style={{ padding: 8 }}>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleContaminantDetails(contaminant)}
-                              >
-                                View Details
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </Box>
-                )}
-              </Card>
-            </Grid>
-          </Grid>
-        )}
+  // Add this image preview modal just before the return statement
+  const ImagePreviewDialog = (
+    <Dialog open={!!selectedImage} onClose={() => setSelectedImage(null)} maxWidth="md">
+      <DialogContent>
+        <img 
+          src={selectedImage || ''} 
+          alt="Full size preview" 
+          style={{ width: '100%', height: 'auto' }}
+        />
       </DialogContent>
-      <DialogActions
-        sx={{
-          p: 2,
-          boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Button
-          onClick={onClose}
-          sx={{
-            color: '#1a237e',
-            fontWeight: 600,
-            border: '1px solid #1a237e',
-            '&:hover': { bgcolor: 'rgba(26,35,126,0.1)' },
-          }}
-        >
+      <DialogActions>
+        <Button onClick={() => setSelectedImage(null)} color="primary">
           Close
-        </Button>
-        <Button
-          onClick={() => {
-            if (waterSource) {
-              navigate(`/water-source-risk/${waterSource.waterSourceId}`);
-              onClose();
-            }
-          }}
-          sx={{
-            bgcolor: '#1a237e',
-            color: '#fff',
-            fontWeight: 600,
-            '&:hover': { bgcolor: '#14207a' },
-          }}
-        >
-          View Full Details
         </Button>
       </DialogActions>
     </Dialog>
+  );
+
+  // Update the contamination handling logic
+  const handleContaminantDetails = (contaminant: { 
+    id: string; 
+    name: string; 
+    type: string; 
+    distance: number; 
+    riskLevel: string 
+  }) => {
+    const routeMap = {
+      'toilet': '/Toilet-Facilities',
+      'gutter': '/gutters',
+      'soak away': '/soak-aways',
+      'open defecation': '/open-defecation',
+      'dumpsite': '/dump-site'
+    };
+
+    const baseRoute = routeMap[contaminant.type.toLowerCase() as keyof typeof routeMap] || '/contaminants';
+    navigate(`${baseRoute}/${contaminant.id}`);
+  };
+
+  return (
+    <>
+      {ImagePreviewDialog}
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle
+          sx={{
+            p: 3,
+            bgcolor: '#1a237e',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            color: '#fff',
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight={600}>
+              Water Source Details
+            </Typography>
+            <IconButton onClick={onClose} sx={{ color: '#fff' }}>
+              <X size={20} />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
+          {waterSource && (
+            <Grid container spacing={3}>
+              {/* Image Card */}
+              <Grid item xs={12} md={6}>
+                <Card
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: '#fff',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer', // Add cursor pointer
+                  }}
+                  onClick={() => waterSource?.location.picture && setSelectedImage(waterSource.location.picture)}
+                >
+                  {waterSource.location.picture ? (
+                    <Box
+                      component="img"
+                      src={waterSource.location.picture}
+                      alt="Water Source"
+                      sx={{
+                        width: '100%',
+                        height: 'auto',
+                        maxHeight: 300,
+                        borderRadius: 2,
+                        objectFit: 'cover',
+                        transition: 'transform 0.3s ease-in-out',
+                      }}
+                    />
+                  ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', fontStyle: 'italic' }}>
+                      Image not available
+                    </Typography>
+                  )}
+                </Card>
+              </Grid>
+              {/* Location Details Card */}
+              <Grid item xs={12} md={6}>
+                <Card
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    bgcolor: '#fff',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mb: 3, color: '#1a237e' }}>
+                    <MapPin size={20} style={{ marginRight: 8 }} />
+                    Location Details
+                  </Typography>
+                  <Stack spacing={2}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <DetailItem icon={() => <Home color="primary" />} label="Ward" value={waterSource.location.ward} />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <DetailItem icon={() => <LocationCity color="success" />} label="Village" value={waterSource.location.village} />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <DetailItem icon={() => <PinDrop color="error" />} label="Hamlet" value={waterSource.location.hamlet} />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <DetailItem
+                          icon={() => <CompassCalibrationSharp color="info" />}
+                          label="Coordinates"
+                          value={`${waterSource.location.coordinates[1]}, ${waterSource.location.coordinates[0]}`}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Stack>
+                </Card>
+              </Grid>
+              {/* Risk Summary Card */}
+              <Grid item xs={12}>
+                <Card
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    bgcolor: '#fff',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    mb: 2,
+                    gap: 2,
+                    flexWrap: 'wrap' 
+                  }}>
+                    <Typography variant="subtitle1" sx={{ 
+                      fontWeight: 600, 
+                      color: '#1a237e',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}>
+                      <AlertCircle size={20} />
+                      Risk Summary
+                    </Typography>
+                  </Box>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                      <Chip
+                        label={`Critical: ${waterSource.summary.toilets.critical}`}
+                        onClick={() => setSelectedRisk('Critical')}
+                        sx={{
+                          bgcolor: '#fee2e2',
+                          color: '#dc2626',
+                          fontWeight: 600,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <Chip
+                        label={`Moderate: ${waterSource.summary.toilets.moderate}`}
+                        onClick={() => setSelectedRisk('Moderate')}
+                        sx={{
+                          bgcolor: '#ffedd5',
+                          color: '#f97316',
+                          fontWeight: 600,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                        }}
+                      />
+                      {/* <Chip
+                        label={`Good: ${waterSource.summary.toilets.good}`}
+                        onClick={() => setSelectedRisk('Good')}
+                        sx={{
+                          bgcolor: '#dcfce7',
+                          color: '#16a34a',
+                          fontWeight: 600,
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                        }}
+                      /> */}
+                      {/* {riskRating && (
+                        <Chip
+                          label={`RISK: ${riskRating.toUpperCase()}`}
+                          sx={{
+                            color: riskColorMapping[riskRating],
+                            backgroundColor: `${riskColorMapping[riskRating]}15`,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      )} */}
+                    </Box>
+                  </Stack>
+                </Card>
+              </Grid>
+              {/* Contamination Section */}
+              <Grid item xs={12}>
+                <Card
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    bgcolor: '#fff',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a237e', mb: 2 }}>
+                    Contamination Summary
+                  </Typography>
+                  {contaminants.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No contaminants found for this water source.
+                    </Typography>
+                  ) : (
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: 'left', padding: 8 }}>Contaminant Type</th>
+                            <th style={{ textAlign: 'left', padding: 8 }}>Distance (m)</th>
+                            <th style={{ textAlign: 'left', padding: 8 }}>action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {contaminants.map(contaminant => (
+                            <tr key={contaminant.id}>
+                              <td style={{ padding: 8 }}>{contaminant.type}</td>
+                              <td style={{ padding: 8 }}>{contaminant.distance}</td>
+                              <td style={{ padding: 8 }}>
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => handleContaminantDetails(contaminant)}
+                                >
+                                  View Details
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Box>
+                  )}
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions
+          sx={{
+            p: 2,
+            boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Button
+            onClick={onClose}
+            sx={{
+              color: '#1a237e',
+              fontWeight: 600,
+              border: '1px solid #1a237e',
+              '&:hover': { bgcolor: 'rgba(26,35,126,0.1)' },
+            }}
+          >
+            Close
+          </Button>
+          <Button
+            onClick={() => {
+              if (waterSource) {
+                navigate(`/water-source-risk/${waterSource.waterSourceId}`);
+                onClose();
+              }
+            }}
+            sx={{
+              bgcolor: '#1a237e',
+              color: '#fff',
+              fontWeight: 600,
+              '&:hover': { bgcolor: '#14207a' },
+            }}
+          >
+            View Full Details
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

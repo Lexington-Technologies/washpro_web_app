@@ -190,20 +190,32 @@ const DumpSites: React.FC = () => {
             <Card sx={{ p: 2, height: '100%' }}>
               <Typography variant="h6" mb={2}>Evacuation Schedule</Typography>
               <PieChart
-                series={[{
-                  data: Object.entries(analytics.evacuationSchedulePercentages).map(([label, value], idx) => ({ id: idx, label, value })),
-                  arcLabel: (item) => `${item.value.toFixed(1)}%`,
-                  arcLabelMinAngle: 10,
-                  outerRadius: 160,
-                  innerRadius: 30,
-                  cx: 160,
-                  tooltip: {
-                    render: (item) => `${item.label}: ${item.value.toFixed(1)}%`,
+                series={[
+                  {
+                    data: Object.entries(analytics.evacuationSchedulePercentages).map(([label, value], idx) => ({
+                      id: idx,
+                      label,
+                      value,
+                    })),
+                    arcLabel: (item) => `${item.value.toFixed(1)}%`,
+                    arcLabelMinAngle: 10,
+                    outerRadius: 160,
+                    innerRadius: 30,
+                    cx: 160,
+                    tooltip: {
+                      render: (item) => `${item.label}: ${item.value.toFixed(1)}%`,
+                    },
                   },
-                }]}
+                ]}
                 width={450}
                 height={320}
-                sx={{ [`& .${pieArcLabelClasses.root}`]: { fontWeight: 'bold', fill: '#333', fontSize: '0.85rem' } }}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fontWeight: 'bold',
+                    fill: '#fff',
+                    fontSize: '0.85rem',
+                  },
+                }}
               />
             </Card>
           </Grid>

@@ -287,7 +287,7 @@ const WaterSourcesDashboard: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, height: '100%' }}>
             <Typography variant="h4" mb={2}>
-              Type Distribution
+              Type Distribution by type
             </Typography>
             <PieChart
               series={[
@@ -315,7 +315,7 @@ const WaterSourcesDashboard: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, height: '100%' }}>
             <Typography variant="h4" mb={2}>
-              Functional Status Breakdown
+            Functionality by type
             </Typography>
             <BarChart
               xAxis={[

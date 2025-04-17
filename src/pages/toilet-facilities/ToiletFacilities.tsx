@@ -310,7 +310,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6" mb={2}>
-              Type Distribution
+            Distribution by Type
             </Typography>
             <PieChart
               series={[
@@ -338,7 +338,7 @@ const ToiletFacilities: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6" mb={2}>
-              Condition Status
+            Functionality by Type
             </Typography>
             <BarChart
               dataset={barChartData}
