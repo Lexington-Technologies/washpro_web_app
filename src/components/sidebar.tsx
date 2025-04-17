@@ -175,12 +175,12 @@ const SideBar = ({
     //   path: "/ai-assistant",
     //   title: "AI Assistant",
     // },
-    // {
-    //   text: "Knowledge Base",
-    //   icon: <RiHealthBookFill />,
-    //   path: "/knowledge-base",
-    //   title: "Knowledge Base",
-    // },
+    {
+      text: "Knowledge Base",
+      icon: <RiHealthBookFill />,
+      path: "/knowledge-base",
+      title: "Knowledge Base",
+    },
   ];
 
   // Wash submenu items

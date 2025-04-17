@@ -17,6 +17,7 @@ import {
   Stack,
   Autocomplete,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,74 +30,34 @@ import { useSnackStore } from '../../store';
 
 interface Document {
   id: string;
-  title: string;
-  description: string;
+  displayName: string;
+  description?: string;
   tags: string[];
   fileName: string;
   fileSize: number;
-  uploadDate: Date;
-  context: string;
+  uploadDate: string;
+  mimeType: string;
 }
 
-const mockDocuments: Document[] = [
-  {
-    id: '1',
-    title: 'Water Quality Guidelines 2024',
-    description: 'Comprehensive guidelines for water quality monitoring and testing procedures',
-    tags: ['Water Quality', 'Guidelines', 'Training'],
-    fileName: 'water-quality-guidelines-2024.pdf',
-    fileSize: 2457600, // 2.4 MB
-    uploadDate: new Date('2024-01-15'),
-    context: 'Latest version of water quality guidelines including new testing parameters',
-  },
-  {
-    id: '2',
-    title: 'Sanitation Facility Maintenance Manual',
-    description: 'Standard operating procedures for maintaining sanitation facilities',
-    tags: ['Sanitation', 'Maintenance', 'Guidelines'],
-    fileName: 'sanitation-maintenance-manual.pdf',
-    fileSize: 5242880, // 5 MB
-    uploadDate: new Date('2024-01-10'),
-    context: 'Updated maintenance procedures for all types of sanitation facilities',
-  },
-  {
-    id: '3',
-    title: 'Q4 2023 Water Quality Report',
-    description: 'Quarterly report on water quality metrics across all monitored sources',
-    tags: ['Water Quality', 'Reports'],
-    fileName: 'q4-2023-water-quality-report.docx',
-    fileSize: 1048576, // 1 MB
-    uploadDate: new Date('2023-12-31'),
-    context: 'End of year water quality analysis and recommendations',
-  },
-  {
-    id: '4',
-    title: 'Field Staff Training Materials',
-    description: 'Training materials for new field staff on data collection and monitoring',
-    tags: ['Training', 'Guidelines'],
-    fileName: 'field-staff-training.pdf',
-    fileSize: 3145728, // 3 MB
-    uploadDate: new Date('2023-12-15'),
-    context: 'Complete training package for field staff onboarding',
-  },
-  {
-    id: '5',
-    title: 'Emergency Response Protocol',
-    description: 'Procedures for handling water and sanitation emergencies',
-    tags: ['Guidelines', 'Maintenance'],
-    fileName: 'emergency-response-protocol.pdf',
-    fileSize: 1572864, // 1.5 MB
-    uploadDate: new Date('2023-12-01'),
-    context: 'Updated emergency protocols including new communication channels',
-  },
-];
+interface ApiResponse<T = any> {
+  ok: boolean;
+  data?: T;
+  message?: string;
+}
+
+// Error alert component
+const ErrorAlert = ({ message }: { message: string }) => (
+  <Box sx={{ p: 3 }}>
+    <Alert severity="error">{message}</Alert>
+  </Box>
+);
 
 const KnowledgeBase: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { setAlert } = useSnackStore();
+  const setAlert = useSnackStore((state: any) => state.setAlert);
   const [availableTags, setAvailableTags] = useState<string[]>([
     'Water Quality',
     'Sanitation',
@@ -108,7 +69,7 @@ const KnowledgeBase: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
 
   const [formData, setFormData] = useState({
-    title: '',
+    displayName: '',
     description: '',
     tags: [] as string[],
     context: '',
@@ -116,10 +77,11 @@ const KnowledgeBase: React.FC = () => {
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
+      const file = event.target.files[0];
+      setSelectedFile(file);
       setFormData(prev => ({
         ...prev,
-        title: event.target.files[0].name.split('.')[0],
+        displayName: file.name.split('.')[0],
       }));
     }
   };
@@ -136,29 +98,24 @@ const KnowledgeBase: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', selectedFile);
+      formDataToSend.append('displayName', formData.displayName);
+      formDataToSend.append('description', formData.description || '');
+      formDataToSend.append('tags', JSON.stringify(formData.tags));
       
-      // Create new document with mock data
-      const newDocument: Document = {
-        id: (documents.length + 1).toString(),
-        title: formData.title,
-        description: formData.description,
-        tags: formData.tags,
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        uploadDate: new Date(),
-        context: formData.context,
-      };
+      const response = await apiController.post<{ data: ApiResponse }>('/ai-chat/files/upload', formDataToSend);
       
-      // Add new document to the list
-      setDocuments(prev => [...prev, newDocument]);
-      
-      setAlert({
-        variant: 'success',
-        message: 'Document uploaded successfully'
-      });
-      handleCloseModal();
+      if (response.data && response.data.ok) {
+        await fetchDocuments();
+        setAlert({
+          variant: 'success',
+          message: 'Document uploaded successfully'
+        });
+        handleCloseModal();
+      } else {
+        throw new Error(response.data?.message || 'Failed to upload document');
+      }
     } catch (error) {
       setAlert({
         variant: 'error',
@@ -173,7 +130,7 @@ const KnowledgeBase: React.FC = () => {
     setOpenModal(false);
     setSelectedFile(null);
     setFormData({
-      title: '',
+      displayName: '',
       description: '',
       tags: [],
       context: '',
@@ -183,11 +140,23 @@ const KnowledgeBase: React.FC = () => {
   const fetchDocuments = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiController.get<{ data: ApiResponse<Document[]> }>('/ai-chat/files');
       
-      // Use mock data instead of API call
-      setDocuments(mockDocuments);
+      if (response.data && response.data.ok && response.data.data) {
+        setDocuments(response.data.data);
+        
+        // Extract unique tags from documents to use as available tags
+        const tagSet = new Set<string>();
+        response.data.data.forEach((doc: Document) => {
+          doc.tags?.forEach(tag => tagSet.add(tag));
+        });
+        
+        if (tagSet.size > 0) {
+          setAvailableTags(Array.from(tagSet));
+        }
+      } else {
+        throw new Error(response.data?.message || 'Failed to fetch documents');
+      }
     } catch (error) {
       setError(error instanceof Error ? error : new Error('Failed to fetch documents'));
     } finally {
@@ -197,20 +166,57 @@ const KnowledgeBase: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await apiController.delete<{ data: ApiResponse }>(`/ai-chat/files/${id}`);
       
-      // Filter out the deleted document
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
-      
-      setAlert({
-        variant: 'success',
-        message: 'Document deleted successfully'
-      });
+      if (response.data && response.data.ok) {
+        await fetchDocuments();
+        setAlert({
+          variant: 'success',
+          message: 'Document deleted successfully'
+        });
+      } else {
+        throw new Error(response.data?.message || 'Failed to delete document');
+      }
     } catch (error) {
       setAlert({
         variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to delete document'
+      });
+    }
+  };
+
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      // Using any type to bypass TypeScript's strict checking for axios response
+      // This is a pragmatic approach when dealing with binary responses
+      const response: any = await apiController.get(`/ai-chat/files/${id}`, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob link to download
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      
+      // Append to html link element page
+      document.body.appendChild(link);
+      
+      // Start download
+      link.click();
+      
+      // Clean up and remove the link
+      link.parentNode?.removeChild(link);
+      
+      setAlert({
+        variant: 'success',
+        message: 'File download started'
+      });
+    } catch (error) {
+      setAlert({
+        variant: 'error',
+        message: error instanceof Error ? error.message : 'Failed to download file'
       });
     }
   };
@@ -227,10 +233,10 @@ const KnowledgeBase: React.FC = () => {
     fetchDocuments();
   }, []);
 
-  if (isLoading) {
+  if (isLoading && documents.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <CircularProgress size={60} thickness={4} />
+        <CircularProgress size={60} thickness={4} />
       </Box>
     );
   }
@@ -280,18 +286,18 @@ const KnowledgeBase: React.FC = () => {
             ) : (
               documents.map((doc) => (
                 <TableRow key={doc.id}>
-                  <TableCell>{doc.title}</TableCell>
-                  <TableCell>{doc.description}</TableCell>
+                  <TableCell>{doc.displayName}</TableCell>
+                  <TableCell>{doc.description || '-'}</TableCell>
                   <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      {doc.tags.map((tag) => (
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {doc.tags && doc.tags.length > 0 ? doc.tags.map((tag) => (
                         <Chip
                           key={tag}
                           label={tag}
                           size="small"
-                          sx={{ bgcolor: '#e3f2fd' }}
+                          sx={{ bgcolor: '#e3f2fd', mb: 0.5 }}
                         />
-                      ))}
+                      )) : '-'}
                     </Stack>
                   </TableCell>
                   <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
@@ -299,7 +305,10 @@ const KnowledgeBase: React.FC = () => {
                     {new Date(doc.uploadDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <IconButton color="primary">
+                    <IconButton 
+                      color="primary"
+                      onClick={() => handleDownload(doc.id, doc.fileName)}
+                    >
                       <DownloadIcon />
                     </IconButton>
                     <IconButton
@@ -375,9 +384,9 @@ const KnowledgeBase: React.FC = () => {
 
               <TextField
                 label="Title"
-                value={formData.title}
+                value={formData.displayName}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  setFormData((prev) => ({ ...prev, displayName: e.target.value }))
                 }
                 required
               />
@@ -390,7 +399,6 @@ const KnowledgeBase: React.FC = () => {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, description: e.target.value }))
                 }
-                required
               />
 
               <Autocomplete
