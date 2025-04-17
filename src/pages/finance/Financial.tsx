@@ -27,8 +27,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Stack,
-  SelectChangeEvent
+  Stack
 } from '@mui/material';
 import {
   PieChart,
@@ -40,7 +39,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend
 } from 'recharts';
 import { 
   MdAdd, 
@@ -56,6 +56,9 @@ const pieChartData = [
   { name: "Aids & Grants", value: 120, color: "#F97316" },
   { name: "Community Financing", value: 20, color: "#FACC15" }
 ];
+
+// Calculate total for percentage calculation
+const totalValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
 
  // Sample data for funds
  const fundCategories = [
@@ -89,7 +92,7 @@ const paymentsData = [
 ];
 
 const FinancialSummary = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [selectedFund, setSelectedFund] = useState("Operational Fund");
   const [timeRange, setTimeRange] = useState("6M");
   const [openModal, setOpenModal] = useState(false);
@@ -127,19 +130,11 @@ const FinancialSummary = () => {
     });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target;
     setPaymentData(prev => ({
       ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSelectChange = (e: SelectChangeEvent) => {
-    const { name, value } = e.target;
-    setPaymentData(prev => ({
-      ...prev,
-      [name]: value
+      [name as string]: value
     }));
   };
 
@@ -149,7 +144,7 @@ const FinancialSummary = () => {
     handleCloseModal();
   };
 
-  const getStatusChip = (status: string) => {
+  const getStatusChip = (status) => {
     if (status === 'Paid') {
       return <Chip label="Paid" size="small" sx={{ bgcolor: '#DEF7EC', color: '#03543E', fontSize: '0.75rem' }} />;
     } else if (status === 'Partial') {
@@ -157,6 +152,27 @@ const FinancialSummary = () => {
     } else {
       return <Chip label="-" size="small" sx={{ bgcolor: '#FEE2E2', color: '#7F1D1D', fontSize: '0.75rem' }} />;
     }
+  };
+
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: {
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    percent: number;
+    index: number;
+  }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
 
   return (
@@ -234,18 +250,31 @@ const FinancialSummary = () => {
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={1}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value.toLocaleString()}`}
                     labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => value.toLocaleString()} />
+                  <Tooltip 
+                    formatter={(value: number) => {
+                      const percentage = ((value / totalValue) * 100).toFixed(1);
+                      return [`${percentage}%`, 'Percentage'];
+                    }}
+                  />
+                  <Legend 
+                    layout="vertical" 
+                    align="right" 
+                    verticalAlign="middle" 
+                    wrapperStyle={{ paddingLeft: '20px' }}
+                    formatter={(value, entry, index) => (
+                      <span style={{ color: '#000000' }}>{value}</span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </Box>
@@ -453,7 +482,7 @@ const FinancialSummary = () => {
                 name="fundCategory"
                 value={paymentData.fundCategory}
                 label="Fund Category"
-                onChange={handleSelectChange}
+                onChange={handleInputChange}
               >
                 {fundCategories.map((category) => (
                   <MenuItem key={category.name} value={category.name}>
@@ -493,7 +522,7 @@ const FinancialSummary = () => {
                 name="status"
                 value={paymentData.status}
                 label="Status"
-                onChange={handleSelectChange}
+                onChange={handleInputChange}
               >
                 <MenuItem value="Completed">Completed</MenuItem>
                 <MenuItem value="Partial">Partial</MenuItem>

@@ -26,6 +26,7 @@ import { FaHandHoldingDroplet } from 'react-icons/fa6';
 import { MdWaterDrop, MdOutlineSanitizer, MdSoap } from 'react-icons/md';
 import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../../axios';
+import { SelectChangeEvent } from '@mui/material';
 
 // Add type definitions
 interface WashAccessData {
@@ -111,25 +112,162 @@ const sampleData: Record<string, WashAccessData[]> = {
   ],
 };
 
+// Mock data for different facility types
+const mockWashStatusData: Record<string, WashStatusData> = {
+  household: {
+    waterAccess: {
+      accessRate: 35,
+      basic: 35,
+      limited: 30,
+      noService: 35
+    },
+    sanitationAccess: {
+      accessRate: 75,
+      basic: 75,
+      limited: 20,
+      noService: 5
+    },
+    hygieneAccess: {
+      accessRate: 5,
+      basic: 5,
+      limited: 10,
+      noService: 85
+    },
+    waterServiceLadder: [
+      { name: 'Basic', value: 35 },
+      { name: 'Limited', value: 30 },
+      { name: 'No Service', value: 35 }
+    ],
+    sanitationServiceLadder: [
+      { name: 'Basic', value: 75 },
+      { name: 'Limited', value: 20 },
+      { name: 'No Service', value: 5 }
+    ],
+    hygieneServiceLadder: [
+      { name: 'Basic', value: 5 },
+      { name: 'Limited', value: 10 },
+      { name: 'No Service', value: 85 }
+    ]
+  },
+  school: {
+    waterAccess: {
+      accessRate: 20,
+      basic: 8.6,
+      limited: 20,
+      noService: 60
+    },
+    sanitationAccess: {
+      accessRate: 15,
+      basic: 15,
+      limited: 20,
+      noService: 65
+    },
+    hygieneAccess: {
+      accessRate: 10,
+      basic: 10,
+      limited: 20,
+      noService: 70
+    },
+    waterServiceLadder: [
+      { name: 'Basic', value: 8.6 },
+      { name: 'Limited', value: 20 },
+      { name: 'No Service', value: 60 }
+    ],
+    sanitationServiceLadder: [
+      { name: 'Basic', value: 15 },
+      { name: 'Limited', value: 20 },
+      { name: 'No Service', value: 65 }
+    ],
+    hygieneServiceLadder: [
+      { name: 'Basic', value: 10 },
+      { name: 'Limited', value: 20 },
+      { name: 'No Service', value: 70 }
+    ]
+  },
+  healthFacility: {
+    waterAccess: {
+      accessRate: 50,
+      basic: 50,
+      limited: 30,
+      noService: 20
+    },
+    sanitationAccess: {
+      accessRate: 50,
+      basic: 50,
+      limited: 40,
+      noService: 10
+    },
+    hygieneAccess: {
+      accessRate: 60,
+      basic: 60,
+      limited: 35,
+      noService: 5
+    },
+    waterServiceLadder: [
+      { name: 'Basic', value: 50 },
+      { name: 'Limited', value: 30 },
+      { name: 'No Service', value: 20 }
+    ],
+    sanitationServiceLadder: [
+      { name: 'Basic', value: 50 },
+      { name: 'Limited', value: 40 },
+      { name: 'No Service', value: 10 }
+    ],
+    hygieneServiceLadder: [
+      { name: 'Basic', value: 60 },
+      { name: 'Limited', value: 35 },
+      { name: 'No Service', value: 5 }
+    ]
+  },
+  tsangaya: {
+    waterAccess: {
+      accessRate: 20,
+      basic: 20,
+      limited: 50,
+      noService: 30
+    },
+    sanitationAccess: {
+      accessRate: 5,
+      basic: 5,
+      limited: 45,
+      noService: 50
+    },
+    hygieneAccess: {
+      accessRate: 5,
+      basic: 5,
+      limited: 30,
+      noService: 65
+    },
+    waterServiceLadder: [
+      { name: 'Basic', value: 20 },
+      { name: 'Limited', value: 50 },
+      { name: 'No Service', value: 30 }
+    ],
+    sanitationServiceLadder: [
+      { name: 'Basic', value: 5 },
+      { name: 'Limited', value: 45 },
+      { name: 'No Service', value: 50 }
+    ],
+    hygieneServiceLadder: [
+      { name: 'Basic', value: 5 },
+      { name: 'Limited', value: 30 },
+      { name: 'No Service', value: 65 }
+    ]
+  }
+};
+
 const WashStatus = () => {
   const [selectedOption, setSelectedOption] = useState<string>('household');
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSelectedOption(event.target.value as string);
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    setSelectedOption(event.target.value);
   };
 
-  const { data: washStatusData } = useQuery<WashStatusData>({
-    queryKey: ['wash-status'],
-    queryFn: () => apiController.get(`analysis/wash-status?spaceType=${selectedOption}`),
-    enabled: !!selectedOption,
-  });
+  // Use mock data instead of API call
+  const washStatusData = mockWashStatusData[selectedOption];
 
   // Get the appropriate data based on selected option
   const tableData = sampleData[selectedOption] || [];
-
-  // Data for community table
-  const communityData = [
-  ];
 
   const drinkingWaterData = [
     { name: washStatusData?.waterServiceLadder[0].name, 
@@ -312,7 +450,7 @@ const WashStatus = () => {
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.waterAccess?.basic} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -331,7 +469,7 @@ const WashStatus = () => {
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.waterAccess?.noService} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -512,7 +650,7 @@ const WashStatus = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => value.toFixed(2)} />
+                    <Tooltip formatter={(value: number) => value.toFixed(2)} />
                     <Legend 
                       layout="vertical" 
                       align="right" 
@@ -592,7 +730,7 @@ const WashStatus = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => value.toFixed(2)} />
+                    <Tooltip formatter={(value: number) => value.toFixed(2)} />
                     <Legend 
                       layout="vertical" 
                       align="right" 
