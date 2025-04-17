@@ -39,7 +39,7 @@ import {
 import { apiController } from '../../axios';
 
 // Utility function for color conversion
-const hexToRgba = (hex, alpha) => {
+const hexToRgba = (hex: string, alpha: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -71,67 +71,6 @@ const CHART_COLORS = [
   '#EC4899', '#8B5CF6', '#22D3EE', '#F43F5E', '#84CC16',
 ];
 
-/**
- * filterData - Applies client‑side filtering to the raw data
- * Only items with the respective property (e.g. ward) are filtered.
- * If the property doesn’t exist, that section remains unchanged.
- */
-const filterData = (data, filters) => {
-  const { ward, village, hamlet } = filters;
-  // Make a shallow copy so we do not mutate the original data
-  let newData = { ...data };
-
-  // Filter facilityCards if location property exists
-  if (ward !== 'All' && newData.facilityCards?.[0]?.ward) {
-    newData.facilityCards = newData.facilityCards.filter(card => card.ward === ward);
-  }
-  if (village !== 'All' && newData.facilityCards?.[0]?.village) {
-    newData.facilityCards = newData.facilityCards.filter(card => card.village === village);
-  }
-  if (hamlet !== 'All' && newData.facilityCards?.[0]?.hamlet) {
-    newData.facilityCards = newData.facilityCards.filter(card => card.hamlet === hamlet);
-  }
-
-  // Similarly, filter washCards if location properties exist
-  if (ward !== 'All' && newData.washCards?.[0]?.ward) {
-    newData.washCards = newData.washCards.filter(card => card.ward === ward);
-  }
-  if (village !== 'All' && newData.washCards?.[0]?.village) {
-    newData.washCards = newData.washCards.filter(card => card.village === village);
-  }
-  if (hamlet !== 'All' && newData.washCards?.[0]?.hamlet) {
-    newData.washCards = newData.washCards.filter(card => card.hamlet === hamlet);
-  }
-
-  // Filter analytics that include location-specific distributions
-  // For example, for locationAnalytics, we check if the distribution exists.
-  if (ward !== 'All' && newData.locationAnalytics?.wardDistribution) {
-    newData.locationAnalytics.wardDistribution = newData.locationAnalytics.wardDistribution.filter(l => l.name === ward);
-  }
-  if (village !== 'All' && newData.locationAnalytics?.villageDistribution) {
-    newData.locationAnalytics.villageDistribution = newData.locationAnalytics.villageDistribution.filter(l => l.name === village);
-  }
-  if (hamlet !== 'All' && newData.locationAnalytics?.hamletDistribution) {
-    newData.locationAnalytics.hamletDistribution = newData.locationAnalytics.hamletDistribution.filter(l => l.name === hamlet);
-  }
-
-  // Similarly, if populationAnalytics.genderDistribution contains location info, filter it
-  if (ward !== 'All' && newData.populationAnalytics?.genderDistribution?.[0]?.ward) {
-    newData.populationAnalytics.genderDistribution = newData.populationAnalytics.genderDistribution.filter(g => g.ward === ward);
-  }
-  if (village !== 'All' && newData.populationAnalytics?.genderDistribution?.[0]?.village) {
-    newData.populationAnalytics.genderDistribution = newData.populationAnalytics.genderDistribution.filter(g => g.village === village);
-  }
-  if (hamlet !== 'All' && newData.populationAnalytics?.genderDistribution?.[0]?.hamlet) {
-    newData.populationAnalytics.genderDistribution = newData.populationAnalytics.genderDistribution.filter(g => g.hamlet === hamlet);
-  }
-
-  // You can also add additional filtering for waterAnalytics, sanitationAnalytics, etc.
-  // For example, if waterAnalytics.sourceTypes had a location property, apply similar logic.
-
-  return newData;
-};
-
 const Dashboard = () => {
   // Filter state values
   const [ward, setWard] = useState('All');
@@ -139,7 +78,6 @@ const Dashboard = () => {
   const [hamlet, setHamlet] = useState('All');
 
   // Query using react-query with filter parameters passed to the backend.
-  // If your backend does not filter analytics, we apply client-side filtering below.
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard', { ward, village, hamlet }],
     queryFn: () =>
@@ -166,10 +104,7 @@ const Dashboard = () => {
     );
   }
 
-  // Apply client-side filtering to the returned data.
-  const filteredData = filterData(data, { ward, village, hamlet });
-
-  // Destructure filtered data – note that if the backend already filters, these values will be updated accordingly.
+  // Use the data directly from the backend
   const {
     filterOptions,
     washCards,
@@ -178,7 +113,7 @@ const Dashboard = () => {
     sanitationAnalytics,
     populationAnalytics,
     locationAnalytics,
-  } = filteredData;
+  } = data;
 
   // Cards: facilities
   const facilityCardItems = [
@@ -223,6 +158,12 @@ const Dashboard = () => {
       value: facilityCards?.find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, 
       icon: <FaHandHoldingDroplet size={20} />, 
       ...CARD_COLORS.facility[6]
+    },
+    { 
+      title: 'Total Population', 
+      value: 34000 || 0,
+      icon: <FaCity size={20} />,
+      ...CARD_COLORS.facility[0]
     },
   ];
 
@@ -452,23 +393,22 @@ const Dashboard = () => {
         Analytics Distributions
       </Typography>
       <Grid container spacing={4}>
-        {/* 1. Water Source Types Distribution as a Bar Chart */}
+        {/* 1. Disability Distribution as a Bar Chart */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
               <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Water Source Types Distribution
+                Disability Distribution
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={waterSourceData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart data={populationAnalytics.disabilityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend formatter={(value) => <Typography variant="body2">{value}</Typography>} />
                     <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {waterSourceData.map((entry, index) => (
+                      {populationAnalytics.disabilityData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Bar>
@@ -479,33 +419,85 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* 2. Toilet Types Distribution as a Vertical Bar Chart */}
+        {/* 2. Gender Distribution as a Pie Chart */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
               <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                Toilet Types Distribution
+                Gender Distribution
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={toiletTypeData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'right' }}>
-                      {toiletTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  <PieChart>
+                    <Pie
+                      data={populationAnalytics.genderDistribution}
+                      dataKey="count"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      innerRadius={10}
+                      label={({
+                        cx,
+                        cy,
+                        midAngle,
+                        innerRadius,
+                        outerRadius,
+                        percent,
+                        index
+                      }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            fill="white"
+                            textAnchor={x > cx ? 'start' : 'end'}
+                            dominantBaseline="central"
+                          >
+                            {`${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        );
+                      }}
+                    >
+                      {populationAnalytics.genderDistribution.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                        />
                       ))}
-                    </Bar>
-                  </BarChart>
+                    </Pie>
+                    <Tooltip
+                      content={({ payload }) => (
+                        <Card sx={{ p: 1, boxShadow: 3 }}>
+                          <Typography variant="body2">
+                            {payload?.[0]?.name}: {payload?.[0]?.value.toLocaleString()}
+                          </Typography>
+                        </Card>
+                      )}
+                    />
+                    <Legend 
+                      wrapperStyle={{
+                        paddingTop: '20px'
+                      }}
+                      formatter={(value, entry) => (
+                        <Typography variant="body2" color="textSecondary">
+                          {value}
+                        </Typography>
+                      )}
+                    />
+                  </PieChart>
                 </ResponsiveContainer>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* 3. Ward Distribution as a Vertical Bar Chart */}
+        {/* 3. Ward Distribution as a Bar Chart */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
@@ -514,13 +506,13 @@ const Dashboard = () => {
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={wardData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart data={locationAnalytics.wardDistribution} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {wardData.map((entry, index) => (
+                      {locationAnalytics.wardDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Bar>

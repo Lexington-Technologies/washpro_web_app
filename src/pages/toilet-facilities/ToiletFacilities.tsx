@@ -117,6 +117,8 @@ const ToiletFacilities: React.FC = () => {
       ),
   });
 
+  console.log(analytics)
+
   const { data: tableData, isLoading: isTableLoading } = useQuery({
     queryKey: ['toilet-facilities', wardFilter, villageFilter, hamletFilter],
     queryFn: () =>

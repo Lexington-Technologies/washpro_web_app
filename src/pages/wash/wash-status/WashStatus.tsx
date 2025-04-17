@@ -490,17 +490,16 @@ const WashStatus = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                <PieChart>
                     <Pie
                       data={hygieneData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={false}
-                      paddingAngle={2}
                     >
                       {hygieneData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -516,9 +515,6 @@ const WashStatus = () => {
                         <span style={{ color: '#000000' }}>{value}</span>
                       )}
                     />
-                    <text x="30%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                      {""}
-                    </text>
                   </PieChart>
                 </ResponsiveContainer>
               </Box>

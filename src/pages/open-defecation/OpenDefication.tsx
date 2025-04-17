@@ -17,29 +17,17 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Button,
+  DialogActions,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
-import { LocationOn, Business } from '@mui/icons-material';
-import { HomeIcon } from 'lucide-react';
-import CloseIcon from '@mui/icons-material/Close';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from 'recharts';
-import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import WarningIcon from '@mui/icons-material/Warning';
+import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { X, MapPin, AlertCircle, Home } from 'lucide-react';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import SafetyCheckIcon from '@mui/icons-material/SafetyCheck';
 import { FaChartLine } from 'react-icons/fa';
 import React from 'react';
 
@@ -50,27 +38,15 @@ interface OpenDefecation {
   village: string;
   hamlet: string;
   spaceType: string;
-  space: string;
   footTraffic: string;
   peakTime: string[] | string;
-  demographics: string[];
-  environmentalCharacteristics: string[] | string;
   dailyAverage: string;
-  createdBy: string;
-  capturedAt: string;
-  createdAt: string;
-  updatedAt: string;
   geolocation: {
-    type: string;
     coordinates: number[];
   };
-}
-
-interface FilterDropdownProps {
-  label: string;
-  options: string[];
-  value?: string;
-  onChange?: (value: string) => void;
+  isSchoolArea: boolean;
+  odfStatus: boolean;
+  regressionRate: number;
 }
 
 const columnHelper = createColumnHelper<OpenDefecation>();
@@ -98,156 +74,96 @@ const columns = [
     header: 'Public Space',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('peakTime', {
-    header: 'Peak Time',
-    cell: (props) => {
-      const value = props.getValue();
-      const peakTimeArray = Array.isArray(value)
-        ? value
-        : typeof value === 'string'
-        ? [value]
-        : [];
-      return peakTimeArray.join(', ') || 'N/A';
-    },
-  }),
-  columnHelper.accessor('capturedAt', {
-    header: 'Captured At',
-    cell: (info) => new Date(info.getValue()).toLocaleDateString(),
-  }),
 ];
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
 
+const riskColorMapping = {
+  critical: "#ff0000",
+  moderate: "#f3a080",
+  safe: "#4CAF50",
+};
+
 const OpenDefication = () => {
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [ward, setWard] = useState('All');
-  const [village, setVillage] = useState('All');
-  const [hamlet, setHamlet] = useState('All');
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
+
+  const { data:analyticsData, isLoading:analyticsLoading } = useQuery<OpenDefecation[], Error>({
+    queryKey: ['open-defecation-analytics'],
+    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations'),
+  });
+console.log(analyticsData)
 
   const { data, isLoading } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation', { limit, page, search }],
-    queryFn: () =>
-      apiController.get<OpenDefecation[]>(
-        `/open-defecations?limit=${limit}&page=${page}&search=${search}`
-      ),
+    queryKey: ['open-defecation'],
+    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations'),
   });
 
-  const { data: analytics } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation-analytics', { limit, page, search }],
-    queryFn: () =>
-      apiController.get<OpenDefecation[]>(
-        `/open-defecations/analytics?limit=${limit}&page=${page}&search=${search}`
-      ),
-  });
-  console.log('odf',analytics);
+  // Analytics computation
+  const analytics = useMemo(() => ({
+    totalSites: data?.length || 0,
+    schoolOD: data?.filter(item => item.isSchoolArea).length || 0,
+    odfCommunities: data?.filter(item => item.odfStatus).length || 0,
+    regressionRate: data?.reduce((sum, item) => sum + item.regressionRate, 0) / (data?.length || 1) || 0,
+  }), [data]);
 
-
-  // Memoized risk assessment function with safety checks
-  const assessRisk = useMemo(
-    () => (item: OpenDefecation) => {
-      const footTraffic = item.footTraffic ? item.footTraffic.toLowerCase() : '';
-      
-      // Ensure peakTime is an array
-      const peakTimes = Array.isArray(item.peakTime)
-        ? item.peakTime
-        : typeof item.peakTime === 'string'
-        ? [item.peakTime]
-        : [];
-      const isPeakTimeNight = peakTimes.some((time) => time.toLowerCase().includes('night'));
-
-      // Ensure environmentalCharacteristics is an array
-      const environmentalChars = Array.isArray(item.environmentalCharacteristics)
-        ? item.environmentalCharacteristics
-        : typeof item.environmentalCharacteristics === 'string'
-        ? [item.environmentalCharacteristics]
-        : [];
-      const isNearWater = environmentalChars.some(
-        (char) =>
-          char.toLowerCase().includes('water') || char.toLowerCase().includes('stream')
-      );
-
-      if (footTraffic === 'high' && isPeakTimeNight) {
-        return { level: 'critical', cause: 'High foot traffic during night hours' };
-      } else if (isNearWater) {
-        return { level: 'critical', cause: 'Proximity to water sources' };
-      } else if (footTraffic === 'medium') {
-        return { level: 'moderate', cause: 'Moderate foot traffic' };
-      }
-      return { level: 'good', cause: 'Low risk area' };
-    },
-    []
-  );
-
-  // Handle marker click
-  const handleMarkerClick = (item: OpenDefecation) => {
-    setSelectedLocation(item);
-    setModalOpen(true);
+  // Filter handlers
+  const handleFilterChange = (filterType: 'ward' | 'village' | 'hamlet', value: string) => {
+    if (filterType === 'ward') {
+      setWard(value);
+      setVillage('');
+      setHamlet('');
+    } else if (filterType === 'village') {
+      setVillage(value);
+      setHamlet('');
+    } else if (filterType === 'hamlet') {
+      setHamlet(value);
+    }
   };
 
-  // Generate filter options
-  const wardOptions = useMemo(() => {
-    if (!data) return ['All'];
-    return ['All', ...new Set(data.map((item) => item.ward))];
-  }, [data]);
+  // Filter options
+  const wardOptions = useMemo(
+    () => Array.from(new Set(data?.map((item) => item.ward) || [])),
+    [data]
+  );
 
-  const villageOptions = useMemo(() => {
-    if (!data) return ['All'];
-    const filteredVillages = data
-      .filter((item) => ward === 'All' || item.ward === ward)
-      .map((item) => item.village);
-    return ['All', ...new Set(filteredVillages)];
-  }, [data, ward]);
+  const villageOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          data
+            ?.filter((item) => !ward || item.ward === ward)
+            .map((item) => item.village) || []
+        )
+      ),
+    [data, ward]
+  );
 
-  const hamletOptions = useMemo(() => {
-    if (!data) return ['All'];
-    const filteredHamlets = data
-      .filter((item) => (ward === 'All' || item.ward === ward) && (village === 'All' || item.village === village))
-      .map((item) => item.hamlet);
-    return ['All', ...new Set(filteredHamlets)];
-  }, [data, ward, village]);
+  const hamletOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          data
+            ?.filter(
+              (item) =>
+                (!ward || item.ward === ward) &&
+                (!village || item.village === village)
+            )
+            .map((item) => item.hamlet) || []
+        )
+      ),
+    [data, ward, village]
+  );
 
-  // Filtered data
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    return data.filter(
-      (item) =>
-        (ward === 'All' || item.ward === ward) &&
-        (village === 'All' || item.village === village) &&
-        (hamlet === 'All' || item.hamlet === hamlet)
-    );
-  }, [data, ward, village, hamlet]);
-
-  // Data for Bar Chart (Distribution by Ward)
-  const wardDistributionData = useMemo(() => {
-    if (!filteredData) return [];
-    const wardCounts = filteredData.reduce((acc, item) => {
-      acc[item.ward] = (acc[item.ward] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    return Object.entries(wardCounts).map(([ward, count]) => ({ ward, count }));
-  }, [filteredData]);
-
-  // Data for Pie Chart (Distribution by Risk Level)
-  const riskLevelDistributionData = useMemo(() => {
-    if (!filteredData) return [];
-    const riskCounts = filteredData.reduce((acc, item) => {
-      const riskLevel = assessRisk(item).level;
-      acc[riskLevel] = (acc[riskLevel] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const total = filteredData.length;
-    return Object.entries(riskCounts).map(([level, count]) => ({
-      level,
-      count,
-      percentage: ((count / total) * 100).toFixed(1) + '%',
-    }));
-  }, [filteredData, assessRisk]);
-
-  const COLORS = ['#22c55e', '#ef4444', '#f59e0b'];
+  const filteredData = useMemo(() => 
+    data?.filter(item =>
+      (!ward || item.ward === ward) &&
+      (!village || item.village === village) &&
+      (!hamlet || item.hamlet === hamlet)
+    ) || []
+  , [data, ward, village, hamlet]);
 
   if (isLoading) {
     return (
@@ -258,467 +174,200 @@ const OpenDefication = () => {
   }
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
-      {/* Header */}
+    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
+      {/* Header & Filters */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600, mb: 0.5 }}>
-            Open Defecation
+          <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+            Open Defecation Analysis
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Detailed insights about your selected location
+          <Typography variant="subtitle1" color="text.secondary">
+            Filtered open defecation observations
           </Typography>
         </Box>
-        <Box sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={2}>
-            <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={setWard} />
-            <FilterDropdown label="Village" value={village} options={villageOptions} onChange={setVillage} />
-            <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={setHamlet} />
-          </Stack>
-        </Box>
+        <Stack direction="row" spacing={1}>
+          <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={(v) => handleFilterChange('ward', v)} />
+          <FilterDropdown label="Village" value={village} options={villageOptions} onChange={(v) => handleFilterChange('village', v)} />
+          <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={(v) => handleFilterChange('hamlet', v)} />
+        </Stack>
       </Box>
 
-      {/* Stats Cards */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <StatsCard
-          title="Total Observations"
-          value={filteredData.length}
-          icon={<VisibilityIcon />}
-          iconColor="#2196f3"
-        />
-        <StatsCard
-          title="High Risk Areas"
-          value={filteredData.filter((item) => assessRisk(item).level === 'critical').length}
-          icon={<WarningIcon />}
-          iconColor="#f44336"
-        />
-        <StatsCard
-          title="Average Daily Cases"
-          value={Math.round(
-            filteredData.reduce((sum, item) => sum + parseInt(item.dailyAverage), 0) /
-              (filteredData.length || 1)
-          )}
-          icon={<FaChartLine style={{ color: '#CA8A04' }} />}
-          iconColor="#ff9800"
-        />
-      </Box>
-
-      {/* Distribution Charts */}
+      {/* Analytics Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Distribution by Ward
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={wardDistributionData}>
-                <XAxis dataKey="ward" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Paper>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard title="Total Observations" value={analytics.totalSites} icon={<FaChartLine />} iconColor="#3b82f6" />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Distribution by Risk Level
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={riskLevelDistributionData}
-                  dataKey="count"
-                  nameKey="level"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#8884d8"
-                  label={({ level, count, percentage }) => `${level}: ${count} (${percentage})`}
-                >
-                  {riskLevelDistributionData.map((e, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard title="Schools with OD" value={analytics.schoolOD} icon={<DangerousIcon />} iconColor="#ef4444" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard title="ODF Communities" value={analytics.odfCommunities} icon={<SafetyCheckIcon />} iconColor="#4CAF50" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard title="ODF Regression Rate" value={`${analytics.regressionRate.toFixed(1)}%`} icon={<FaChartLine />} iconColor="#f59e0b" />
         </Grid>
       </Grid>
 
-      {/* Enhanced Map Section */}
-      <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+      {/* Map Section */}
+      <Paper sx={{ p: 2, mb: 5, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Risk Distribution Map
+          Observations Map
         </Typography>
-
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <Box sx={{ height: '70vh', borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden' }}>
             <Map
-              defaultZoom={14}
+              defaultZoom={11}
               defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
               mapId={GOOGLE_MAPS_API_KEY}
-              gestureHandling="greedy"
-              disableDefaultUI={false}
             >
-              {filteredData.map((openDefecation) => {
-                const position = {
-                  lat: openDefecation.geolocation.coordinates[1],
-                  lng: openDefecation.geolocation.coordinates[0],
-                };
-                const riskLevel = assessRisk(openDefecation).level;
-
-                return (
-                  <AdvancedMarker
-                    key={openDefecation._id}
-                    position={position}
-                    onClick={() => handleMarkerClick(openDefecation)}
-                  >
-                    <Pin
-                      background={
-                        riskLevel === 'critical'
-                          ? '#B71C1C'
-                          : riskLevel === 'moderate'
-                          ? '#FFA726'
-                          : '#4CAF50'
-                      }
-                      glyphColor="#FFF"
-                      borderColor="#7F0000"
-                    />
-                  </AdvancedMarker>
-                );
-              })}
+              {filteredData.map((item) => (
+                <AdvancedMarker
+                  key={item._id}
+                  position={{ lat: item.geolocation.coordinates[1], lng: item.geolocation.coordinates[0] }}
+                  onClick={() => setSelectedLocation(item)}
+                >
+                  <Box sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    bgcolor: riskColorMapping.critical,
+                    border: '2px solid #fff',
+                  }} />
+                </AdvancedMarker>
+              ))}
             </Map>
           </Box>
         </APIProvider>
       </Paper>
 
-      {/* Location Details Modal */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle
-          sx={{
-            m: 0,
-            p: 2,
-            bgcolor: '#f8f9fa',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: '#1a237e' }}>
-            Location Details
-          </Typography>
-          <IconButton
-            onClick={() => setModalOpen(false)}
-            sx={{
-              color: '#1a237e',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.05)',
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
+      {/* Data Table */}
+      <DataTable
+        isLoading={isLoading}
+        columns={columns}
+        data={filteredData}
+        onRowClick={(row) => setSelectedLocation(row)}
+      />
+
+      {/* Details Modal */}
+      <Dialog open={!!selectedLocation} onClose={() => setSelectedLocation(null)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ p: 3, bgcolor: '#1a237e', color: '#fff' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Observation Details</Typography>
+            <IconButton onClick={() => setSelectedLocation(null)} sx={{ color: '#fff' }}>
+              <X size={20} />
+            </IconButton>
+          </Box>
         </DialogTitle>
-        <DialogContent dividers sx={{ bgcolor: '#F8F9FA', p: 3 }}>
+        <DialogContent dividers sx={{ p: 3 }}>
           {selectedLocation && (
-            <Box sx={{ p: 2 }}>
-              <Grid container spacing={3}>
-                {/* Image Section */}
-                <Grid item xs={12} md={6}>
-                  <Card
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: '#fff',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      height: '60%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {selectedLocation.picture ? (
-                      <Box
-                        component="img"
-                        src={selectedLocation.picture}
-                        alt="Location"
-                        sx={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: 300,
-                          borderRadius: 2,
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease-in-out',
-                          '&:hover': {
-                            transform: 'scale(1.02)',
-                          },
-                        }}
-                      />
-                    ) : (
-                      <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ textAlign: 'center', fontStyle: 'italic' }}
-                      >
-                        Image not available
-                      </Typography>
-                    )}
-                  </Card>
-
-                  {/* Additional Information */}
-                  <Card
-                    sx={{
-                      p: 3,
-                      borderRadius: 2,
-                      bgcolor: '#fff',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      mt: 3,
-                    }}
-                  >
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
-                      Additional Information
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">
-                          Public Space
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {selectedLocation.spaceType}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="text.secondary">
-                          Foot Traffic
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {selectedLocation.footTraffic}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="caption" color="text.secondary">
-                          Peak Times
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-                          {Array.isArray(selectedLocation.peakTime)
-                            ? selectedLocation.peakTime.map((time, index) => (
-                                <Chip
-                                  variant="outlined"
-                                  key={index}
-                                  label={time}
-                                  size="small"
-                                  sx={{
-                                    '&:hover': {
-                                      backgroundColor: 'primary.light',
-                                      color: 'primary.contrastText',
-                                    },
-                                  }}
-                                />
-                              ))
-                            : (
-                              <Chip
-                                variant="outlined"
-                                label={selectedLocation.peakTime || 'N/A'}
-                                size="small"
-                                sx={{
-                                  '&:hover': {
-                                    backgroundColor: 'primary.light',
-                                    color: 'primary.contrastText',
-                                  },
-                                }}
-                              />
-                            )}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                </Grid>
-
-                {/* Details Section */}
-                <Grid item xs={12} md={6}>
-                  {/* Risk Assessment */}
-                  <Card
-                    sx={{
-                      p: 3,
-                      borderRadius: 2,
-                      bgcolor: '#fff',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      mb: 3,
-                    }}
-                  >
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
-                      Risk Assessment
-                    </Typography>
-                    <Chip
-                      label={assessRisk(selectedLocation).level.toUpperCase()}
-                      color={
-                        assessRisk(selectedLocation).level === 'critical'
-                          ? 'error'
-                          : assessRisk(selectedLocation).level === 'moderate'
-                          ? 'warning'
-                          : 'success'
-                      }
-                      sx={{
-                        mb: 1,
-                        fontWeight: 600,
-                        '&:hover': {
-                          opacity: 0.9,
-                        },
-                      }}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+                  {selectedLocation.picture ? (
+                    <img
+                      src={selectedLocation.picture}
+                      alt="Observation"
+                      style={{ width: '100%', borderRadius: 8 }}
                     />
-                    <Typography variant="body2" color="text.secondary">
-                      {assessRisk(selectedLocation).cause}
-                    </Typography>
-                  </Card>
-
-                  {/* Location Details */}
-                  <Card
-                    sx={{
-                      p: 3,
-                      borderRadius: 2,
-                      bgcolor: '#fff',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      mb: 3,
-                    }}
-                  >
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: '#1a237e' }}>
-                      Location Details
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'primary.light' }}>
-                          <LocationOn />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Ward
-                          </Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            {selectedLocation.ward}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'success.light' }}>
-                          <Business />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Village
-                          </Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            {selectedLocation.village}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        <Avatar sx={{ bgcolor: 'warning.light' }}>
-                          <HomeIcon />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            Hamlet
-                          </Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            {selectedLocation.hamlet}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-                  </Card>
-                </Grid>
+                  ) : (
+                    <Typography color="text.secondary">Image not available</Typography>
+                  )}
+                </Card>
               </Grid>
-            </Box>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 3, mb: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    <MapPin size={20} style={{ marginRight: 8 }} />
+                    Location Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <DetailItem icon={<Home />} label="Ward" value={selectedLocation.ward} />
+                    <DetailItem icon={<MapPin />} label="Village" value={selectedLocation.village} />
+                    <DetailItem icon={<MapPin />} label="Hamlet" value={selectedLocation.hamlet} />
+                  </Grid>
+                </Card>
+                <Card sx={{ p: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    <AlertCircle size={20} style={{ marginRight: 8 }} />
+                    Additional Information
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <DetailItem label="Space Type" value={selectedLocation.spaceType} />
+                    <DetailItem label="Foot Traffic" value={selectedLocation.footTraffic} />
+                    <DetailItem 
+                      label="Peak Times" 
+                      value={Array.isArray(selectedLocation.peakTime) ? 
+                        selectedLocation.peakTime.join(', ') : 
+                        selectedLocation.peakTime} 
+                    />
+                  </Grid>
+                </Card>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setSelectedLocation(null)}>Close</Button>
+        </DialogActions>
       </Dialog>
-
-      {/* Recent Observations Table */}
-      <Paper sx={{ p: 2, borderRadius: 2, mt: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Open Defecation Overview
-          </Typography>
-        </Box>
-
-        <DataTable
-          setSearch={setSearch}
-          setPage={setPage}
-          setLimit={setLimit}
-          isLoading={isLoading}
-          columns={columns}
-          data={filteredData}
-        />
-      </Paper>
     </Box>
   );
 };
 
-// Stats Card Component
-interface StatsCardProps {
+// Helper Components
+const FilterDropdown = ({ label, value, options, onChange }: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) => (
+  <FormControl variant="outlined" sx={{ minWidth: 210 }}>
+    <InputLabel>{label}</InputLabel>
+    <Select
+      value={value}
+      onChange={(e) => onChange(e.target.value as string)}
+      label={label}
+      sx={{ height: 40 }}
+    >
+      <MenuItem value="">All {label}</MenuItem>
+      {options.map((option) => (
+        <MenuItem key={option} value={option}>{option}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+);
+
+const StatsCard = ({ title, value, icon, iconColor }: {
   title: string;
-  value: string | number | undefined;
+  value: string | number;
   icon: React.ReactElement;
   iconColor: string;
-}
-
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, iconColor }) => (
-  <Card sx={{ flex: 1, p: 2, borderRadius: 2 }}>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-      {title}
-    </Typography>
+}) => (
+  <Card sx={{ p: 2, borderRadius: 3, height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <Typography variant="body2" color="text.secondary">{title}</Typography>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>
-        {value}
-      </Typography>
-      <Box
-        sx={{
-          bgcolor: `${iconColor}15`,
-          p: 1,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {React.cloneElement(icon, { sx: { color: iconColor } })}
+      <Typography variant="h4">{value}</Typography>
+      <Box sx={{ bgcolor: `${iconColor}15`, p: 1.5, borderRadius: '50%' }}>
+        {React.cloneElement(icon, { style: { color: iconColor, fontSize: 24 } })}
       </Box>
     </Box>
   </Card>
 );
 
-const FilterDropdown: React.FC<FilterDropdownProps> = ({ label, options, value = 'All', onChange }) => {
-  return (
-    <Box sx={{ minWidth: 210, height: 40 }}>
-      <FormControl fullWidth size="small">
-        <InputLabel>{label}</InputLabel>
-        <Select
-          value={value}
-          label={label}
-          onChange={(e) => onChange?.(e.target.value)}
-          sx={{
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'rgba(0, 0, 0, 0.12)',
-            },
-          }}
-        >
-          {options.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+const DetailItem = ({ icon, label, value }: {
+  icon?: React.ReactElement;
+  label: string;
+  value: string;
+}) => (
+  <Grid item xs={6}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {icon && React.cloneElement(icon, { style: { color: '#666', fontSize: 20 } })}
+      <Box>
+        <Typography variant="caption" color="text.secondary">{label}</Typography>
+        <Typography variant="body1">{value}</Typography>
+      </Box>
     </Box>
-  );
-};
+  </Grid>
+);
 
 export default OpenDefication;

@@ -92,6 +92,11 @@ interface HygieneAnalytics {
     value: number;
     percentage: string;
   }[];
+  filters?: {
+    wards?: string[];
+    villages?: string[];
+    hamlets?: string[];
+  };
 }
 
 const columnHelper = createColumnHelper<HygieneFacility>();
@@ -181,66 +186,63 @@ const HygieneFacilities: React.FC = () => {
   const [villageFilter, setVillageFilter] = useState('');
   const [hamletFilter, setHamletFilter] = useState('');
 
-  const { data: allData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
-    queryKey: ['hand-washing'],
-    queryFn: () => apiController.get('/hand-washing'),
-  });
-
-  const { data: initialAnalytics } = useQuery<HygieneAnalytics, Error>({
-    queryKey: ['hand-washing-analytics'],
-    queryFn: () => apiController.get('/hand-washing/analytics'),
-  });
-
-  console.log(initialAnalytics)
-
-  const spaceTypeOptions = useMemo(() => [...new Set(allData?.map((item) => item.spaceType) ?? [])], [allData]);
-  const wardOptions = useMemo(() => [...new Set(allData?.map((item) => item.ward) ?? [])], [allData]);
-  const villageOptions = useMemo(
-    () => [
-      ...new Set(
-        allData
-          ?.filter((item) => !wardFilter || item.ward === wardFilter)
-          .map((item) => item.village) ?? []
+  const { data: analytics } = useQuery<HygieneAnalytics, Error>({
+    queryKey: ['hand-washing-analytics', wardFilter, villageFilter, hamletFilter],
+    queryFn: () =>
+      apiController.get(
+        `/hand-washing/analytics?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
+          villageFilter !== '' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
       ),
-    ],
-    [allData, wardFilter]
+  });
+  console.log(analytics)
+
+  const { data: tableData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
+    queryKey: ['hand-washing', wardFilter, villageFilter, hamletFilter],
+    queryFn: () =>
+      apiController.get(
+        `/hand-washing?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
+          villageFilter !== '' ? villageFilter : ''
+        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
+      ),
+  });
+
+
+  const spaceTypeOptions = useMemo(() => [...new Set(tableData?.map((item) => item.spaceType) ?? [])], [tableData]);
+  const wardOptions = useMemo(
+    () => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']),
+    [analytics]
+  );
+  const villageOptions = useMemo(
+    () => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']),
+    [analytics]
   );
   const hamletOptions = useMemo(
-    () => [
-      ...new Set(
-        allData
-          ?.filter(
-            (item) =>
-              (!wardFilter || item.ward === wardFilter) &&
-              (!villageFilter || item.village === villageFilter)
-          )
-          .map((item) => item.hamlet) ?? []
-      ),
-    ],
-    [allData, wardFilter, villageFilter]
+    () => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']),
+    [analytics]
   );
 
   const filteredData = useMemo(
     () =>
-      allData?.filter(
+      tableData?.filter(
         (item) =>
           (!spaceTypeFilter || item.spaceType === spaceTypeFilter) &&
           (!wardFilter || item.ward === wardFilter) &&
           (!villageFilter || item.village === villageFilter) &&
           (!hamletFilter || item.hamlet === hamletFilter)
       ) || [],
-    [allData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]
+    [tableData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]
   );
 
   const effectiveAnalytics = useMemo(() => {
     const baseAnalytics =
       !spaceTypeFilter && !wardFilter && !villageFilter && !hamletFilter
-        ? initialAnalytics
+        ? analytics
         : {
             totalFacilities: filteredData.length,
-            schoolsWithFacilitiesRatio: initialAnalytics?.schoolsWithFacilitiesRatio || '0',
-            avgFacilitiesPerHealthCenter: initialAnalytics?.avgFacilitiesPerHealthCenter || '0',
-            householdsWithoutFacilities: initialAnalytics?.householdsWithoutFacilities || '0',
+            schoolsWithFacilitiesRatio: analytics?.schoolsWithFacilitiesRatio || '0',
+            avgFacilitiesPerHealthCenter: analytics?.avgFacilitiesPerHealthCenter || '0',
+            householdsWithoutFacilities: analytics?.householdsWithoutFacilities || '0',
             distributionByType: Object.entries(
               filteredData.reduce((acc, item) => {
                 acc[item.type] = (acc[item.type] || 0) + 1;
@@ -266,7 +268,7 @@ const HygieneFacilities: React.FC = () => {
           };
 
     return sanitizeAnalytics(baseAnalytics);
-  }, [initialAnalytics, filteredData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]);
+  }, [analytics, filteredData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]);
 
   const paginatedData = useMemo(
     () => filteredData.slice(page * pageSize, (page + 1) * pageSize),
@@ -415,9 +417,6 @@ const HygieneFacilities: React.FC = () => {
               ]}
               width={650}
               height={350}
-              tooltip={({ datum, index }) =>
-                `${effectiveAnalytics.distributionByType[index].name}: ${datum}`
-              }
             />
           </Card>
         </Grid>
@@ -435,15 +434,11 @@ const HygieneFacilities: React.FC = () => {
                     id: index,
                     label: item.name,
                     value: item.value,
-                    percentage: item.percentage,
                   })),
-                  arcLabel: (item) =>
-                    item.percentage.endsWith('%') ? item.percentage : `${item.percentage}%`,
+                  arcLabel: (item) => `${((item.value / effectiveAnalytics.totalFacilities) * 100).toFixed(1)}%`,
                   arcLabelMinAngle: 20,
                   outerRadius: 120,
                   innerRadius: 30,
-                  tooltip: ({ datum }) =>
-                    `${datum.label}: ${datum.value} (${datum.percentage.endsWith('%') ? datum.percentage : datum.percentage + '%'})`,
                 },
               ]}
               width={750}
@@ -475,7 +470,7 @@ const HygieneFacilities: React.FC = () => {
               setPageSize(pageSize);
             }}
             totalCount={filteredData.length}
-            onRowClick={(row) => navigateToDetails(row.original._id)}
+            onRowClick={(row) => navigateToDetails(row._id)}
           />
         </Box>
       </Card>

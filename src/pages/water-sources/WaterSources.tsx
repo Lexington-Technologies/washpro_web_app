@@ -104,6 +104,8 @@ const WaterSourcesDashboard: React.FC = () => {
       ),
   });
 
+  console.log(analytics)
+
   const { data: tableData, isLoading: isTableLoading } = useQuery({
     queryKey: [
       "water-sources",

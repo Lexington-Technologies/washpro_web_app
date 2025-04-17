@@ -104,22 +104,24 @@ const SoakAways: React.FC = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+
+
   const { data: analytics } = useQuery({
-    queryKey: ['soak-aways-analytics', wardFilter, villageFilter, hamletFilter],
+    queryKey: ['soak-ways-analytics', wardFilter, villageFilter, hamletFilter],
     queryFn: () =>
       apiController.get(
-        `/soak-aways/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
+        `/soak-ways/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
           villageFilter !== 'All' ? villageFilter : ''
         }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
       ),
   });
   console.log('Analytics:', analytics);
+
+
   const { data: tableData, isLoading: isTableLoading } = useQuery({
     queryKey: ['soak-aways'],
     queryFn: () => apiController.get('/soak-aways'),
   });
-
-  console.log(analytics)
   
   const isLoading = isTableLoading;
   const totalWaterPoints = analytics?.totalWaterPoints || 0;
