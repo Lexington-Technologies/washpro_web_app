@@ -342,13 +342,17 @@ const OverviewTab = ({
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
         <Grid item xs={6}>
-            <DetailItem icon={Users} label="Dependants" value={waterSource?.dependent || 'Not specified'} />
+        <DetailItem
+              icon={Calendar}
+              label="Last Updated"
+              value={format(new Date(waterSource?.updatedAt), 'PPP')}
+            />
           </Grid>
-            <Grid item xs={6}>
+            {/* <Grid item xs={6}>
             <DetailItem icon={GiWell} label="Water Source Condition" value={waterSource?.wellConditions?.length ? waterSource.wellConditions[0] : 'Not specified'} />
-            </Grid>
+            </Grid> */}
         </Grid>
-        <Divider sx={{ my: 2 }} />
+        {/* <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <DetailItem
@@ -357,10 +361,10 @@ const OverviewTab = ({
               value={format(new Date(waterSource?.updatedAt), 'PPP')}
             />
           </Grid>
-        </Grid>
+        </Grid> */}
 
         
-        <Divider sx={{ my: 2 }} />
+        {/* <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
          Contact Person Details
         </Typography>
@@ -371,7 +375,7 @@ const OverviewTab = ({
           <Grid item xs={6}>
             <DetailItem icon={Phone} label="Phone No" value={waterSource?.createdBy?.phone || 'Not specified'} />
           </Grid>
-        </Grid>
+        </Grid> */}
         <Divider sx={{ my: 2 }} />
         {/* <Grid container spacing={3}>
           <Grid item xs={6}>

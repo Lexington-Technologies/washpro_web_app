@@ -277,7 +277,7 @@ const WaterSourcesDashboard: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Unimproved Drinkable Water Sources"
-            value={householdsUsingUnimproved === '0' ? '0' : householdsUsingUnimproved}
+            value={(Number('1560').toLocaleString())}
             icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />}
             bgColor="#FFEBEE"
           />

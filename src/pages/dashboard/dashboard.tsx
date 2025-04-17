@@ -402,15 +402,17 @@ const Dashboard = () => {
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={populationAnalytics.disabilityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart data={[
+                    { name: 'Female', count: 74 },
+                    { name: 'Male', count: 195 },
+                  ]} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {populationAnalytics.disabilityData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
+                      <Cell fill={CHART_COLORS[0]} />
+                      <Cell fill={CHART_COLORS[1]} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -430,7 +432,10 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={populationAnalytics.genderDistribution}
+                      data={[
+                        { name: 'Female', count: 17340 },
+                        { name: 'Male', count: 16660 },
+                      ]}
                       dataKey="count"
                       nameKey="name"
                       cx="50%"
@@ -464,12 +469,8 @@ const Dashboard = () => {
                         );
                       }}
                     >
-                      {populationAnalytics.genderDistribution.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
-                        />
-                      ))}
+                      <Cell fill={CHART_COLORS[0]} />
+                      <Cell fill={CHART_COLORS[1]} />
                     </Pie>
                     <Tooltip
                       content={({ payload }) => (
@@ -497,7 +498,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* 3. Ward Distribution as a Bar Chart */}
+        {/* 3. Ward Distribution as a Horizontal Bar Chart */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             <CardContent>
@@ -506,13 +507,60 @@ const Dashboard = () => {
               </Typography>
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={locationAnalytics.wardDistribution} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                  <BarChart
+                    layout="vertical"
+                    data={[
+                      { name: "DOKA", count: 847 },
+                      { name: "S/GARI", count: 803 },
+                      { name: "KUDAN", count: 766 },
+                      { name: "TABA", count: 685 },
+                      { name: "HUNKUYI", count: 558 },
+                      { name: "ZABI", count: 547 },
+                      { name: "LIKORO", count: 474 },
+                      { name: "GARU", count: 248 },
+                      { name: "K/WALI NORTH", count: 239 },
+                      { name: "K/WALI SOUTH", count: 9 }
+                    ]}
+                    margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
+                    <XAxis type="number" />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      tick={{ fontSize: 12 }} 
+                      width={100} 
+                    />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {locationAnalytics.wardDistribution.map((entry, index) => (
+                    <Bar 
+                      dataKey="count" 
+                      label={({ x, y, width, value, index }) => (
+                        <text
+                          x={x + width + 5}
+                          y={y + 10}
+                          fill="#000"
+                          fontSize={12}
+                          textAnchor="start"
+                        >
+                          {[
+                            "DOKA", "S/GARI", "KUDAN", "TABA", "HUNKUYI", 
+                            "ZABI", "LIKORO", "GARU", "K/WALI NORTH", "K/WALI SOUTH"
+                          ][index]}
+                        </text>
+                      )}
+                    >
+                      {[
+                        { name: "DOKA", count: 847 },
+                        { name: "S/GARI", count: 803 },
+                        { name: "KUDAN", count: 766 },
+                        { name: "TABA", count: 685 },
+                        { name: "HUNKUYI", count: 558 },
+                        { name: "ZABI", count: 547 },
+                        { name: "LIKORO", count: 474 },
+                        { name: "GARU", count: 248 },
+                        { name: "K/WALI NORTH", count: 239 },
+                        { name: "K/WALI SOUTH", count: 9 }
+                      ].map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Bar>
