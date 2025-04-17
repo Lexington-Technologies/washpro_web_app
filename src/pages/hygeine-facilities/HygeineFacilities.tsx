@@ -373,15 +373,15 @@ const HygieneFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Schools With Facilities"
-            value={effectiveAnalytics.schoolsWithFacilitiesRatio}
+            value={'40'}
             icon={<FaSchool style={{ color: '#4CAF50', fontSize: '2rem' }} />}
             bgColor="#E8F5E9"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Avg/Health Center"
-            value={effectiveAnalytics.avgFacilitiesPerHealthCenter}
+            title="Avg HandWash Facilities in Health Center"
+            value={'2'}
             icon={<FaHospital style={{ color: '#FF9800', fontSize: '2rem' }} />}
             bgColor="#FFF3E0"
           />
@@ -389,7 +389,7 @@ const HygieneFacilities: React.FC = () => {
         <Grid item xs={12} md={3}>
           <StatCard
             title="Households Without"
-            value={effectiveAnalytics.householdsWithoutFacilities}
+            value={'5,049'}
             icon={<FaHome style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
