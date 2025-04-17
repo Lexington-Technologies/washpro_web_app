@@ -183,17 +183,17 @@ console.log(analyticsData?.totalSites)
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
-            Open Defecation Analysis
+            Open Defecation
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
             Filtered open defecation observations
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
+        {/* <Stack direction="row" spacing={1}>
           <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={(v) => handleFilterChange('ward', v)} />
           <FilterDropdown label="Village" value={village} options={villageOptions} onChange={(v) => handleFilterChange('village', v)} />
           <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={(v) => handleFilterChange('hamlet', v)} />
-        </Stack>
+        </Stack> */}
       </Box>
 
       {/* Analytics Cards */}

@@ -365,8 +365,14 @@ const CholeraOutbreakDashboard = () => {
   const [tabValue, setTabValue] = useState<number>(0);
   const [openModal, setOpenModal] = useState<boolean>(false);
 
-  if (isLoading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography>Error loading data</Typography>;
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+  // if (error) return <Typography>Error loading data</Typography>;
   if (!data) return <Typography>No data available</Typography>;
 
   const { locationData, metrics, metrics2 } = data;
