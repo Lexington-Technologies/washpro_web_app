@@ -106,82 +106,104 @@ interface AnalysisData {
 const fetchData = async (): Promise<DashboardData> => {
   const data: DashboardData = {
     locationData: [
+      // {
+      //   id: 1,
+      //   location: 'KUDAN',
+      //   suspected: 45,
+      //   confirmed: 28,
+      //   deaths: 3,
+      //   communitiesAffected: 5,
+      //   population: 12000,
+      //   status: 'High Risk',
+      //   trend: 'Increasing'
+      // },
+      // {
+      //   id: 2,
+      //   location: 'DOKA',
+      //   suspected: 32,
+      //   confirmed: 18,
+      //   deaths: 1,
+      //   communitiesAffected: 3,
+      //   population: 8500,
+      //   status: 'Moderate Risk',
+      //   trend: 'Stable'
+      // },
+      // {
+      //   id: 3,
+      //   location: 'HUNKUYI',
+      //   suspected: 15,
+      //   confirmed: 8,
+      //   deaths: 0,
+      //   communitiesAffected: 2,
+      //   population: 5000,
+      //   status: 'Low Risk',
+      //   trend: 'Decreasing'
+      // },
+      // {
+      //   id: 4,
+      //   location: 'TABA',
+      //   suspected: 28,
+      //   confirmed: 15,
+      //   deaths: 2,
+      //   communitiesAffected: 4,
+      //   population: 9500,
+      //   status: 'Moderate Risk',
+      //   trend: 'Increasing'
+      // },
+      // {
+      //   id: 5,
+      //   location: 'ZABI',
+      //   suspected: 12,
+      //   confirmed: 6,
+      //   deaths: 0,
+      //   communitiesAffected: 2,
+      //   population: 6000,
+      //   status: 'Low Risk',
+      //   trend: 'Decreasing'
+      // },
+      // {
+      //   id: 6,
+      //   location: 'K/WALI NORTH',
+      //   suspected: 25,
+      //   confirmed: 12,
+      //   deaths: 1,
+      //   communitiesAffected: 3,
+      //   population: 7500,
+      //   status: 'Moderate Risk',
+      //   trend: 'Stable'
+      // },
+      // {
+      //   id: 7,
+      //   location: 'K/WALI SOUTH',
+      //   suspected: 20,
+      //   confirmed: 10,
+      //   deaths: 1,
+      //   communitiesAffected: 3,
+      //   population: 7000,
+      //   status: 'Moderate Risk',
+      //   trend: 'Stable'
+      // },
       {
         id: 1,
-        location: 'KUDAN',
-        suspected: 45,
-        confirmed: 28,
-        deaths: 3,
-        communitiesAffected: 5,
-        population: 12000,
-        status: 'High Risk',
-        trend: 'Increasing'
+        location: 'LIKORO',
+        suspected: 10,
+        confirmed: 2,
+        deaths: 1,
+        communitiesAffected: 2,
+        population: 21982,
+        status: 'Moderate Risk',
+        trend: 'Stable'
       },
       {
         id: 2,
-        location: 'DOKA',
-        suspected: 32,
-        confirmed: 18,
-        deaths: 1,
-        communitiesAffected: 3,
-        population: 8500,
-        status: 'Moderate Risk',
-        trend: 'Stable'
-      },
-      {
-        id: 3,
-        location: 'HUNKUYI',
-        suspected: 15,
-        confirmed: 8,
+        location: 'LIKORO',
+        suspected: 2,
+        confirmed: 1,
         deaths: 0,
-        communitiesAffected: 2,
-        population: 5000,
+        communitiesAffected: 1,
+        population: 15581,
         status: 'Low Risk',
         trend: 'Decreasing'
-      },
-      {
-        id: 4,
-        location: 'TABA',
-        suspected: 28,
-        confirmed: 15,
-        deaths: 2,
-        communitiesAffected: 4,
-        population: 9500,
-        status: 'Moderate Risk',
-        trend: 'Increasing'
-      },
-      {
-        id: 5,
-        location: 'ZABI',
-        suspected: 12,
-        confirmed: 6,
-        deaths: 0,
-        communitiesAffected: 2,
-        population: 6000,
-        status: 'Low Risk',
-        trend: 'Decreasing'
-      },
-      {
-        id: 6,
-        location: 'K/WALI NORTH',
-        suspected: 25,
-        confirmed: 12,
-        deaths: 1,
-        communitiesAffected: 3,
-        population: 7500,
-        status: 'Moderate Risk',
-        trend: 'Stable'
-      },
-      {
-        id: 7,
-        location: 'K/WALI SOUTH',
-        suspected: 20,
-        confirmed: 10,
-        deaths: 1,
-        communitiesAffected: 3,
-        population: 7000,
-        status: 'Moderate Risk',
-        trend: 'Stable'
       }
     ],
     metrics: [
@@ -760,14 +782,17 @@ const CholeraOutbreakDashboard = () => {
                   </Typography>
                   <Box sx={{ mb: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">KUDAN</Typography>
-                      <Chip label="Critical" color="error" size="small" />
+                      <Typography variant="body1">A23</Typography>
+                      <Chip label="Warning" color="warning" size="small" />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      3.2m from dump site
+                      10.3m from nearest water source
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Attends islamiyya with 1 water source and 200 pupils
                     </Typography>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body1">K/WALI NORTH</Typography>
                       <Chip label="Warning" color="warning" size="small" />
                     </Box>
@@ -781,7 +806,7 @@ const CholeraOutbreakDashboard = () => {
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       45m from nearest risk
-                    </Typography>
+                    </Typography> */}
                   </Box>
 
                   {/* Risk Legend Section */}

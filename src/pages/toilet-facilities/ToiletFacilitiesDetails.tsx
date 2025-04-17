@@ -28,6 +28,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { Email, People, Phone } from '@mui/icons-material';
+import { LucideIcon } from 'lucide-react';
 
 interface ToiletFacility {
   geolocation: {
@@ -86,6 +87,15 @@ interface MapCardProps {
   village: string;
   ward: string;
 }
+
+interface IconProps {
+  size?: number;
+  style?: React.CSSProperties;
+}
+
+type IconType = React.ComponentType<IconProps> & {
+  displayName?: string;
+};
 
 const CustomMarker = ({ position, tooltip }: { position: { lat: number; lng: number }; tooltip: string }) => {
   return (
@@ -168,16 +178,24 @@ const iconColorMap: { [key: string]: string } = {
   People: '#6366F1',        // Indigo
   X: '#4B5563',            // Gray
 };
-const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) => (
-  <Stack direction="row" alignItems="center" spacing={1}>
-    <Icon style={{ color: iconColorMap[Icon.displayName] || '#000' }} />
-    <Typography variant="body2" fontWeight={500} color="text.secondary">
-      {capitalize(label)}:
-    </Typography>
-    <Typography variant="body2" color="text.primary">
-      {value}
-    </Typography>
-  </Stack>
+const DetailItem = ({ 
+  icon: Icon, 
+  label, 
+  value 
+}: { 
+  icon: LucideIcon;
+  label: string; 
+  value: string | number | undefined | null;
+}) => (
+  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+    <Icon size={25} style={{ color: '#666', marginTop: 4 }} />
+    <Box>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        {label}
+      </Typography>
+      <Typography variant="body1">{value ?? 'Not specified'}</Typography>
+    </Box>
+  </Box>
 );
 
 const OverviewTab = ({ toiletFacility, position, onImageClick }: {
@@ -220,7 +238,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
+            <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk?.join(', ')} />
           </Grid>
           <Grid item xs={6}>
             <DetailItem icon={People} label="Number of shared households" value={toiletFacility.numberOfSharedHouse} />
@@ -229,9 +247,6 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
 
         <Divider sx={{ my: 2 }} />
         <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk?.join(', ')} />
-          </Grid>
           <Grid item xs={6}>
             <DetailItem
               icon={Calendar}
@@ -247,52 +262,141 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
     <Grid item xs={12} md={4}>
       <Box
         sx={{
-          position: 'relative',
-          '&:hover .zoom-icon': { opacity: 1 }
+          p: 2,
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+          mb: 3,
         }}
       >
+        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+          Attachments
+        </Typography>
+        
         <Box
-          component="img"
-          src={toiletFacility.picture}
-          alt="Toilet Facility"
-          onClick={onImageClick}
           sx={{
-            width: '100%',
-            height: 600,
-            objectFit: 'cover',
+            position: 'relative',
+            mb: 3,
+            border: 1,
+            borderColor: 'divider',
             borderRadius: 2,
-            cursor: 'pointer',
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)'
-          }}
-        />
-        <IconButton
-          className="zoom-icon"
-          onClick={onImageClick}
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
-            opacity: 0,
-            transition: 'opacity 0.2s',
-            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' },
-            color: 'white'
+            overflow: 'hidden',
           }}
         >
-          <ZoomIn />
-        </IconButton>
+          <Box
+            component="img"
+            src={toiletFacility.picture}
+            alt="Toilet Facility"
+            onClick={onImageClick}
+            sx={{
+              width: '100%',
+              height: 350,
+              objectFit: 'cover',
+              cursor: 'pointer',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.02)'
+              }
+            }}
+          />
+          <IconButton
+            onClick={onImageClick}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              bgcolor: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+              color: 'text.primary',
+            }}
+          >
+            <ZoomIn size={20} />
+          </IconButton>
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              p: 1,
+              textAlign: 'center',
+              color: 'text.secondary',
+              bgcolor: 'background.default',
+              borderTop: 1,
+              borderColor: 'divider'
+            }}
+          >
+            Toilet Facility Photo
+          </Typography>
+        </Box>
+
+        {toiletFacility?.domain?.picture && (
+          <Box
+            sx={{
+              position: 'relative',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              component="img"
+              src={toiletFacility?.domain?.picture}
+              alt="Contact Person"
+              onClick={() => setIsPersonImageOpen(true)}
+              sx={{
+                width: '100%',
+                height: 200,
+                objectFit: 'cover',
+                cursor: 'pointer',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.02)'
+                }
+              }}
+            />
+            <IconButton
+              onClick={() => setIsPersonImageOpen(true)}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+                color: 'text.primary',
+              }}
+            >
+              <ZoomIn size={20} />
+            </IconButton>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                p: 1,
+                textAlign: 'center',
+                color: 'text.secondary',
+                bgcolor: 'background.default',
+                borderTop: 1,
+                borderColor: 'divider'
+              }}
+            >
+              Contact Person Photo
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Grid>
 
     <Grid item xs={12}>
-      <Box sx={{
-        height: 500,
-        borderRadius: 2,
-        overflow: 'hidden',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        mb: 4,
-        position: 'relative'
-      }}>
+      <Box
+        sx={{
+          height: 500,
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+          mb: 4,
+          position: 'relative',
+        }}
+      >
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ''}>
           <Map
             mapId={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
@@ -410,7 +514,9 @@ const PersonContactTab = ({ toiletFacility, setIsPersonImageOpen }: { toiletFaci
   );
 };
 
-const EnumeratorTab = ({ enumerator }: { enumerator: Enumerator }) => {
+const EnumeratorTab = ({ enumerator }: { enumerator: Enumerator | null | undefined }) => {
+  if (!enumerator) return null;
+  
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
@@ -430,7 +536,11 @@ const EnumeratorTab = ({ enumerator }: { enumerator: Enumerator }) => {
                 <DetailItem icon={Email} label="Email" value={enumerator.email} />
               </Grid>
               <Grid item xs={6}>
-                <DetailItem icon={Calendar} label="Last Login" value={format(new Date(enumerator.lastLogin), 'PPP')} />
+                <DetailItem 
+                  icon={Calendar} 
+                  label="Last Login" 
+                  value={enumerator.lastLogin ? format(new Date(enumerator.lastLogin), 'PPP') : undefined} 
+                />
               </Grid>
             </Grid>
           </CardContent>
