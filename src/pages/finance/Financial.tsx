@@ -18,7 +18,17 @@ import {
   MenuItem,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  Stack,
+  SelectChangeEvent
 } from '@mui/material';
 import {
   PieChart,
@@ -79,22 +89,67 @@ const paymentsData = [
 ];
 
 const FinancialSummary = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFund, setSelectedFund] = useState("Operational Fund");
   const [timeRange, setTimeRange] = useState("6M");
+  const [openModal, setOpenModal] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    fundCategory: '',
+    amount: '',
+    date: '',
+    description: '',
+    status: 'Completed'
+  });
 
-  const handleClick = (event) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = (option) => {
+  const handleClose = (option?: string) => {
     if (option) {
       setSelectedFund(option);
     }
     setAnchorEl(null);
   };
 
-  const getStatusChip = (status) => {
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setPaymentData({
+      fundCategory: '',
+      amount: '',
+      date: '',
+      description: '',
+      status: 'Completed'
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPaymentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setPaymentData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    // Here you would typically make an API call to save the payment
+    console.log('Payment data:', paymentData);
+    handleCloseModal();
+  };
+
+  const getStatusChip = (status: string) => {
     if (status === 'Paid') {
       return <Chip label="Paid" size="small" sx={{ bgcolor: '#DEF7EC', color: '#03543E', fontSize: '0.75rem' }} />;
     } else if (status === 'Partial') {
@@ -112,6 +167,7 @@ const FinancialSummary = () => {
           variant="contained" 
           startIcon={<MdAdd />} 
           sx={{ bgcolor: '#10B981', '&:hover': { bgcolor: '#047857' } }}
+          onClick={handleOpenModal}
         >
           Record Payment
         </Button>
@@ -378,6 +434,110 @@ const FinancialSummary = () => {
           </Table>
         </TableContainer>
       </Box>
+
+      {/* Record Payment Modal */}
+      <Dialog 
+        open={openModal} 
+        onClose={handleCloseModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ bgcolor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+          <Typography variant="h6" fontWeight="bold">Record New Payment</Typography>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <FormControl fullWidth>
+              <InputLabel>Fund Category</InputLabel>
+              <Select
+                name="fundCategory"
+                value={paymentData.fundCategory}
+                label="Fund Category"
+                onChange={handleSelectChange}
+              >
+                {fundCategories.map((category) => (
+                  <MenuItem key={category.name} value={category.name}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              name="amount"
+              label="Amount (₦)"
+              value={paymentData.amount}
+              onChange={handleInputChange}
+              fullWidth
+              type="number"
+              InputProps={{
+                startAdornment: <Typography sx={{ mr: 1 }}>₦</Typography>,
+              }}
+            />
+
+            <TextField
+              name="date"
+              label="Payment Date"
+              type="date"
+              value={paymentData.date}
+              onChange={handleInputChange}
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                name="status"
+                value={paymentData.status}
+                label="Status"
+                onChange={handleSelectChange}
+              >
+                <MenuItem value="Completed">Completed</MenuItem>
+                <MenuItem value="Partial">Partial</MenuItem>
+                <MenuItem value="Pending">Pending</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              name="description"
+              label="Description"
+              value={paymentData.description}
+              onChange={handleInputChange}
+              fullWidth
+              multiline
+              rows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #E5E7EB' }}>
+          <Button 
+            onClick={handleCloseModal}
+            sx={{ 
+              color: '#6B7280',
+              '&:hover': {
+                bgcolor: 'rgba(107, 114, 128, 0.1)'
+              }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            onClick={handleSubmit}
+            sx={{ 
+              bgcolor: '#10B981',
+              '&:hover': {
+                bgcolor: '#047857'
+              }
+            }}
+          >
+            Record Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
