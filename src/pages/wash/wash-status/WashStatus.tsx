@@ -42,18 +42,24 @@ interface WashStatusData {
     basic: number;
     limited: number;
     noService: number;
+    noOfAccess: number;
+    noOfNoAccess: number;
   };
   sanitationAccess: {
     accessRate: number;
     basic: number;
     limited: number;
     noService: number;
+    noOfAccess: number;
+    noOfNoAccess: number;
   };
   hygieneAccess: {
     accessRate: number;
     basic: number;
     limited: number;
     noService: number;
+    noOfAccess: number;
+    noOfNoAccess: number;
   };
   waterServiceLadder: Array<{ name: string; value: number }>;
   sanitationServiceLadder: Array<{ name: string; value: number }>;
@@ -63,52 +69,32 @@ interface WashStatusData {
 // Sample data for different space types
 const sampleData: Record<string, WashAccessData[]> = {
   household: [
-    { name: 'Household 1', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Household 2', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Household 3', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Household 4', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Limited' },
-    { name: 'Household 5', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Household 6', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Household 7', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Household 8', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Household 9', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Household 10', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Limited' },
+    { name: 'Auwal Maaruf', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'Gidan babangida mai nika', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'Murtala', drinkingWater: 'Yes', basicSanitation: 'Yes', hygieneFacilities: 'Yes' },
+    { name: 'Gidan Musa', drinkingWater: 'No', basicSanitation: 'No', hygieneFacilities: 'No' },
+    { name: 'Zangina', drinkingWater: 'Yes', basicSanitation: 'Yes', hygieneFacilities: 'No' },
   ],
   school: [
-    { name: 'School A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'School B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'School C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'School D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'School E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'School F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'School G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'School H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'School I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'School J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'GDSSS HUNKUYI', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'GDSSS K/WALI', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'GDSSS KUDAN', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'GDSSS TABA', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'GDSSS ZANI', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
   ],
   healthFacility: [
-    { name: 'Hospital A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Clinic B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Health Center C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Hospital D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Clinic E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Health Center F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Hospital G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Clinic H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Health Center I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Hospital J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'PHC HUNKUYI', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'PHC KYAUDAI', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'PHC ANG MALAM', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'PHC KUDAN', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'PHC TABA', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
   ],
   tsangaya: [
-    { name: 'Tsangaya A', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya B', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Tsangaya C', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya D', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya E', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Tsangaya F', drinkingWater: 'Limited', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya G', drinkingWater: 'Basic', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya H', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Limited' },
-    { name: 'Tsangaya I', drinkingWater: 'Basic', basicSanitation: 'Limited', hygieneFacilities: 'Basic' },
-    { name: 'Tsangaya J', drinkingWater: 'Limited', basicSanitation: 'Basic', hygieneFacilities: 'Basic' },
+    { name: 'Gidan Dikko mai allo', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'Gidan Mallan ALiyu mai Almajirai', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'Tsanagan Mal musa', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
+    { name: 'Gidan Baba hamisu', drinkingWater: 'No', basicSanitation: 'Yes', hygieneFacilities: 'No' },
+    { name: 'Mallan Aliyu', drinkingWater: 'Yes', basicSanitation: 'No', hygieneFacilities: 'Yes' },
   ],
 };
 
@@ -119,19 +105,25 @@ const mockWashStatusData: Record<string, WashStatusData> = {
       accessRate: 35,
       basic: 35,
       limited: 30,
-      noService: 35
+      noService: 35,
+      noOfAccess: 1814, // 35% of 5182
+      noOfNoAccess: 1814 // 35% of 5182
     },
     sanitationAccess: {
       accessRate: 75,
       basic: 75,
       limited: 20,
-      noService: 5
+      noService: 5,
+      noOfAccess: 3887, // 75% of 5182
+      noOfNoAccess: 259 // 5% of 5182
     },
     hygieneAccess: {
       accessRate: 5,
       basic: 5,
       limited: 10,
-      noService: 85
+      noService: 85,
+      noOfAccess: 259, // 5% of 5182
+      noOfNoAccess: 4405 // 85% of 5182
     },
     waterServiceLadder: [
       { name: 'Basic', value: 35 },
@@ -152,21 +144,27 @@ const mockWashStatusData: Record<string, WashStatusData> = {
   school: {
     waterAccess: {
       accessRate: 20,
-      basic: 8.6,
+      basic: 20,
       limited: 20,
-      noService: 60
+      noService: 60,
+      noOfAccess: 9, // 20% of 44
+      noOfNoAccess: 26 // 60% of 44
     },
     sanitationAccess: {
       accessRate: 15,
       basic: 15,
       limited: 20,
-      noService: 65
+      noService: 65,
+      noOfAccess: 7, // 15% of 44
+      noOfNoAccess: 29 // 65% of 44
     },
     hygieneAccess: {
       accessRate: 10,
       basic: 10,
       limited: 20,
-      noService: 70
+      noService: 70,
+      noOfAccess: 4, // 10% of 44
+      noOfNoAccess: 31 // 70% of 44
     },
     waterServiceLadder: [
       { name: 'Basic', value: 8.6 },
@@ -189,19 +187,25 @@ const mockWashStatusData: Record<string, WashStatusData> = {
       accessRate: 50,
       basic: 50,
       limited: 30,
-      noService: 20
+      noService: 20,
+      noOfAccess: 14, // 50% of 27
+      noOfNoAccess: 5 // 20% of 27
     },
     sanitationAccess: {
       accessRate: 50,
       basic: 50,
       limited: 40,
-      noService: 10
+      noService: 10,
+      noOfAccess: 14, // 50% of 27
+      noOfNoAccess: 3 // 10% of 27
     },
     hygieneAccess: {
       accessRate: 60,
       basic: 60,
       limited: 35,
-      noService: 5
+      noService: 5,
+      noOfAccess: 16, // 60% of 27
+      noOfNoAccess: 1 // 5% of 27
     },
     waterServiceLadder: [
       { name: 'Basic', value: 50 },
@@ -224,19 +228,25 @@ const mockWashStatusData: Record<string, WashStatusData> = {
       accessRate: 20,
       basic: 20,
       limited: 50,
-      noService: 30
+      noService: 30,
+      noOfAccess: 16, // 20% of 81
+      noOfNoAccess: 24 // 30% of 81
     },
     sanitationAccess: {
       accessRate: 5,
       basic: 5,
       limited: 45,
-      noService: 50
+      noService: 50,
+      noOfAccess: 4, // 5% of 81
+      noOfNoAccess: 41 // 50% of 81
     },
     hygieneAccess: {
       accessRate: 5,
       basic: 5,
       limited: 30,
-      noService: 65
+      noService: 65,
+      noOfAccess: 4, // 5% of 81
+      noOfNoAccess: 53 // 65% of 81
     },
     waterServiceLadder: [
       { name: 'Basic', value: 20 },
@@ -445,8 +455,8 @@ const WashStatus = () => {
               
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Access {washStatusData?.waterAccess?.basic}% - {washStatusData?.waterAccess?.limited}%</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2">Access</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.waterAccess?.noOfAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -464,8 +474,8 @@ const WashStatus = () => {
               
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">No Access {washStatusData?.waterAccess?.noService}%</Typography>
-                  <Typography variant="body2" fontWeight="bold">0</Typography>
+                  <Typography variant="body2">No Access</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.waterAccess?.noOfNoAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
@@ -515,11 +525,11 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access </Typography>
-                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.basic}% - {washStatusData?.sanitationAccess?.limited}%</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.noOfAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.sanitationAccess?.basic} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -534,11 +544,11 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.noService}%</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.sanitationAccess?.noOfNoAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.sanitationAccess?.noService} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -584,11 +594,11 @@ const WashStatus = () => {
               <Box sx={{ mb: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.basic}% - {washStatusData?.hygieneAccess?.limited}%</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.noOfAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.hygieneAccess?.basic} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -603,11 +613,11 @@ const WashStatus = () => {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">No Access</Typography>
-                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.noService}%</Typography>
+                  <Typography variant="body2" fontWeight="bold">{washStatusData?.hygieneAccess?.noOfNoAccess}</Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={0} 
+                  value={washStatusData?.hygieneAccess?.noService} 
                   sx={{ 
                     height: 10, 
                     borderRadius: 1,
@@ -771,9 +781,36 @@ const WashStatus = () => {
                   <TableCell component="th" scope="row">
                     {row.name}
                   </TableCell>
-                  <TableCell>{row.drinkingWater}</TableCell>
-                  <TableCell>{row.basicSanitation}</TableCell>
-                  <TableCell>{row.hygieneFacilities}</TableCell>
+                  <TableCell>
+                    <Typography 
+                      sx={{ 
+                        color: row.drinkingWater === 'Yes' ? '#4CAF50' : '#F44336',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {row.drinkingWater}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography 
+                      sx={{ 
+                        color: row.basicSanitation === 'Yes' ? '#4CAF50' : '#F44336',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {row.basicSanitation}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography 
+                      sx={{ 
+                        color: row.hygieneFacilities === 'Yes' ? '#4CAF50' : '#F44336',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {row.hygieneFacilities}
+                    </Typography>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
