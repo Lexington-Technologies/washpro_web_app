@@ -91,9 +91,9 @@ const diseaseData = {
       { icon: <WcIcon sx={{ fontSize: 40, color: '#f44336' }} />, title: '400', subtitle: 'Lack of Sanitation Facilities', color: '#ffebee' },
     ],
     riskStats: [
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '45%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '30%', subtitle: 'Low Risk Areas', color: '#fffde7' },
-      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '15%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '45%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '30%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
+      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '15%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
     ]
   },
 
@@ -105,9 +105,9 @@ const diseaseData = {
       { icon: <PublicIcon sx={{ fontSize: 40, color: '#3f51b5' }} />, title: '65%', subtitle: 'Humidity-prone Areas', color: '#e8eaf6' },
     ],
     riskStats: [
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '40%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '20%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <HealthAndSafetyIcon sx={{ fontSize: 40, color: '#00897b' }} />, title: '50%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '50%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '20%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <HealthAndSafetyIcon sx={{ fontSize: 40, color: '#00897b' }} />, title: '40%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
@@ -119,23 +119,23 @@ const diseaseData = {
       { icon: <PublicIcon sx={{ fontSize: 40, color: '#3f51b5' }} />, title: '850', subtitle: 'Gutters near Water', color: '#e8eaf6' },
     ],
     riskStats: [
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '30%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '18%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '52%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '30%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '18%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '52%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
   Polio: {
-    riskLevel: 'Low',
+    riskLevel: 'High',
     stats: [
       { icon: <ScienceIcon sx={{ fontSize: 40, color: '#7b1fa2' }} />, title: '30:1', subtitle: 'Household Toilet Ratio', color: '#f3e5f5' },
       { icon: <WcIcon sx={{ fontSize: 40, color: '#f44336' }} />, title: '133', subtitle: 'Open Defecation Sites', color: '#ffebee' },
       { icon: <LocalDrinkIcon sx={{ fontSize: 40, color: '#ff9800' }} />, title: '800', subtitle: 'Dumpsite Contamination Incidents', color: '#fff3e0' },
     ],
     riskStats: [
-      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '85%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <HealthAndSafetyIcon sx={{ fontSize: 40, color: '#00897b' }} />, title: '12%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '3%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '85%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <HealthAndSafetyIcon sx={{ fontSize: 40, color: '#00897b' }} />, title: '12%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '3%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
@@ -147,9 +147,9 @@ const diseaseData = {
       { icon: <PublicIcon sx={{ fontSize: 40, color: '#3f51b5' }} />, title: '200', subtitle: 'Shared Latrines', color: '#e8eaf6' },
     ],
     riskStats: [
-      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '50%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '33%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '40%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '50%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '33%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '40%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
@@ -161,9 +161,9 @@ const diseaseData = {
       { icon: <WcIcon sx={{ fontSize: 40, color: '#f44336' }} />, title: '400', subtitle: 'Inadequate Toilets', color: '#ffebee' },
     ],
     riskStats: [
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '60%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '30%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '25%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '60%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '30%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <DangerousIcon sx={{ fontSize: 40, color: '#e53935' }} />, title: '25%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
@@ -175,9 +175,9 @@ const diseaseData = {
       { icon: <PublicIcon sx={{ fontSize: 40, color: '#3f51b5' }} />, title: '40%', subtitle: 'Poor Drainage Zones', color: '#e8eaf6' },
     ],
     riskStats: [
-      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '42%', subtitle: 'High Risk Areas', color: '#e3f2fd' },
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '18%', subtitle: 'Low Risk Areas', color: '#ffebee' },
-      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '40%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '40%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '18%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '42%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
   },
 
@@ -189,11 +189,11 @@ const diseaseData = {
       { icon: <ScienceIcon sx={{ fontSize: 40, color: '#7b1fa2' }} />, title: '80%', subtitle: 'Gutters near Water', color: '#f3e5f5' },
     ],
     riskStats: [
-      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '35%', subtitle: 'Low Risk Areas', color: '#e3f2fd' },
-      { icon: <HealthAndSafetyIcon sx={{ fontSize: 40, color: '#00897b' }} />, title: '50%', subtitle: 'Medium Risk Areas', color: '#ffebee' },
-      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '10%', subtitle: 'Medium Risk Areas', color: '#e8f5e9' },
+      { icon: <CheckCircleOutlineIcon sx={{ fontSize: 40, color: '#388e3c' }} />, title: '22%', subtitle: 'High Risk Areas', color: '#ffebee' },
+      { icon: <PriorityHighIcon sx={{ fontSize: 40, color: '#d32f2f' }} />, title: '58%', subtitle: 'Low Risk Areas', color: '#e8f5e9' },
+      { icon: <WarningAmberIcon sx={{ fontSize: 40, color: '#fbc02d' }} />, title: '20%', subtitle: 'Medium Risk Areas', color: '#fff3e0' },
     ]
-  },
+  }
 };
 
 
@@ -510,8 +510,27 @@ const RiskAnalysisSection = () => {
 {/* Stats Cards */}
 <Grid container spacing={2} mb={3}>
         {currentData.stats.map((stat, index) => (
+          // <Grid item xs={12} md={4} key={index}>
+          //   <Card sx={{ backgroundColor: stat.color, display: 'flex', alignItems: 'center', p: 2, borderRadius: 2, boxShadow: 2 }}>
+          //     <Box sx={{ mr: 2 }}>{stat.icon}</Box>
+          //     <CardContent sx={{ p: 0 }}>
+          //       <Typography variant="h6" fontWeight="bold">{stat.title}</Typography>
+          //       <Typography variant="body2" color="text.secondary">{stat.subtitle}</Typography>
+          //     </CardContent>
+          //   </Card>
+          // </Grid>
           <Grid item xs={12} md={4} key={index}>
-            <Card sx={{ backgroundColor: stat.color, display: 'flex', alignItems: 'center', p: 2, borderRadius: 2, boxShadow: 2 }}>
+            <Card
+              sx={{
+                height: '130px', // fixed height
+                backgroundColor: stat.color,
+                display: 'flex',
+                alignItems: 'center',
+                p: 2,
+                borderRadius: 2,
+                boxShadow: 2
+              }}
+            >
               <Box sx={{ mr: 2 }}>{stat.icon}</Box>
               <CardContent sx={{ p: 0 }}>
                 <Typography variant="h6" fontWeight="bold">{stat.title}</Typography>
@@ -519,10 +538,10 @@ const RiskAnalysisSection = () => {
               </CardContent>
             </Card>
           </Grid>
-        ))}
-      </Grid>
+                  ))}
+            </Grid>
 
-</Grid>
+          </Grid>
               
               {/* Waste Management */}
               <Grid item xs={12}>
