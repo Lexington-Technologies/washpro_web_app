@@ -319,24 +319,24 @@ const GutterDashboard: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Improved Sources"
-            value={proportionImproved}
+            title="Improved Gutters"
+            value={'13.6%'}
             icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />}
             bgColor="#E8F5E9"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Distance to Improved water point (m)"
-            value={avgDistance === 'Data not available' || avgDistance === '0' ? '0' : avgDistance}
+            title="Avg. Distance to Improved water point (m)"
+            value={'50m'}
             icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />}
             bgColor="#E3F2FD"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Unimproved Drinkable Water Sources"
-            value={householdsUsingUnimproved === '0' ? '0' : householdsUsingUnimproved}
+            title="Gutter Unimproved Drinkable Water Sources"
+            value={'1,472'}
             icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />}
             bgColor="#FFEBEE"
           />
