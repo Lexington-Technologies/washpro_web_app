@@ -23,6 +23,7 @@ class ApiController {
       baseURL: BASE_URL,
       headers: {
         'Authorization': `Bearer ${token}`,
+        'x-version': `9.2.0 -stable`
       },
     });
   }
