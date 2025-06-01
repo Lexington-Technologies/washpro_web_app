@@ -1,11 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ReactNode } from "react";
+import { createZitadelAuth, ZitadelConfig } from "@zitadel/react";
 
 interface User {
   // Add user properties here
   id: string;
   name: string;
+  email: string;
+  roles: string[];
+  emailVerified: boolean;
+  
   // ... other user properties
 }
 
@@ -13,22 +18,60 @@ interface AuthState {
   user: User | null;
   token: string | null;
   refreshToken: string | null;
-  logIn: (user: User, token: string, refreshToken: string) => void;
+  isAuthenticated: boolean | null;
+  zitadel: ReturnType<typeof createZitadelAuth> | null;
+  initializeZitadel: (config: ZitadelConfig) => void;
+  login: () => void;
   logout: () => void;
+  setUser: (user: User) => void;
+  setToken: (token: string, refreshToken: string) => void;
+  setAuthenticated: (authenticated: boolean | null) => void;
+  checkAuth: () => Promise<void>;
 }
 
 // Create a Zustand store with persistence
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       refreshToken: null,
-      logIn: (user, token, refreshToken) => set({ user, token, refreshToken }),
-      logout: () => set({ user: null, token: null, refreshToken: null }),
+      isAuthenticated: null,
+      zitadel: null,
+      initializeZitadel: (config: ZitadelConfig) => {
+        const zitadel = createZitadelAuth(config);
+        set({ zitadel });
+      },
+      login: () => {
+        const { zitadel } = get();
+        if (zitadel) {
+          zitadel.authorize();
+        }
+      },
+      logout: () => {
+        const { zitadel } = get();
+        if (zitadel) {
+          zitadel.signout();
+        }
+        set({ user: null, token: null, refreshToken: null, isAuthenticated: false });
+      },
+      setToken: (token: string, refreshToken: string) => set({ token, refreshToken }),
+      setUser: (user: User) => set({ user }),
+      setAuthenticated: (authenticated: boolean | null) => set({ isAuthenticated: authenticated }),
+      checkAuth: async () => {
+        const { zitadel } = get();
+        if (zitadel) {
+          const user = await zitadel.userManager.getUser();
+          set({ isAuthenticated: !!user });
+        }
+      },
     }),
     {
       name: "washpro-kudan",
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => !['zitadel'].includes(key))
+        ),
     }
   )
 );
