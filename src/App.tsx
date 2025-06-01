@@ -19,7 +19,6 @@ export default function App() {
 
   useEffect(() => {
     zitadel?.userManager.getUser().then((user) => {
-      console.log('user', user);
       if (user) {
         setAuthenticated(true);
       } else {
@@ -28,9 +27,7 @@ export default function App() {
     });
   }, [zitadel]);
 
-  useEffect(() => {
-    console.log('isAuthenticated', isAuthenticated);
-  }, [isAuthenticated]);
+
 
 
   return (

@@ -42,28 +42,28 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
 import { useModalStore } from '../store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiController } from '../axios';
+import { chatService } from '../services/chatService';
 import { Crop } from 'lucide-react';
 import { CropFreeRounded } from '@mui/icons-material';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
-// Message interface (aligned with mongoose schema)
+// Message interface (aligned with Mastra structure)
 interface Message {
-  _id?: string;
+  id?: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp?: Date;
   isStreaming?: boolean; // Frontend-only property
 }
 
-// Thread interface (aligned with mongoose schema)
+// Use the simplified thread interface from chatService
 interface Thread {
-  _id: string;
-  userId?: string; // Reference to User
-  title: string;
-  messages: Message[];
+  id: string;
+  title?: string;
   createdAt: Date;
   updatedAt: Date;
-  isActive: boolean;
+  metadata?: any;
+  resourceId?: string;
 }
 
 // Prompt template interface
@@ -72,12 +72,6 @@ interface PromptTemplate {
   title: string;
   prompt: string;
   category: 'Analysis' | 'Reports' | 'Help' | 'Ideas';
-}
-
-// API response interfaces
-interface ApiResponse<T> {
-  ok: boolean;
-  data: T;
 }
 
 // Typing animation component
@@ -144,46 +138,13 @@ const AIChatModal: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [isNewThread, setIsNewThread] = useState(false);
-  const [socket, setSocket] = useState<any>(null);
+  const [streamingMessage, setStreamingMessage] = useState<string>('');
+  const [isStreaming, setIsStreaming] = useState(false);
   
-  // API functions
-  const fetchThreads = async (): Promise<Thread[]> => {
-    const response = await  apiController.get<ApiResponse<Thread[]>>('/ai-chat');
-    return response; // Extract data from the response
-  };
-  
-  const fetchThread = async (threadId: string): Promise<Thread> => {
-    const response = await apiController.get<ApiResponse<Thread>>(`/ai-chat/${threadId}`);
-    return response; // Extract data from the response
-  };
-  
-  const createThread = async (title: string): Promise<Thread> => {
-    const response = await apiController.post<ApiResponse<Thread>>('/ai-chat', { 
-      title,
-      messages: [{
-        role: 'assistant',
-        content: 'Hello! I\'m WashPro AI Assistant. How can I help you today?'
-      }]
-    });
-    return response; // Extract data from the response
-  };
-  
-  const deleteThread = async (threadId: string): Promise<void> => {
-    await apiController.delete<ApiResponse<void>>(`/ai-chat/${threadId}`);
-  };
-  
-  const sendMessage = async ({ threadId, content }: { threadId: string, content: string }): Promise<Message> => {
-    const response = await apiController.post<ApiResponse<Message>>(`/ai-chat/${threadId}`, {
-      role: 'user',
-      content
-    });
-    return response.data; // Extract data from the response
-  };
-  
-  // Queries
+  // Queries using chatService
   const { data: threads = [], isLoading: isThreadsLoading } = useQuery({
     queryKey: ['threads'],
-    queryFn: fetchThreads,
+    queryFn: () => chatService.getThreads(),
     staleTime: 1000 * 60, // 1 minute
   });
 
@@ -193,43 +154,53 @@ const AIChatModal: React.FC = () => {
   
   const { data: activeThread, isLoading: isThreadLoading } = useQuery({
     queryKey: ['thread', activeThreadId],
-    queryFn: () => activeThreadId ? fetchThread(activeThreadId) : null,
+    queryFn: () => activeThreadId ? chatService.getThread(activeThreadId) : null,
     enabled: !!activeThreadId,
     staleTime: 1000 * 30, // 30 seconds
   });
   
-  // Mutations
+  // Add query to fetch messages for the active thread
+  const { data: threadMessages = [], isLoading: isMessagesLoading } = useQuery({
+    queryKey: ['messages', activeThreadId],
+    queryFn: () => activeThreadId ? chatService.getMessages(activeThreadId) : [],
+    enabled: !!activeThreadId,
+    staleTime: 1000 * 30, // 30 seconds
+  });
+  
+  // Mutations using chatService
   const createThreadMutation = useMutation({
-    mutationFn: createThread,
+    mutationFn: (title: string) => chatService.createThread(title),
     onSuccess: (newThread) => {
       queryClient.invalidateQueries({ queryKey: ['threads'] });
-      setActiveThreadId(newThread._id);
+      setActiveThreadId(newThread.id);
     }
   });
   
   const deleteThreadMutation = useMutation({
-    mutationFn: deleteThread,
+    mutationFn: (threadId: string) => chatService.deleteThread(threadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['threads'] });
     }
   });
   
   const sendMessageMutation = useMutation({
-    mutationFn: sendMessage,
+    mutationFn: ({ threadId, content }: { threadId: string, content: string }) => 
+      chatService.sendMessage(content, threadId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['thread', activeThreadId] });
+      queryClient.invalidateQueries({ queryKey: ['messages', activeThreadId] });
     }
   });
   
   // Initialize with first thread or create new one if none exists
   useEffect(() => {
     if (threads.length > 0 && !activeThreadId && !isNewThread) {
-      // Find first active thread
-      const firstActiveThread = threads.find(thread => thread.isActive);
-      if (firstActiveThread) {
-        setActiveThreadId(firstActiveThread._id);
+      // Use first available thread
+      const firstThread = threads[0];
+      if (firstThread) {
+        setActiveThreadId(firstThread.id);
       } else {
-        // Create a new local thread if no active threads exist
+        // Create a new local thread if no threads exist
         handleNewChat();
       }
     } else if (threads.length === 0 && !isThreadsLoading && !activeThreadId && !isNewThread) {
@@ -239,7 +210,7 @@ const AIChatModal: React.FC = () => {
   }, [threads, isThreadsLoading, activeThreadId, isNewThread]);
   
   // Get current messages based on active thread or local messages
-  const messages = activeThreadId ? (activeThread?.messages || []) : localMessages;
+  const messages = activeThreadId ? threadMessages : localMessages; // We'll get messages separately since MemoryThread doesn't include them
   
   // Calculate appropriate modal size based on states
   useEffect(() => {
@@ -262,171 +233,95 @@ const AIChatModal: React.FC = () => {
     
     const timeoutId = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timeoutId);
-  }, [messages]);
-
-  // Initialize socket connection
-  useEffect(() => {
-    // Import socket.io-client dynamically to avoid SSR issues
-    import('socket.io-client').then(({ io }) => {
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000');
-      
-      newSocket.on('connect', () => {
-        console.log('Socket connected');
-      });
-      
-      newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
-      });
-      
-      setSocket(newSocket);
-      
-      // Clean up on unmount
-      return () => {
-        newSocket.disconnect();
-      };
-    });
-  }, []);
+  }, [messages, streamingMessage]);
   
-  // Listen for socket events when active thread changes
-  useEffect(() => {
-    if (!socket || !activeThreadId) return;
-    
-    // Join the thread room
-    socket.emit('join', activeThreadId);
-    
-    // Listen for streaming message chunks
-    const handleStream = (data: { content: string }) => {
-      setLocalMessages(prevMessages => {
-        const lastMessageIndex = prevMessages.length - 1;
-        
-        // If we already have a streaming message, append to it
-        if (lastMessageIndex >= 0 && prevMessages[lastMessageIndex].isStreaming) {
-          const updatedMessages = [...prevMessages];
-          updatedMessages[lastMessageIndex].content += data.content;
-          return updatedMessages;
-        } else {
-          // Otherwise create a new streaming message
-          return [
-            ...prevMessages,
-            {
-              role: 'assistant',
-              content: data.content,
-              timestamp: new Date(),
-              isStreaming: true
-            }
-          ];
-        }
-      });
-    };
-    
-    // Listen for updates (processing, complete, error)
-    const handleUpdate = (data: { step: string, message: string }) => {
-      console.log('Socket update:', data);
-      
-      if (data.step === 'complete') {
-        // Mark streaming as complete
-        setLocalMessages(prevMessages => {
-          const lastMessageIndex = prevMessages.length - 1;
-          if (lastMessageIndex >= 0 && prevMessages[lastMessageIndex].isStreaming) {
-            const updatedMessages = [...prevMessages];
-            updatedMessages[lastMessageIndex].isStreaming = false;
-            return updatedMessages;
-          }
-          return prevMessages;
-        });
-        
-        // Refresh the thread data
-        queryClient.invalidateQueries({ queryKey: ['thread', activeThreadId] });
-      }
-      
-      if (data.step === 'error') {
-        // Handle error - display error message
-        console.error('Stream error:', data.message);
-      }
-    };
-    
-    socket.on('stream', handleStream);
-    socket.on('update', handleUpdate);
-    
-    return () => {
-      // Leave the room and remove listeners when component unmounts or thread changes
-      socket.emit('leave', activeThreadId);
-      socket.off('stream', handleStream);
-      socket.off('update', handleUpdate);
-    };
-  }, [socket, activeThreadId, queryClient]);
-  
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim() === '') return;
     
     // Set loading state
     setIsLoading(true);
+    setIsStreaming(true);
+    
+    // Add user message to local messages immediately
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date()
+    };
     
     if (isNewThread) {
       // For new threads, create the thread first with the initial message
-      createThreadMutation.mutate(
-        inputMessage.slice(0, 20),
-        {
-          onSuccess: (newThread) => {
-            // Send the message to the newly created thread
-            sendMessageMutation.mutate(
-              { threadId: newThread._id, content: inputMessage },
-              {
-                onSuccess: () => {
-                  setInputMessage('');
-                  setIsLoading(false);
-                  setIsNewThread(false);
-                  setActiveThreadId(newThread._id);
-                  
-                  // Add the user message to local messages for immediate display
-                  setLocalMessages([
-                    ...localMessages,
-                    {
-                      role: 'user',
-                      content: inputMessage,
-                      timestamp: new Date()
-                    }
-                  ]);
-                },
-                onError: (error) => {
-                  console.error('Error sending message:', error);
-                  setIsLoading(false);
-                }
-              }
-            );
-          },
-          onError: (error) => {
-            console.error('Error creating thread:', error);
-            setIsLoading(false);
-          }
-        }
-      );
+      try {
+        const newThread = await createThreadMutation.mutateAsync(inputMessage.slice(0, 20));
+        setActiveThreadId(newThread.id);
+        setIsNewThread(false);
+        
+        // Clear local messages since we're now using the thread
+        setLocalMessages([]);
+        
+        // Send the message and process streaming response
+        const response = await chatService.sendMessage(inputMessage, newThread.id);
+        await processStreamingResponse(response);
+        
+        setInputMessage('');
+        setIsLoading(false);
+        setIsStreaming(false);
+      } catch (error) {
+        console.error('Error creating thread and sending message:', error);
+        setIsLoading(false);
+        setIsStreaming(false);
+      }
     } else if (activeThreadId) {
       // For existing threads, just send the message
-      sendMessageMutation.mutate(
-        { threadId: activeThreadId, content: inputMessage },
-        {
-          onSuccess: () => {
-            setInputMessage('');
-            setIsLoading(false);
-            
-            // Add the user message to local messages for immediate display
-            setLocalMessages([
-              ...localMessages,
-              {
-                role: 'user',
-                content: inputMessage,
-                timestamp: new Date()
-              }
-            ]);
-          },
-          onError: (error) => {
-            console.error('Error sending message:', error);
-            setIsLoading(false);
-          }
-        }
-      );
+      try {
+        // Send the message and process streaming response
+        const response = await chatService.sendMessage(inputMessage, activeThreadId);
+        await processStreamingResponse(response);
+        
+        setInputMessage('');
+        setIsLoading(false);
+        setIsStreaming(false);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setIsLoading(false);
+        setIsStreaming(false);
+      }
     }
+  };
+
+  // Process streaming response from Mastra
+  const processStreamingResponse = async (response: any) => {
+    setStreamingMessage('');
+    
+    await chatService.processStreamResponse(
+      response,
+      (chunk: string) => {
+        // Update streaming message as chunks arrive
+        setStreamingMessage(prev => prev + chunk);
+      },
+      (fullResponse: string) => {
+        // When streaming is complete, clear the streaming message
+        setStreamingMessage('');
+        setIsStreaming(false);
+        
+        // If we have an active thread, refresh the messages from the server
+        if (activeThreadId) {
+          queryClient.invalidateQueries({ queryKey: ['messages', activeThreadId] });
+          queryClient.invalidateQueries({ queryKey: ['thread', activeThreadId] });
+        } else {
+          // For new threads that haven't been created yet, add to local messages
+          const assistantMessage: Message = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: fullResponse,
+            timestamp: new Date()
+          };
+          
+          setLocalMessages(prev => [...prev, assistantMessage]);
+        }
+      }
+    );
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -450,6 +345,8 @@ const AIChatModal: React.FC = () => {
     setActiveThreadId(null);
     setIsNewThread(true);
     setLocalMessages([]);
+    setStreamingMessage('');
+    setIsStreaming(false);
     
     // Auto-open sidebar if it's not already open
     if (!showSidebar) {
@@ -482,16 +379,16 @@ const AIChatModal: React.FC = () => {
 
   const handleDeleteThread = () => {
     if (threadToDelete) {
-      // Delete the thread via API
+      // Delete the thread via chatService
       deleteThreadMutation.mutate(threadToDelete);
       
       // If deleted thread was active, switch to first available thread
       if (threadToDelete === activeThreadId) {
-        const activeThreads = threads.filter(t => t._id !== threadToDelete && t.isActive);
-        const firstAvailableThread = activeThreads[0];
+        const remainingThreads = threads.filter(t => t.id !== threadToDelete);
+        const firstAvailableThread = remainingThreads[0];
         
         if (firstAvailableThread) {
-          setActiveThreadId(firstAvailableThread._id);
+          setActiveThreadId(firstAvailableThread.id);
         } else {
           // If no threads left, create a new one
           handleNewChat();
@@ -504,6 +401,10 @@ const AIChatModal: React.FC = () => {
 
   const handleChangeThread = (threadId: string) => {
     setActiveThreadId(threadId);
+    setIsNewThread(false);
+    setLocalMessages([]);
+    setStreamingMessage('');
+    setIsStreaming(false);
     // Close sidebar on mobile after selection
     if (window.innerWidth < 960) {
       setShowSidebar(false);
@@ -532,19 +433,16 @@ const AIChatModal: React.FC = () => {
     }
   };
 
-  // Get last message from thread for preview
+  // Get last message from thread for preview - simplified since we don't fetch messages for preview
   const getLastMessage = (thread: Thread) => {
-    const threadMessages = thread.messages;
-    return threadMessages.length > 0 ? threadMessages[threadMessages.length - 1].content : '';
+    return 'Recent conversation'; // Placeholder text since we don't fetch messages for list preview
   };
-
-  // Filter active threads only
-  const activeThreads = threads.filter(thread => thread);
 
   // Loading states
   const isSendingMessage = sendMessageMutation.isPending;
   const isCreatingThread = createThreadMutation.isPending;
   const isDeletingThread = deleteThreadMutation.isPending;
+  const isLoadingContent = isThreadLoading || isMessagesLoading;
 
   // Handle click on a suggested prompt
   const handlePromptClick = (prompt: string) => {
@@ -609,11 +507,15 @@ const AIChatModal: React.FC = () => {
             <TypingAnimation />
           ) : (
             <>
-              <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
-                {message.content}
-              </Typography>
+              {message.role === 'assistant' ? (
+                <MarkdownRenderer content={message.content} />
+              ) : (
+                <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {message.content}
+                </Typography>
+              )}
               
-              {message.role === 'assistant' && (
+              {message.role === 'assistant' && !message.isStreaming && (
                 <Box sx={{ mt: 0.5, display: 'flex', justifyContent: 'flex-end' }}>
                   <Tooltip title="Copy message">
                     <IconButton 
@@ -639,8 +541,59 @@ const AIChatModal: React.FC = () => {
           opacity: 0.5 
         }}
       >
-        {/* {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} */}
+        {/* {message.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} */}
       </Typography>
+    </Box>
+  );
+
+  // Streaming message bubble
+  const StreamingBubble = () => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        mb: 2,
+        width: '100%',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          gap: 1,
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'secondary.main',
+            width: 32,
+            height: 32,
+          }}
+        >
+          <SmartToyOutlinedIcon fontSize="small" />
+        </Avatar>
+        
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            maxWidth: '80%',
+            backgroundColor: alpha(theme.palette.background.paper, 0.8),
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+            color: theme.palette.text.primary,
+            position: 'relative',
+          }}
+        >
+          {streamingMessage ? (
+            <MarkdownRenderer content={streamingMessage + '▍'} />
+          ) : (
+            <TypingAnimation />
+          )}
+        </Paper>
+      </Box>
     </Box>
   );
 
@@ -708,9 +661,9 @@ const AIChatModal: React.FC = () => {
             ) : (
               threads.map((thread) => (
                 <ListItemButton 
-                  key={thread._id}
-                  selected={activeThreadId === thread._id}
-                  onClick={() => handleChangeThread(thread._id)}
+                  key={thread.id}
+                  selected={activeThreadId === thread.id}
+                  onClick={() => handleChangeThread(thread.id)}
                   sx={{
                     py: 1.5,
                     px: 2,
@@ -738,7 +691,7 @@ const AIChatModal: React.FC = () => {
                       <Typography 
                         variant="body2" 
                         noWrap
-                        fontWeight={activeThreadId === thread._id ? 600 : 400}
+                        fontWeight={activeThreadId === thread.id ? 600 : 400}
                       >
                         {thread.title}
                       </Typography>
@@ -751,14 +704,14 @@ const AIChatModal: React.FC = () => {
                             : getLastMessage(thread)}
                         </Typography>
                         <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                          {formatRelativeTime(thread.updatedAt)}
+                          {formatRelativeTime(thread.updatedAt || thread.createdAt)}
                         </Typography>
                       </Box>
                     }
                   />
                   <IconButton 
                     size="small" 
-                    onClick={(e) => handleMenuOpen(e, thread._id)}
+                    onClick={(e) => handleMenuOpen(e, thread.id)}
                     sx={{ 
                       opacity: 0.6,
                       '&:hover': { opacity: 1 } 
@@ -879,8 +832,8 @@ const AIChatModal: React.FC = () => {
               </IconButton>
             </Tooltip>
             <Typography variant="subtitle1" fontWeight={600}>
-              {activeThread?.title || "AI Assistant"}
-              {isThreadLoading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+              {activeThread?.title || (isNewThread ? "New Conversation" : "AI Assistant")}
+              {isLoadingContent && <CircularProgress size={16} sx={{ ml: 1 }} />}
             </Typography>
           </Box>
           
@@ -933,11 +886,11 @@ const AIChatModal: React.FC = () => {
             }),
           }}
         >
-          {isThreadLoading ? (
+          {isLoadingContent ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <CircularProgress />
             </Box>
-          ) : messages.length === 0 && isNewThread ? (
+          ) : messages.length === 0 && !isStreaming ? (
             <Box sx={{ 
               display: 'flex', 
               flexDirection: 'column', 
@@ -970,8 +923,9 @@ const AIChatModal: React.FC = () => {
             <Fade in={true} timeout={500}>
               <Box>
                 {messages.map((message) => (
-                  <MessageBubble key={message._id} message={message} />
+                  <MessageBubble key={message.id || `msg-${Math.random()}`} message={message} />
                 ))}
+                {isStreaming && <StreamingBubble />}
                 <div ref={messagesEndRef} />
               </Box>
             </Fade>
@@ -1049,7 +1003,7 @@ const AIChatModal: React.FC = () => {
               onKeyDown={handleKeyPress}
               variant="outlined"
               size="small"
-              disabled={(!activeThreadId && !isNewThread) || isThreadLoading || isSendingMessage}
+              disabled={(!activeThreadId && !isNewThread) || isLoadingContent || isSendingMessage || isStreaming}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 3,
@@ -1065,7 +1019,7 @@ const AIChatModal: React.FC = () => {
                   <InputAdornment position="end">
                     <IconButton
                       onClick={handleSendMessage}
-                      disabled={isLoading || inputMessage.trim() === '' || (!activeThreadId && !isNewThread) || isSendingMessage}
+                      disabled={isLoading || inputMessage.trim() === '' || (!activeThreadId && !isNewThread) || isSendingMessage || isStreaming}
                       color="primary"
                       size="small"
                       sx={{ 
@@ -1081,7 +1035,7 @@ const AIChatModal: React.FC = () => {
                         }
                       }}
                     >
-                      {isSendingMessage ? (
+                      {isSendingMessage || isStreaming ? (
                         <CircularProgress size={20} color="inherit" />
                       ) : (
                         <SendIcon fontSize="small" />
