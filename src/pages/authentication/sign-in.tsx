@@ -3,75 +3,55 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Box,
   Button,
-  Checkbox,
   CircularProgress,
-  FormControlLabel,
-  InputAdornment,
-  Link,
-  TextField,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiController } from "../../axios";
+import { FC, useEffect, useState } from "react";
 import { useAuthStore, useSnackStore } from "../../store";
 import { Ellipse, Ellipse2, Polygon, Polygon2, Rectangle, Logo } from "../../assets/svg/index";
 
-interface LoginResponse {
-  user: {
-    id: string;
-    name: string;
-  };
-  token: string;
-  refreshToken: string;
-}
-
 const SignInPage: FC = function () {
-  const navigate = useNavigate();
   const theme = useTheme();
-  const { logIn } = useAuthStore();
-  const { setAlert, setLoading } = useSnackStore();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { zitadel } = useAuthStore();
+  const { 
+    setAlert,
+    setLoading 
+  } = useSnackStore() as { 
+    setAlert: (alert: { variant: string; message: string }) => void; 
+    setLoading: (loading: boolean) => void; 
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Responsive hook for detecting screen size
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  useEffect(() => {
+    // We might not need to call authorize on load if we have a button
+    // If direct navigation to Zitadel is desired on page load, this can be kept.
+    // For now, let's assume login is initiated by button click.
+    // zitadel?.authorize(); 
+  }, [zitadel]);
+
+  const handleZitadelLogin = async () => {
     setIsSubmitting(true);
-
-    // Trim whitespace from the email before submission
-    const sanitizedFormData = {
-      email: formData.email.trim(),
-      password: formData.password.trim(),
-    };
-
+    setLoading(true); // Assuming setLoading is still desired from useSnackStore
     try {
-      const response = await apiController.post<LoginResponse>(
-        "/user/login",
-        sanitizedFormData
-      );
-
-      logIn(response.user, response.token, response.refreshToken);
-      navigate("/");
+      await zitadel?.authorize();
+      // Navigation or further actions after authorize might be handled by Zitadel callbacks
+      // or might need to be added here if authorize itself doesn't redirect.
     } catch (error) {
-      setAlert({
+      setAlert({ // Assuming setAlert is still desired from useSnackStore
         variant: "error",
         message: error instanceof Error ? error.message : "Login failed",
       });
     } finally {
-      setLoading(false);
       setIsSubmitting(false);
+      setLoading(false); // Assuming setLoading is still desired from useSnackStore
     }
   };
+
 
   return (
     <Box
@@ -98,73 +78,76 @@ const SignInPage: FC = function () {
         >
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h3" sx={{ color: "#fff", fontWeight: "bold" }}>
-              Welcome Back!
+              Welcome to WashPro
             </Typography>
-            <Typography variant="body1" sx={{ color: "#fff", mt: 2 }}>
-              To keep connected with us, please login with your personal info.
+            <Typography variant="body1" sx={{ color: "#fff", mt: 2, px: 4, lineHeight: 1.6 }}>
+              Empowering communities through improved water, sanitation, and hygiene. WashPro provides essential tools and insights for managing and monitoring programme impact effectively.
             </Typography>
           </Box>
-          {/* Decorative Elements */}
+          {/* Decorative Elements - made more subtle */}
           <img
             src={Polygon2}
-            alt="Polygon"
+            alt="Decorative Polygon"
             style={{
-              width: "10%",
+              width: "8%", // Slightly smaller
               height: "auto",
               position: "absolute",
-              top: "5%",
-              left: "35%",
-              opacity: 0.5,
+              top: "8%",
+              left: "30%",
+              opacity: 0.3, // More subtle
             }}
           />
           <img
             src={Ellipse2}
-            alt="Ellipse"
+            alt="Decorative Ellipse"
             style={{
-              width: "15%",
+              width: "12%", // Slightly smaller
               height: "auto",
               position: "absolute",
-              top: "20%",
-              left: "65%",
-              opacity: 0.5,
+              top: "22%",
+              left: "70%",
+              opacity: 0.3, // More subtle
             }}
           />
           <img
             src={Polygon}
-            alt="Polygon"
+            alt="Decorative Polygon"
             style={{
-              width: "20%",
+              width: "15%", // Slightly smaller
               height: "auto",
               position: "absolute",
-              top: "15%",
-              left: "50%",
-              opacity: 0.5,
+              top: "18%",
+              left: "55%",
+              opacity: 0.3, // More subtle
             }}
           />
           <img
             src={Rectangle}
-            alt="Rectangle"
+            alt="Decorative Rectangle"
             style={{
-              width: "10%",
+              width: "8%", // Slightly smaller
               height: "auto",
               position: "absolute",
-              top: "40%",
-              left: "30%",
-              opacity: 0.5,
+              top: "45%",
+              left: "25%",
+              opacity: 0.3, // More subtle
             }}
           />
           <img
             src={Ellipse}
-            alt="Ellipse"
+            alt="Decorative Ellipse"
             style={{
-              width: "40%",
+              width: "35%", // Slightly smaller
               height: "auto",
               position: "absolute",
-              top: "70%",
-              left: "0%",
-              opacity: 0.5,
+              top: "75%",
+              left: "-5%", // Adjusted position slightly
+              opacity: 0.3, // More subtle
             }}
           />
+          <Typography variant="h6" sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 500 }}>
+            Sign in securely using your organizational account.
+          </Typography>
         </Box>
       )}
 
@@ -176,19 +159,20 @@ const SignInPage: FC = function () {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#D5DAE1",
-          p: isMobile ? 2 : 0,
+          backgroundColor: "#F8F9FA",
+          p: isMobile ? 3 : 4,
         }}
       >
-        <form
-          onSubmit={handleSubmit}
-          style={{
+        <Box
+          component="form"
+          onSubmit={(e) => { e.preventDefault(); handleZitadelLogin(); }}
+          sx={{
             width: "100%",
-            maxWidth: "400px",
-            backgroundColor: "#fff",
-            padding: "32px",
-            borderRadius: "8px",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+            maxWidth: "420px",
+            backgroundColor: "#ffffff",
+            padding: isMobile ? "24px" : "40px",
+            borderRadius: "12px",
+            boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.08)",
           }}
         >
           {/* Logo and Header */}
@@ -198,63 +182,30 @@ const SignInPage: FC = function () {
               alt="Logo"
               style={{ width: isMobile ? "50%" : "60%" }}
             />
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Enter your details to access your account.
+            <Typography variant="h6" sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 500 }}>
+              Sign in securely using your organizational account.
             </Typography>
           </Box>
-          {/* Login Form */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <TextField
-              label="Email"
-              variant="standard"
-              fullWidth
-              value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, email: e.target.value }))
-              }
-              required
-              type="email"
-            />
-            <TextField
-              label="Password"
-              variant="standard"
-              fullWidth
-              value={formData.password}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, password: e.target.value }))
-              }
-              required
-              type={showPassword ? "text" : "password"}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Button
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      onMouseDown={(e) => e.preventDefault()}
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </Button>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <FormControlLabel control={<Checkbox />} label="Remember me" />
-              <Link href="/forgot-password" underline="hover">
-                Forgot Password?
-              </Link>
-            </Box>
+          {/* Login Button */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Button
-              type="submit"
+              type="button"
+              onClick={handleZitadelLogin}
               variant="contained"
               fullWidth
               disabled={isSubmitting}
-              startIcon={isSubmitting && <CircularProgress size={20} />}
+              sx={{ 
+                py: 1.5,
+                fontSize: "1.05rem",
+                textTransform: "none",
+                borderRadius: "8px",
+              }}
+              startIcon={isSubmitting && <CircularProgress size={24} color="inherit" />}
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isSubmitting ? "Redirecting..." : "Sign In with SSO"}
             </Button>
           </Box>
-        </form>
+        </Box>
       </Box>
     </Box>
   );

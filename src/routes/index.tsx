@@ -27,6 +27,7 @@ import LAMReportingDashboard from "../pages/lam/LamReport";
 import WashStatus from "../pages/wash/wash-status/WashStatus";
 import HygeineFacilities from "../pages/hygeine-facilities/HygeineFacilities";
 import HygeineFacilitiesDetails from "../pages/hygeine-facilities/HygeineFacilitiesDetails";
+import Callback from "../pages/callback";
 
 // Lazy load components
 const Wrapper = lazy(() => import("../components/wrapper"));
@@ -52,12 +53,26 @@ const UserPage = lazy(() => import("../pages/admin/Admin"));
 const AIChatPage = lazy(() => import("../pages/ai-assistant/AIChatPage"));
 const KnowledgeBase = lazy(() => import("../pages/knowledge-base/KnowledgeBase"));
 
+
 const router = createBrowserRouter([
   {
     path: "/login",
     element: (
       <Suspense fallback={<LoadingAnimation />}>
         <SignIn />
+      </Suspense>
+    ),
+    errorElement: (
+      <Suspense fallback={<LoadingAnimation />}>
+        <ErrorBoundary />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/callback",
+    element: (
+      <Suspense fallback={<LoadingAnimation />}>
+        <Callback />
       </Suspense>
     ),
     errorElement: (
