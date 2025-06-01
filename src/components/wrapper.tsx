@@ -41,16 +41,16 @@ export default function Wrapper() {
 
       {/* Main Content Area */}
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-        <Navbar 
+        <Navbar
           onMenuClick={toggleDrawer}
           onSidebarToggle={toggleSidebar}
           isSidebarCollapsed={isSidebarCollapsed}
         />
         <Box sx={{ flexGrow: 1, padding: 1, overflowY: "scroll", backgroundColor: '#f0f0f0' }}>
           <Outlet />
-                    <GlobalModal />
-                    <GlowingActionButton />
-          
+          <GlobalModal />
+          <GlowingActionButton />
+
         </Box>
       </Box>
     </Box>

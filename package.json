@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@assistant-ui/react-markdown": "^0.10.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/roboto": "^5.1.0",
@@ -23,6 +24,7 @@
     "@google/generative-ai": "^0.21.0",
     "@heroicons/react": "^2.2.0",
     "@iconify/react": "^5.2.0",
+    "@mastra/client-js": "^0.10.1",
     "@mui/icons-material": "^6.4.0",
     "@mui/lab": "^6.0.0-beta.26",
     "@mui/material": "^6.4.8",
@@ -53,12 +55,12 @@
     "react-icons": "^5.4.0",
     "react-leaflet": "^4.2.1",
     "react-leaflet-cluster": "^2.1.0",
-    "react-markdown": "^9.0.3",
+    "react-markdown": "^9.1.0",
     "react-router-dom": "^7.1.1",
     "react-syntax-highlighter": "^15.6.1",
     "recharts": "^2.15.1",
     "rehype-raw": "^7.0.0",
-    "remark-gfm": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.2"
   },

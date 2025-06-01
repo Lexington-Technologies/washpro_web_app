@@ -77,82 +77,79 @@ const SignInPage: FC = function () {
             position: "relative",
           }}
         >
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h3" sx={{ color: "#fff", fontWeight: "bold" }}>
+          <Box sx={{ textAlign: "center", px: 6 /* Add padding for better text spacing */ }}>
+            <Typography variant="h2" sx={{ color: "#fff", fontWeight: "bold", mb: 3 /* Add margin bottom */ }}>
               Welcome to WashPro
             </Typography>
-            <Typography variant="body1" sx={{ color: "#fff", mt: 2, px: 4, lineHeight: 1.6 }}>
+            <Typography variant="h6" sx={{ color: "#fff", mt: 2, lineHeight: 1.7, opacity: 0.9 /* Slightly increased line height and reduced opacity for subtext */ }}>
               Empowering communities through improved water, sanitation, and hygiene. WashPro provides essential tools and insights for managing and monitoring programme impact effectively.
             </Typography>
           </Box>
-          {/* Decorative Elements - made more subtle */}
+          {/* Decorative Elements - Refined for a cleaner look */}
           <img
             src={Polygon2}
             alt="Decorative Polygon"
             style={{
-              width: "8%", // Slightly smaller
+              width: "60px", // Fixed size for better control
               height: "auto",
               position: "absolute",
-              top: "8%",
-              left: "30%",
-              opacity: 0.3, // More subtle
+              top: "15%", // Adjusted position
+              left: "10%", // Adjusted position
+              opacity: 0.2, // Reduced opacity
             }}
           />
           <Box
-          component="img"
+            component="img"
             src={Ellipse2}
             alt="Decorative Ellipse"
             style={{
-              width: "12%", // Slightly smaller
+              width: "80px", // Fixed size
               height: "auto",
               position: "absolute",
-              top: "22%",
-              left: "70%",
-              opacity: 0.3, // More subtle
+              bottom: "20%", // Adjusted position
+              right: "15%", // Adjusted position
+              opacity: 0.2, // Reduced opacity
             }}
           />
           <Box
-          component="img"
+            component="img"
             src={Polygon}
             alt="Decorative Polygon"
             style={{
-              width: "15%", // Slightly smaller
+              width: "100px", // Fixed size
               height: "auto",
               position: "absolute",
-              top: "18%",
-              left: "55%",
-              opacity: 0.3, // More subtle
+              top: "30%", // Adjusted position
+              right: "5%", // Adjusted position
+              opacity: 0.15, // Reduced opacity
             }}
           />
           <Box
-          component="img"
+            component="img"
             src={Rectangle}
             alt="Decorative Rectangle"
             style={{
-              width: "8%", // Slightly smaller
+              width: "70px", // Fixed size
               height: "auto",
               position: "absolute",
-              top: "45%",
-              left: "25%",
-              opacity: 0.3, // More subtle
+              bottom: "10%", // Adjusted position
+              left: "20%", // Adjusted position
+              opacity: 0.2, // Reduced opacity
             }}
           />
           <Box
-          component="img"
+            component="img"
             src={Ellipse}
             alt="Decorative Ellipse"
             style={{
-              width: "35%", // Slightly smaller
+              width: "150px", // Fixed size
               height: "auto",
               position: "absolute",
-              top: "75%",
-              left: "-5%", // Adjusted position slightly
-              opacity: 0.3, // More subtle
+              top: "60%", // Adjusted position
+              left: "-50px", // Adjusted to be partially off-screen
+              opacity: 0.25, // Reduced opacity
             }}
           />
-          <Typography variant="h6" sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 500 }}>
-            Sign in securely using your organizational account.
-          </Typography>
         </Box>
       )}
 
@@ -164,8 +161,8 @@ const SignInPage: FC = function () {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#F8F9FA",
-          p: isMobile ? 3 : 4,
+          backgroundColor: isMobile ? "#ffffff" : "#F8F9FA", // White background for mobile, light gray for desktop
+          p: isMobile ? 4 : 6, // Increased padding
         }}
       >
         <Box
@@ -173,38 +170,42 @@ const SignInPage: FC = function () {
           onSubmit={(e) => { e.preventDefault(); handleZitadelLogin(); }}
           sx={{
             width: "100%",
-            maxWidth: "420px",
+            maxWidth: isMobile ? "100%" : "450px", // Full width on mobile, slightly larger max-width on desktop
             backgroundColor: "#ffffff",
-            padding: isMobile ? "24px" : "40px",
-            borderRadius: "12px",
-            boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            padding: isMobile ? "32px" : "48px", // Increased padding
+            borderRadius: "16px", // Larger border radius
+            boxShadow: "0px 12px 32px rgba(0, 0, 0, 0.1)", // Softer, more pronounced shadow
           }}
         >
           {/* Logo and Header */}
-          <Box sx={{ textAlign: "center", mb: 4 }}>
+          <Box sx={{ textAlign: "center", mb: 5 /* Increased margin bottom */ }}>
             <Box
-            component="img"
+              component="img"
               src={Logo}
               alt="Logo"
-              style={{ width: isMobile ? "50%" : "60%" }}
+              style={{ width: isMobile ? "150px" : "180px", marginBottom: "24px" /* Added margin bottom to logo */ }}
             />
-            <Typography variant="h6" sx={{ mt: 2, mb: 3, color: 'text.secondary', fontWeight: 500 }}>
+            <Typography variant="h5" sx={{ mb: 1, fontWeight: "bold", color: "text.primary" }}>
+              Welcome Back!
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               Sign in securely using your organizational account.
             </Typography>
           </Box>
           {/* Login Button */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 /* Increased gap */ }}>
             <Button
               type="button"
               onClick={handleZitadelLogin}
               variant="contained"
               fullWidth
               disabled={isSubmitting}
-              sx={{ 
-                py: 1.5,
-                fontSize: "1.05rem",
+              sx={{
+                py: 1.8, // Increased padding Y
+                fontSize: "1.1rem", // Slightly larger font size
                 textTransform: "none",
-                borderRadius: "8px",
+                borderRadius: "10px", // Larger border radius for button
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Subtle shadow for button
               }}
               startIcon={isSubmitting && <CircularProgress size={24} color="inherit" />}
             >
