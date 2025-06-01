@@ -11,7 +11,7 @@ type Props = {
     handleLogout: any;
 };
 
-const Callback = ({}: Props) => {
+const Callback = () => {
     const navigate = useNavigate();
     const { zitadel, isAuthenticated, setAuthenticated, setUser, user, setToken } = useAuthStore();
     const [error, setError] = useState<string | null>(null);
