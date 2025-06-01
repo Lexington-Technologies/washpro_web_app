@@ -11,8 +11,8 @@ export default function App() {
     initializeZitadel({
       authority: "https://zitadel.lexdev.ng",
       client_id: "322517876609187854",
-      redirect_uri: "http://localhost:5173/callback",
-      post_logout_redirect_uri: "http://localhost:5173",
+      redirect_uri: "https://app.washpro.ng/callback",
+      post_logout_redirect_uri: "https://app.washpro.ng",
       scope: "openid email profile, urn:zitadel:iam:org:projects:roles",
     });
   }, [initializeZitadel]);
