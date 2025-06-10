@@ -161,7 +161,7 @@ const Dashboard = () => {
     },
     { 
       title: 'Total Population', 
-      value: 34000 || 0,
+      value: 104150,
       icon: <FaUsers size={20} />,
       ...CARD_COLORS.facility[0]
     },
@@ -403,8 +403,8 @@ const Dashboard = () => {
               <Box sx={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[
-                    { name: 'Female', count: 74 },
-                    { name: 'Male', count: 195 },
+                    { name: 'Female', count: 43701 },
+                    { name: 'Male', count: 60449 },
                   ]} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
