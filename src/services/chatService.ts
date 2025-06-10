@@ -28,7 +28,7 @@ class ChatService {
 
   constructor() {
     this.client = new MastraClient({
-      baseUrl: "http://localhost:4111", // Default Mastra development server port
+      baseUrl: "https://mastra.washpro.ng", // Default Mastra development server port
     });
     this.agentId = "sqlAgent"; // Default agent ID
     this.resourceId = useAuthStore.getState().user?.email || "anonymous"; // Default resource ID with fallback
