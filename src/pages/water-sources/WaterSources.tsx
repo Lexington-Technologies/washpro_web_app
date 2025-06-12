@@ -25,10 +25,6 @@ import { DataTable } from '../../components/Table/DataTable';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const getImageSrc = (url: string) => {
-  return url.startsWith('file://') ? '/fallback-placeholder.jpg' : url;
-};
-
 const StyledPaper = styled(Paper)`
   padding: ${({ theme }) => theme.spacing(3)};
   border-radius: ${({ theme }) => theme.spacing(1)};
@@ -163,7 +159,7 @@ const WaterSourcesDashboard: React.FC = () => {
     columnHelper.accessor('picture', {
       header: 'Picture',
       cell: (props) => (
-        <Avatar src={getImageSrc(props.row.original.picture)} alt="water source" sx={{ borderRadius: '100%' }} />
+        <Avatar src={(props.row.original.picture)} alt="water source" sx={{ borderRadius: '100%' }} />
       ),
     }),
     columnHelper.accessor('ward', { header: 'Ward', cell: (info) => info.getValue() }),
@@ -215,7 +211,7 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          {/* <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
+          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Ward</InputLabel>
               <Select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} label="Ward">
@@ -246,7 +242,7 @@ const WaterSourcesDashboard: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
-          </Stack> */}
+          </Stack>
         </Box>
       </Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>

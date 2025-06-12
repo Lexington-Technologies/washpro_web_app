@@ -267,7 +267,7 @@ const Dashboard = () => {
         Facilities Captured
       </Typography>
       <Card sx={{ backgroundColor: 'white', p: 2 }}>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 1 }}>
         {facilityCardItems.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card
@@ -330,7 +330,7 @@ const Dashboard = () => {
         WASH Facilities Overview
       </Typography>
       <Card sx={{ backgroundColor: 'white', p: 2 }}>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={2} sx={{ mb: 1}}>
         {washCardItems.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card

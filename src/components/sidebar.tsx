@@ -137,7 +137,7 @@ const SideBar = ({
       subItems: [
         { text: "Gutters", icon: <Waves />, path: "/gutters", title: "Gutters" },
         { text: "Dumpsites", icon: <Delete />, path: "/dump-sites", title: "Dump Sites" },
-        // { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
+        { text: "Soakaways", icon: <Waves />, path: "/soak-aways", title: "Soakaways" },
       ]
     },
     {
