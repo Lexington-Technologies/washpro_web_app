@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuthStore } from "../store";
 import Navbar from "./navbar";
 import SideBar from "./sidebar";
 import { useTheme, useMediaQuery } from "@mui/material";
@@ -10,6 +11,7 @@ import GlowingActionButton from "./GlowingActionButton";
 export default function Wrapper() {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuthStore();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -22,6 +24,10 @@ export default function Wrapper() {
   const toggleDrawer = () => {
     setDrawerOpen(!isDrawerOpen);
   };
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflowY: "hidden" }}>
@@ -44,6 +50,7 @@ export default function Wrapper() {
           <Outlet />
           <GlobalModal />
           <GlowingActionButton />
+
         </Box>
       </Box>
     </Box>
