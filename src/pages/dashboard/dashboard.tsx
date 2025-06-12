@@ -195,13 +195,8 @@ const Dashboard = () => {
     },
   ];
 
-  // Analytics distributions (if location details exist, we filter them)
-  // For waterAnalytics we assume sourceTypes might be further filtered,
-  // but if no location properties are provided, the entire array remains.
   const waterSourceData = waterAnalytics?.sourceTypes || [];
-  // For sanitation analytics (toilet types)
   const toiletTypeData = sanitationAnalytics?.toilets?.types || [];
-  // For location analytics, we check for wardDistribution, villageDistribution etc.
   const wardData = locationAnalytics?.wardDistribution || [];
 
   // Custom Tooltip to display extra details on hover
@@ -233,7 +228,8 @@ const Dashboard = () => {
   );
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#fff', minHeight: '100vh' }}>
+    <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
+
       {/* Header and Filter Dropdowns */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
@@ -242,7 +238,7 @@ const Dashboard = () => {
             Overview of water, sanitation and hygiene facilities and population
           </Typography>
         </Typography>
-        {/* <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 3 }}>
           <Stack direction="row" spacing={2}>
             <FilterDropdown
               label="Ward"
@@ -263,13 +259,14 @@ const Dashboard = () => {
               options={filterOptions.Hamlet}
             />
           </Stack>
-        </Box> */}
+        </Box>
       </Box>
 
       {/* Facilities Captured Section */}
       <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
         Facilities Captured
       </Typography>
+      <Card sx={{ backgroundColor: 'white', p: 2 }}>
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {facilityCardItems.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -326,11 +323,13 @@ const Dashboard = () => {
           </Grid>
         ))}
       </Grid>
+      </Card>
 
       {/* WASH Facilities Overview */}
-      <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
+      <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2, mt: 2 }}>
         WASH Facilities Overview
       </Typography>
+      <Card sx={{ backgroundColor: 'white', p: 2 }}>
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {washCardItems.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
@@ -387,9 +386,9 @@ const Dashboard = () => {
           </Grid>
         ))}
       </Grid>
-
+      </Card>
       {/* Analytics Distributions Section */}
-      <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
+      <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2, mt: 2 }}>
         Analytics Distributions
       </Typography>
       <Grid container spacing={4}>
