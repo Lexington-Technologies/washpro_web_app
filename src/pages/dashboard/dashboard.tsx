@@ -37,6 +37,7 @@ import {
   Cell,
 } from 'recharts';
 import { apiController } from '../../axios';
+import LocationFilter from '../../components/LocationFilter';
 
 // Utility function for color conversion
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -71,22 +72,55 @@ const CHART_COLORS = [
   '#EC4899', '#8B5CF6', '#22D3EE', '#F43F5E', '#84CC16',
 ];
 
+interface FilterOptions {
+  Ward: string[];
+  Village: string[];
+  Hamlet: string[];
+}
+
+interface CardData {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+}
+
+interface AnalyticsData {
+  labels: string[];
+  values: number[];
+}
+
+interface DashboardData {
+  filterOptions: FilterOptions;
+  washCards: CardData[];
+  facilityCards: CardData[];
+  waterAnalytics: AnalyticsData;
+  sanitationAnalytics: AnalyticsData;
+  populationAnalytics: AnalyticsData;
+  locationAnalytics: AnalyticsData;
+}
+
 const Dashboard = () => {
   // Filter state values
-  const [ward, setWard] = useState('All');
-  const [village, setVillage] = useState('All');
-  const [hamlet, setHamlet] = useState('All');
+  const [filters, setFilters] = useState({
+    ward: 'All',
+    village: 'All',
+    hamlet: 'All'
+  });
 
   // Query using react-query with filter parameters passed to the backend.
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['dashboard', { ward, village, hamlet }],
+  const { data, isLoading, error } = useQuery<DashboardData>({
+    queryKey: ['dashboard', filters],
     queryFn: () =>
       apiController.get('/analytics/dashboard', {
-        params: { ward, village, hamlet },
+        params: filters,
       }),
   });
 
-  console.log('Raw Dashboard data:', data);
+  const handleFilterChange = (newFilters: { ward: string; village: string; hamlet: string }) => {
+    setFilters(newFilters);
+  };
 
   if (isLoading && !data) {
     return (
@@ -99,21 +133,21 @@ const Dashboard = () => {
   if (error) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        Error: {error.message}
+        Error: {error instanceof Error ? error.message : 'An error occurred'}
       </Box>
     );
   }
 
-  // Use the data directly from the backend
+  // Use the data with proper typing and default values
   const {
-    filterOptions,
-    washCards,
-    facilityCards,
-    waterAnalytics,
-    sanitationAnalytics,
-    populationAnalytics,
-    locationAnalytics,
-  } = data;
+    filterOptions = { Ward: ['All'], Village: ['All'], Hamlet: ['All'] },
+    washCards = [],
+    facilityCards = [],
+    waterAnalytics = { labels: [], values: [] },
+    sanitationAnalytics = { labels: [], values: [] },
+    populationAnalytics = { labels: [], values: [] },
+    locationAnalytics = { labels: [], values: [] }
+  } = data || {};
 
   // Cards: facilities
   const facilityCardItems = [
@@ -238,28 +272,13 @@ const Dashboard = () => {
             Overview of water, sanitation and hygiene facilities and population
           </Typography>
         </Typography>
-        <Box sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={2}>
-            <FilterDropdown
-              label="Ward"
-              value={ward}
-              onChange={(e) => setWard(e.target.value)}
-              options={filterOptions.Ward}
-            />
-            <FilterDropdown
-              label="Village"
-              value={village}
-              onChange={(e) => setVillage(e.target.value)}
-              options={filterOptions.Village}
-            />
-            <FilterDropdown
-              label="Hamlet"
-              value={hamlet}
-              onChange={(e) => setHamlet(e.target.value)}
-              options={filterOptions.Hamlet}
-            />
-          </Stack>
-        </Box>
+        <LocationFilter
+          wardOptions={data?.filterOptions?.Ward || ['All']}
+          villageOptions={data?.filterOptions?.Village || ['All']}
+          hamletOptions={data?.filterOptions?.Hamlet || ['All']}
+          onFilterChange={handleFilterChange}
+          initialValues={filters}
+        />
       </Box>
 
       {/* Facilities Captured Section */}
