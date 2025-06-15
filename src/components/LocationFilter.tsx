@@ -1,37 +1,39 @@
-import { Box, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Select, Stack, SelectChangeEvent } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { getWards, getVillagesByWard, getHamletsByVillage } from '../utils/location-filter';
 
 interface LocationFilterProps {
-  wardOptions: string[];
-  villageOptions: string[];
-  hamletOptions: string[];
   onFilterChange: (filters: { ward: string; village: string; hamlet: string }) => void;
   initialValues?: {
     ward?: string;
     village?: string;
     hamlet?: string;
   };
+  disabled?: boolean;
 }
 
 const LocationFilter = ({
-  wardOptions,
-  villageOptions,
-  hamletOptions,
   onFilterChange,
-  initialValues = { ward: 'All', village: 'All', hamlet: 'All' }
+  initialValues = { ward: '', village: '', hamlet: '' },
+  disabled = false,
 }: LocationFilterProps) => {
-  const [ward, setWard] = useState(initialValues.ward || 'All');
-  const [village, setVillage] = useState(initialValues.village || 'All');
-  const [hamlet, setHamlet] = useState(initialValues.hamlet || 'All');
+  const [ward, setWard] = useState(initialValues.ward || '');
+  const [village, setVillage] = useState(initialValues.village || '');
+  const [hamlet, setHamlet] = useState(initialValues.hamlet || '');
+
+  // Get available options based on selections
+  const wardOptions = getWards();
+  const villageOptions = ward ? getVillagesByWard(ward) : [];
+  const hamletOptions = (ward && village) ? getHamletsByVillage(ward, village) : [];
 
   // Reset dependent filters when parent filter changes
   useEffect(() => {
-    if (ward === 'All') {
-      setVillage('All');
-      setHamlet('All');
+    if (!ward) {
+      setVillage('');
+      setHamlet('');
     }
-    if (village === 'All') {
-      setHamlet('All');
+    if (!village) {
+      setHamlet('');
     }
   }, [ward, village]);
 
@@ -40,22 +42,26 @@ const LocationFilter = ({
     onFilterChange({ ward, village, hamlet });
   }, [ward, village, hamlet, onFilterChange]);
 
-  const handleWardChange = (event: any) => {
+  const handleWardChange = (event: SelectChangeEvent) => {
     setWard(event.target.value);
   };
 
-  const handleVillageChange = (event: any) => {
+  const handleVillageChange = (event: SelectChangeEvent) => {
     setVillage(event.target.value);
   };
 
-  const handleHamletChange = (event: any) => {
+  const handleHamletChange = (event: SelectChangeEvent) => {
     setHamlet(event.target.value);
   };
 
   return (
     <Box sx={{ mb: 3 }}>
       <Stack direction="row" spacing={2}>
-        <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+        <FormControl 
+          variant="outlined" 
+          sx={{ mb: 2, height: 40, minWidth: 120 }}
+          disabled={disabled}
+        >
           <InputLabel>Ward</InputLabel>
           <Select
             value={ward}
@@ -63,8 +69,11 @@ const LocationFilter = ({
             label="Ward"
             sx={{ height: 45 }}
           >
-            {wardOptions.map((option, index) => (
-              <MenuItem key={index} value={option}>
+            <MenuItem value="">
+              <em>Select Ward</em>
+            </MenuItem>
+            {wardOptions.map((option) => (
+              <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
             ))}
@@ -74,7 +83,7 @@ const LocationFilter = ({
         <FormControl 
           variant="outlined" 
           sx={{ mb: 2, height: 40, minWidth: 120 }}
-          disabled={ward === 'All'}
+          disabled={!ward || disabled}
         >
           <InputLabel>Village</InputLabel>
           <Select
@@ -83,8 +92,11 @@ const LocationFilter = ({
             label="Village"
             sx={{ height: 45 }}
           >
-            {villageOptions.map((option, index) => (
-              <MenuItem key={index} value={option}>
+            <MenuItem value="">
+              <em>Select Village</em>
+            </MenuItem>
+            {villageOptions.map((option) => (
+              <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
             ))}
@@ -94,7 +106,7 @@ const LocationFilter = ({
         <FormControl 
           variant="outlined" 
           sx={{ mb: 2, height: 40, minWidth: 120 }}
-          disabled={village === 'All'}
+          disabled={!village || disabled}
         >
           <InputLabel>Hamlet</InputLabel>
           <Select
@@ -103,8 +115,11 @@ const LocationFilter = ({
             label="Hamlet"
             sx={{ height: 45 }}
           >
-            {hamletOptions.map((option, index) => (
-              <MenuItem key={index} value={option}>
+            <MenuItem value="">
+              <em>Select Hamlet</em>
+            </MenuItem>
+            {hamletOptions.map((option) => (
+              <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
             ))}
@@ -115,4 +130,4 @@ const LocationFilter = ({
   );
 };
 
-export default LocationFilter; 
+export default LocationFilter;

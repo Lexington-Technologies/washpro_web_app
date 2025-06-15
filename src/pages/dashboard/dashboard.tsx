@@ -104,10 +104,13 @@ interface DashboardData {
 const Dashboard = () => {
   // Filter state values
   const [filters, setFilters] = useState({
-    ward: 'All',
-    village: 'All',
-    hamlet: 'All'
+    ward: '',
+    village: '',
+    hamlet: ''
   });
+
+  console.log(filters);
+
 
   // Query using react-query with filter parameters passed to the backend.
   const { data, isLoading, error } = useQuery<DashboardData>({
@@ -116,19 +119,20 @@ const Dashboard = () => {
       apiController.get('/analytics/dashboard', {
         params: filters,
       }),
+    enabled: !!filters.ward, // Only fetch when ward is selected
   });
 
   const handleFilterChange = (newFilters: { ward: string; village: string; hamlet: string }) => {
     setFilters(newFilters);
   };
 
-  if (isLoading && !data) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
+  // if (isLoading && !data) {
+  //   return (
+  //     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+  //       <CircularProgress size={60} thickness={4} />
+  //     </Box>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -272,10 +276,8 @@ const Dashboard = () => {
             Overview of water, sanitation and hygiene facilities and population
           </Typography>
         </Typography>
+        
         <LocationFilter
-          wardOptions={data?.filterOptions?.Ward || ['All']}
-          villageOptions={data?.filterOptions?.Village || ['All']}
-          hamletOptions={data?.filterOptions?.Hamlet || ['All']}
           onFilterChange={handleFilterChange}
           initialValues={filters}
         />

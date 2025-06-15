@@ -25,10 +25,6 @@ export default function Wrapper() {
     setDrawerOpen(!isDrawerOpen);
   };
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
   return (
     <Box sx={{ display: "flex", height: "100vh", overflowY: "hidden" }}>
       {/* Sidebar */}
@@ -43,8 +39,6 @@ export default function Wrapper() {
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         <Navbar
           onMenuClick={toggleDrawer}
-          onSidebarToggle={toggleSidebar}
-          isSidebarCollapsed={isSidebarCollapsed}
         />
         <Box sx={{ flexGrow: 1, padding: 1, overflowY: "scroll", backgroundColor: '#f0f0f0' }}>
           <Outlet />
