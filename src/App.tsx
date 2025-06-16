@@ -31,9 +31,9 @@ export default function App() {
 
 
   return (
-    <Suspense fallback={<LoadingAnimation />}>
+    // <Suspense fallback={<LoadingAnimation />}>
       <RouterProvider router={router} />
-    </Suspense>
+    // </Suspense>
   );
 }
 

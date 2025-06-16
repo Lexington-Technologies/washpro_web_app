@@ -102,9 +102,9 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <Suspense fallback={<LoadingAnimation />}>
+      // <Suspense fallback={<LoadingAnimation />}>
         <Wrapper />
-      </Suspense>
+      // </Suspense>
     ),
     errorElement: (
       <Suspense fallback={<LoadingAnimation />}>
@@ -115,9 +115,9 @@ const router = createBrowserRouter([
       {
         index: true,
         element: (
-          <Suspense fallback={<LoadingAnimation />}>
+          // <Suspense fallback={<LoadingAnimation />}>
             <Dashboard />
-          </Suspense>
+          // </Suspense>
         ),
       },
       {
