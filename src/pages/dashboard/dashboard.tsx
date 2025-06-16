@@ -219,7 +219,7 @@ const Dashboard = () => {
 
   // Filter Dropdown component using options from the backend
   const FilterDropdown = ({ label, value, onChange, options }: FilterDropdownProps) => (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
+    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 200 }}>
       <InputLabel>{label}</InputLabel>
       <Select value={value} onChange={onChange} label={label} sx={{ height: 45 }}>
         {options.map((option: string, index: number) => (
