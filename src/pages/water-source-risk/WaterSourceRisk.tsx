@@ -199,8 +199,7 @@ const WaterSourceRisk = () => {
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
   const [type, setType] = useState('');
-  // Set markers visible by default.
-  const [showMapMarkers, setShowMapMarkers] = useState(true);
+  const [showMapMarkers, setShowMapMarkers] = useState(false);
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
 
   // Fetch water risk data from API.
@@ -295,8 +294,10 @@ const WaterSourceRisk = () => {
     } else if (filterType === 'type') {
       setType(value);
     }
-    // Always show markers on map.
-    setShowMapMarkers(true);
+    // Show markers when any filter is applied
+    if (value) {
+      setShowMapMarkers(true);
+    }
   };
 
   // Navigate on row click in DataTable.
@@ -343,7 +344,7 @@ const WaterSourceRisk = () => {
             Filtered water sources analysis
           </Typography>
         </Box>
-        {/* <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1}>
           {typeOptions.length > 0 && (
             <FilterDropdown
               label="Type"
@@ -376,7 +377,7 @@ const WaterSourceRisk = () => {
               onChange={(value) => handleFilterChange('hamlet', value)}
             />
           )}
-        </Stack> */}
+        </Stack>  
       </Box>
 
       {/* Analytics Cards */}
@@ -426,9 +427,16 @@ const WaterSourceRisk = () => {
           position: 'relative',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Risk Distribution Map
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Risk Distribution Map
+          </Typography>
+          {!showMapMarkers && (
+            <Typography variant="body2" color="text.secondary">
+              Apply filters to view markers on the map
+            </Typography>
+          )}
+        </Box>
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
           <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
             <Map
@@ -451,7 +459,6 @@ const WaterSourceRisk = () => {
                       position={position}
                       onClick={() => handleMarkerClick(waterRisk)}
                     >
-                      {/* Render a simple colored circle as marker */}
                       <Box
                         sx={{
                           width: 20,
@@ -465,27 +472,29 @@ const WaterSourceRisk = () => {
                   );
                 })}
             </Map>
-            {/* Legend Overlay */}
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 16,
-                left: 16,
-                bgcolor: '#FFF',
-                p: 2,
-                borderRadius: 2,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Legend
-              </Typography>
-              <Stack spacing={0.5}>
-                <LegendItem color={riskColorMapping.critical} label="< 30m (Critical)" />
-                <LegendItem color={riskColorMapping.moderate} label="30m - 60m (Moderate)" />
-                <LegendItem color={riskColorMapping.safe} label=">= 60m (Safe)" />
-              </Stack>
-            </Box>
+            {/* Legend Overlay - Only show when markers are visible */}
+            {showMapMarkers && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 16,
+                  left: 16,
+                  bgcolor: '#FFF',
+                  p: 2,
+                  borderRadius: 2,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Legend
+                </Typography>
+                <Stack spacing={0.5}>
+                  <LegendItem color={riskColorMapping.critical} label="< 30m (Critical)" />
+                  <LegendItem color={riskColorMapping.moderate} label="30m - 60m (Moderate)" />
+                  <LegendItem color={riskColorMapping.safe} label=">= 60m (Safe)" />
+                </Stack>
+              </Box>
+            )}
           </Box>
         </APIProvider>
       </Paper>
