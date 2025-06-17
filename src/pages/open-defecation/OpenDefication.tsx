@@ -10,15 +10,9 @@ import {
   DialogTitle,
   DialogContent,
   Grid,
-  Chip,
-  Stack,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
   Button,
   DialogActions,
+  Stack,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -30,6 +24,9 @@ import DangerousIcon from '@mui/icons-material/Dangerous';
 import SafetyCheckIcon from '@mui/icons-material/SafetyCheck';
 import { FaChartLine } from 'react-icons/fa';
 import React from 'react';
+import LocationFilter from '../../components/LocationFilter';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
+import { useNavigate } from 'react-router-dom';
 
 interface OpenDefecation {
   _id: string;
@@ -47,6 +44,18 @@ interface OpenDefecation {
   isSchoolArea: boolean;
   odfStatus: boolean;
   regressionRate: number;
+}
+
+interface AnalyticsResponse {
+  totalSites: number;
+  schoolOD: number;
+  odfCommunities: number;
+  regressionRate: number;
+}
+
+interface PaginationState {
+  pageIndex: number;
+  pageSize: number;
 }
 
 const columnHelper = createColumnHelper<OpenDefecation>();
@@ -90,92 +99,34 @@ const riskColorMapping = {
 
 const OpenDefication = () => {
   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
-  const [ward, setWard] = useState('');
-  const [village, setVillage] = useState('');
-  const [hamlet, setHamlet] = useState('');
-
-  const { data:analyticsData } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation-analytics'],
-    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations/analytics'),
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
   });
-console.log(analyticsData?.totalSites)
+  const navigate = useNavigate();
+  const { ward, village, hamlet } = useLocationFilter();
 
-  const { data, isLoading } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation'],
-    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations'),
+  const { data: analyticsData } = useQuery<AnalyticsResponse, Error>({
+    queryKey: ['open-defecation-analytics', ward, village, hamlet],
+    queryFn: () => apiController.get<AnalyticsResponse>(`/open-defecations/analytics?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
   });
 
-  // Analytics computation
-  const analytics = useMemo(() => ({
-    totalSites: data?.length || 0,
-    schoolOD: data?.filter(item => item.isSchoolArea).length || 0,
-    odfCommunities: data?.filter(item => item.odfStatus).length || 0,
-    regressionRate: data?.reduce((sum, item) => sum + item.regressionRate, 0) / (data?.length || 1) || 0,
-  }), [data]);
-
-  // Filter handlers
-  const handleFilterChange = (filterType: 'ward' | 'village' | 'hamlet', value: string) => {
-    if (filterType === 'ward') {
-      setWard(value);
-      setVillage('');
-      setHamlet('');
-    } else if (filterType === 'village') {
-      setVillage(value);
-      setHamlet('');
-    } else if (filterType === 'hamlet') {
-      setHamlet(value);
-    }
-  };
-
-  // Filter options
-  const wardOptions = useMemo(
-    () => Array.from(new Set(data?.map((item) => item.ward) || [])),
-    [data]
-  );
-
-  const villageOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          data
-            ?.filter((item) => !ward || item.ward === ward)
-            .map((item) => item.village) || []
-        )
-      ),
-    [data, ward]
-  );
-
-  const hamletOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          data
-            ?.filter(
-              (item) =>
-                (!ward || item.ward === ward) &&
-                (!village || item.village === village)
-            )
-            .map((item) => item.hamlet) || []
-        )
-      ),
-    [data, ward, village]
-  );
+  const { data: tableData } = useQuery<OpenDefecation[], Error>({
+    queryKey: ['open-defecation', ward, village, hamlet],
+    queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
+  });
 
   const filteredData = useMemo(() => 
-    data?.filter(item =>
+    tableData?.filter(item =>
       (!ward || item.ward === ward) &&
       (!village || item.village === village) &&
       (!hamlet || item.hamlet === hamlet)
     ) || []
-  , [data, ward, village, hamlet]);
+  , [tableData, ward, village, hamlet]);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
+  const navigateToDetails = (id: string) => {
+    navigate(`/open-defecation/${id}`);
+  };
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
@@ -189,27 +140,24 @@ console.log(analyticsData?.totalSites)
             Filtered open defecation observations
           </Typography>
         </Box>
-        {/* <Stack direction="row" spacing={1}>
-          <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={(v) => handleFilterChange('ward', v)} />
-          <FilterDropdown label="Village" value={village} options={villageOptions} onChange={(v) => handleFilterChange('village', v)} />
-          <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={(v) => handleFilterChange('hamlet', v)} />
-        </Stack> */}
+        <Box>
+          <LocationFilter />
+        </Box>
       </Box>
 
       {/* Analytics Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Total Observations" value={analyticsData?.totalSites} icon={<FaChartLine />} iconColor="#3b82f6" />
+          <StatsCard title="Total Observations" value={analyticsData?.totalSites || 0} icon={<FaChartLine />} iconColor="#3b82f6" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Schools with OD" value={analytics.schoolOD || 2} icon={<DangerousIcon />} iconColor="#ef4444" />
+          <StatsCard title="Schools with OD" value={analyticsData?.schoolOD || 0} icon={<DangerousIcon />} iconColor="#ef4444" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="ODF Communities" value={analytics.odfCommunities || 340} icon={<SafetyCheckIcon />} iconColor="#4CAF50" />
+          <StatsCard title="ODF Communities" value={analyticsData?.odfCommunities || 0} icon={<SafetyCheckIcon />} iconColor="#4CAF50" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="ODF Regression Rate" value={ "5%"} icon={<FaChartLine />} iconColor="#f59e0b" />
-          {/* `${analytics.regressionRate.toFixed(1)}%`  */}
+          <StatsCard title="ODF Regression Rate" value={`${(analyticsData?.regressionRate || 0).toFixed(1)}%`} icon={<FaChartLine />} iconColor="#f59e0b" />
         </Grid>
       </Grid>
 
@@ -247,101 +195,73 @@ console.log(analyticsData?.totalSites)
 
       {/* Data Table */}
       <DataTable
-        isLoading={isLoading}
+        data={tableData || []}
         columns={columns}
-        data={filteredData}
-        onRowClick={(row) => setSelectedLocation(row)}
+        pagination={{
+          pageIndex: pagination.pageIndex,
+          pageSize: pagination.pageSize,
+        }}
+        onPaginationChange={setPagination}
+        onFilterChange={() => {
+          setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+        }}
+        wardFilter={ward}
+        villageFilter={village}
+        hamletFilter={hamlet}
+        onRowClick={(row) => navigateToDetails(row._id)}
       />
 
-      {/* Details Modal */}
-      <Dialog open={!!selectedLocation} onClose={() => setSelectedLocation(null)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ p: 3, bgcolor: '#1a237e', color: '#fff' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Observation Details</Typography>
-            <IconButton onClick={() => setSelectedLocation(null)} sx={{ color: '#fff' }}>
-              <X size={20} />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 3 }}>
-          {selectedLocation && (
+      {/* Location Details Dialog */}
+      {selectedLocation && (
+        <Dialog
+          open={!!selectedLocation}
+          onClose={() => setSelectedLocation(null)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Location Details</Typography>
+              <IconButton onClick={() => setSelectedLocation(null)}>
+                <X />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
-                  {selectedLocation.picture ? (
-                    <img
-                      src={selectedLocation.picture}
-                      alt="Observation"
-                      style={{ width: '100%', borderRadius: 8 }}
-                    />
-                  ) : (
-                    <Typography color="text.secondary">Image not available</Typography>
-                  )}
-                </Card>
+                <Box sx={{ position: 'relative', height: 300, borderRadius: 2, overflow: 'hidden' }}>
+                  <img
+                    src={selectedLocation.picture}
+                    alt="location"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </Box>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3, mb: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    <MapPin size={20} style={{ marginRight: 8 }} />
-                    Location Details
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <DetailItem icon={<Home />} label="Ward" value={selectedLocation.ward} />
-                    <DetailItem icon={<MapPin />} label="Village" value={selectedLocation.village} />
-                    <DetailItem icon={<MapPin />} label="Hamlet" value={selectedLocation.hamlet} />
-                  </Grid>
-                </Card>
-                <Card sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    <AlertCircle size={20} style={{ marginRight: 8 }} />
-                    Additional Information
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <DetailItem label="Space Type" value={selectedLocation.spaceType} />
-                    <DetailItem label="Foot Traffic" value={selectedLocation.footTraffic} />
-                    <DetailItem 
-                      label="Peak Times" 
-                      value={Array.isArray(selectedLocation.peakTime) ? 
-                        selectedLocation.peakTime.join(', ') : 
-                        selectedLocation.peakTime} 
-                    />
-                  </Grid>
-                </Card>
+                <Stack spacing={2}>
+                  <DetailItem icon={<MapPin />} label="Location" value={`${selectedLocation.ward}, ${selectedLocation.village}, ${selectedLocation.hamlet}`} />
+                  <DetailItem icon={<Home />} label="Space Type" value={selectedLocation.spaceType} />
+                  <DetailItem icon={<AlertCircle />} label="Foot Traffic" value={selectedLocation.footTraffic} />
+                  <DetailItem icon={<AlertCircle />} label="Peak Time" value={Array.isArray(selectedLocation.peakTime) ? selectedLocation.peakTime.map(String).join(', ') : String(selectedLocation.peakTime)} />
+                  <DetailItem icon={<AlertCircle />} label="Daily Average" value={selectedLocation.dailyAverage} />
+                  <DetailItem icon={<AlertCircle />} label="School Area" value={selectedLocation.isSchoolArea ? 'Yes' : 'No'} />
+                  <DetailItem icon={<AlertCircle />} label="ODF Status" value={selectedLocation.odfStatus ? 'Yes' : 'No'} />
+                  <DetailItem icon={<AlertCircle />} label="Regression Rate" value={`${selectedLocation.regressionRate}%`} />
+                </Stack>
               </Grid>
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setSelectedLocation(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSelectedLocation(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };
 
 // Helper Components
-const FilterDropdown = ({ label, value, options, onChange }: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}) => (
-  <FormControl variant="outlined" sx={{ minWidth: 210 }}>
-    <InputLabel>{label}</InputLabel>
-    <Select
-      value={value}
-      onChange={(e) => onChange(e.target.value as string)}
-      label={label}
-      sx={{ height: 40 }}
-    >
-      <MenuItem value="">All {label}</MenuItem>
-      {options.map((option) => (
-        <MenuItem key={option} value={option}>{option}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-);
-
 const StatsCard = ({ title, value, icon, iconColor }: {
   title: string;
   value: string | number;
