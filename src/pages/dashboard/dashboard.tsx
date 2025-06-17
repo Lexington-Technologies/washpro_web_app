@@ -3,16 +3,10 @@ import {
   Card,
   CardContent,
   Container,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
   Typography,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import {
   FaToilet,
   FaTrash,
@@ -36,6 +30,8 @@ import {
   Cell,
 } from 'recharts';
 import { apiController } from '../../axios';
+import LocationFilter from '../../components/LocationFilter';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 // Type definitions
 interface CardItem {
@@ -44,11 +40,6 @@ interface CardItem {
 }
 
 interface DashboardData {
-  filterOptions: {
-    Ward: string[];
-    Village: string[];
-    Hamlet: string[];
-  };
   washCards: CardItem[];
   facilityCards: CardItem[];
 }
@@ -59,13 +50,6 @@ interface TooltipProps {
     name: string;
     value: number;
   }>;
-}
-
-interface FilterDropdownProps {
-  label: string;
-  value: string;
-  onChange: (event: React.ChangeEvent<{ value: unknown }>) => void;
-  options: string[];
 }
 
 // Utility function for color conversion
@@ -102,10 +86,8 @@ const CHART_COLORS = [
 ];
 
 const Dashboard = () => {
-  // Filter state values
-  const [ward, setWard] = useState('All');
-  const [village, setVillage] = useState('All');
-  const [hamlet, setHamlet] = useState('All');
+  // Get location filter values from context
+  const { ward, village, hamlet } = useLocationFilter();
 
   // Query using react-query with filter parameters passed to the backend.
   const { data } = useQuery<DashboardData>({
@@ -118,7 +100,6 @@ const Dashboard = () => {
 
   // Use the data directly from the backend with default values
   const {
-    filterOptions = { Ward: [], Village: [], Hamlet: [] },
     washCards = [],
     facilityCards = [],
   } = data || {};
@@ -217,20 +198,6 @@ const Dashboard = () => {
     return null;
   };
 
-  // Filter Dropdown component using options from the backend
-  const FilterDropdown = ({ label, value, onChange, options }: FilterDropdownProps) => (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 200 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select value={value} onChange={onChange} label={label} sx={{ height: 45 }}>
-        {options.map((option: string, index: number) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
   return (
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
       <Box sx={{ flexGrow: 1 }}>
@@ -246,26 +213,7 @@ const Dashboard = () => {
                   </Typography>
                 </Typography>
                 <Box sx={{ mb: 3 }}>
-                  <Stack direction="row" spacing={2}>
-                    <FilterDropdown
-                      label="Ward"
-                      value={ward}
-                      onChange={(e) => setWard(e.target.value as string)}
-                      options={filterOptions.Ward}
-                    />
-                    <FilterDropdown
-                      label="Village"
-                      value={village}
-                      onChange={(e) => setVillage(e.target.value as string)}
-                      options={filterOptions.Village}
-                    />
-                    <FilterDropdown
-                      label="Hamlet"
-                      value={hamlet}
-                      onChange={(e) => setHamlet(e.target.value as string)}
-                      options={filterOptions.Hamlet}
-                    />
-                  </Stack>
+                  <LocationFilter />
                 </Box>
               </Box>
             </Grid>

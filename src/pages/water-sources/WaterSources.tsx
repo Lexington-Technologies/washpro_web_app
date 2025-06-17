@@ -3,13 +3,8 @@ import {
   Box,
   Card,
   Chip,
-  CircularProgress,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Typography,
   styled,
@@ -24,6 +19,8 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LocationFilter from '../../components/LocationFilter';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 const StyledPaper = styled(Paper)`
   padding: ${({ theme }) => theme.spacing(3)};
@@ -37,6 +34,7 @@ interface StatCardProps {
   icon?: React.ReactNode;
   bgColor?: string;
 }
+
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
   <StyledPaper>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
@@ -81,60 +79,74 @@ interface WaterSource {
   capturedAt: string;
 }
 
+interface AnalyticsData {
+  totalWaterPoints: number;
+  proportionImproved: number;
+  avgDistance: number;
+  typeDistribution: {
+    [key: string]: {
+      count: number;
+    };
+  };
+  functionalStatusDistribution: {
+    [key: string]: {
+      'Functional': number;
+      'Non Functional': number;
+    };
+  };
+}
+
+interface TableResponse {
+  data: WaterSource[];
+  total: number;
+}
+
+interface PaginationState {
+  pageIndex: number;
+  pageSize: number;
+  pageCount?: number;
+}
+
 const WaterSourcesDashboard: React.FC = () => {
-  const [wardFilter, setWardFilter] = useState<string>('All');
-  const [villageFilter, setVillageFilter] = useState<string>('All');
-  const [hamletFilter, setHamletFilter] = useState<string>('All');
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const { ward, village, hamlet } = useLocationFilter();
 
-  const { data: analytics } = useQuery({
-    queryKey: ['water-sources-analytics', wardFilter, villageFilter, hamletFilter],
+  const { data: analytics } = useQuery<AnalyticsData>({
+    queryKey: ['water-sources-analytics', ward, village, hamlet],
     queryFn: () =>
       apiController.get(
-        `/water-sources/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
-          villageFilter !== 'All' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
+        `/water-sources/analytics?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`
       ),
   });
 
-  console.log(analytics)
-
-  const { data: tableData, isLoading: isTableLoading } = useQuery({
+  const { data: tableData } = useQuery<TableResponse>({
     queryKey: [
       "water-sources",
       pagination.pageIndex,
       pagination.pageSize,
       searchTerm,
-      wardFilter,
-      villageFilter,
-      hamletFilter,
+      ward,
+      village,
+      hamlet,
     ],
     queryFn: () =>
       apiController.get(
         `/water-sources?limit=${pagination.pageSize}&page=${
           pagination.pageIndex + 1
-        }&search=${searchTerm}&ward=${
-          wardFilter !== "All" ? wardFilter : ""
-        }&village=${villageFilter !== "All" ? villageFilter : ""}&hamlet=${
-          hamletFilter !== "All" ? hamletFilter : ""
-        }`
+        }&search=${searchTerm}&ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`
       ),
   });
 
-  const isLoading = isTableLoading;
   const totalWaterPoints = analytics?.totalWaterPoints || 0;
   const proportionImproved =
     analytics?.proportionImproved !== undefined
       ? `${(analytics.proportionImproved * 100).toFixed(1)}%`
       : '0';
   const avgDistance = analytics?.avgDistance || '0';
-  const householdsUsingUnimproved = analytics?.householdsUsingUnimproved || '0';
-  const wardOptions = useMemo(() => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']), [analytics]);
-  const villageOptions = useMemo(() => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']), [analytics]);
-  const hamletOptions = useMemo(() => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']), [analytics]);
+
   const pieChartData = useMemo(() => {
     if (!analytics || !analytics.typeDistribution) return [];
     const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722'];
@@ -145,7 +157,9 @@ const WaterSourcesDashboard: React.FC = () => {
       color: colorPalette[index % colorPalette.length],
     }));
   }, [analytics]);
+
   const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
+
   const barChartData = useMemo(() => {
     if (!analytics || !analytics.functionalStatusDistribution) return [];
     return Object.entries(analytics.functionalStatusDistribution).map(([type, values]) => ({
@@ -154,6 +168,7 @@ const WaterSourcesDashboard: React.FC = () => {
       nonFunctional: values['Non Functional'],
     }));
   }, [analytics]);
+
   const columnHelper = createColumnHelper<WaterSource>();
   const columns = [
     columnHelper.accessor('picture', {
@@ -189,16 +204,11 @@ const WaterSourcesDashboard: React.FC = () => {
       ),
     }),
   ];
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
+
   const navigateToDetails = (id: string) => {
     navigate(`/water-sources/${id}?${queryParams.toString()}`);
   };
+
   return (
     <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
@@ -211,62 +221,31 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Ward</InputLabel>
-              <Select value={wardFilter} onChange={(e) => setWardFilter(e.target.value)} label="Ward">
-                {wardOptions.map((option, index) => (
-                  <MenuItem key={index} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Village</InputLabel>
-              <Select value={villageFilter} onChange={(e) => setVillageFilter(e.target.value)} label="Village">
-                {villageOptions.map((option, index) => (
-                  <MenuItem key={index} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Hamlet</InputLabel>
-              <Select value={hamletFilter} onChange={(e) => setHamletFilter(e.target.value)} label="Hamlet">
-                {hamletOptions.map((option, index) => (
-                  <MenuItem key={index} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
+          <LocationFilter />
         </Box>
       </Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
             title="Total Water Points"
-            value={Number(totalWaterPoints).toLocaleString()}
-            icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />}
+            value={totalWaterPoints}
+            icon={<RiWaterFlashFill size={24} color="#1976D2" />}
             bgColor="#E3F2FD"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Improved Sources"
+            title="Proportion Improved"
             value={proportionImproved}
-            icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />}
+            icon={<ArrowUp size={24} color="#4CAF50" />}
             bgColor="#E8F5E9"
           />
         </Grid>
         <Grid item xs={12} md={3}>
           <StatCard
-            title="Distance to Improved water point (m)"
-            value={avgDistance === 'Data not available' || avgDistance === '0' ? '0' : avgDistance}
-            icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />}
+            title="Average Distance"
+            value={`${avgDistance}m`}
+            icon={<RiWaterFlashFill  size={24} color="#2196F3" />}
             bgColor="#E3F2FD"
           />
         </Grid>
@@ -279,96 +258,81 @@ const WaterSourcesDashboard: React.FC = () => {
           />
         </Grid>
       </Grid>
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h4" mb={2}>
-              Type Distribution by type
-            </Typography>
-            <PieChart
-              series={[
-                {
-                  data: pieChartData,
-                  arcLabel: (item) => totalPieValue > 0 ? `${((item.value / totalPieValue) * 100).toFixed(1)}%` : '0%',
-                  arcLabelMinAngle: 10,
-                  outerRadius: 180,
-                  innerRadius: 40,
-                  tooltip: ({ datum }) => `${datum.label}: ${datum.value}`,
-                },
-              ]}
-              width={Math.min(760, window.innerWidth - 40)}
-              height={370}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontWeight: 'bold',
-                  fill: 'white',
-                  fontSize: '0.8rem',
-                },
-              }}
-            />
+          <Card>
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Water Source Types
+              </Typography>
+              <Box sx={{ height: 300 }}>
+                <PieChart
+                  series={[
+                    {
+                      data: pieChartData,
+                      arcLabel: (item) => `${item.label} (${((item.value / totalPieValue) * 100).toFixed(1)}%)`,
+                      arcLabelMinAngle: 45,
+                    },
+                  ]}
+                  sx={{
+                    [`& .${pieArcLabelClasses.root}`]: {
+                      fill: 'white',
+                      fontWeight: 'bold',
+                    },
+                  }}
+                  width={700}
+                  height={300}
+                />
+              </Box>
+            </Box>
           </Card>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h4" mb={2}>
-            Functionality by type
-            </Typography>
-            <BarChart
-              xAxis={[
-                {
-                  scaleType: 'band',
-                  data: barChartData.map((d) => d.type),
-                },
-              ]}
-              series={[
-                {
-                  data: barChartData.map((d) => d.functional),
-                  label: 'Functional',
-                  color: '#4CAF50',
-                },
-                {
-                  data: barChartData.map((d) => d.nonFunctional),
-                  label: 'Non-Functional',
-                  color: '#F44336',
-                },
-              ]}
-              width={Math.min(750, window.innerWidth - 40)}
-              height={400}
-            />
+          <Card>
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Functional Status by Type
+              </Typography>
+              <Box sx={{ height: 300 }}>
+                <BarChart
+                  dataset={barChartData}
+                  xAxis={[{ scaleType: 'band', dataKey: 'type' }]}
+                  series={[
+                    { dataKey: 'functional', label: 'Functional', color: '#4CAF50' },
+                    { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#F44336' },
+                  ]}
+                  width={500}
+                  height={300}
+                />
+              </Box>
+            </Box>
           </Card>
         </Grid>
       </Grid>
-      <Card sx={{ mt: 3 }}>
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-            Water Sources Overview
-          </Typography>
-          <Paper sx={{ overflowX: 'auto' }}>
-            <DataTable
-              columns={columns}
-              data={tableData?.data || []}
-              pagination={pagination}
-              totalCount={tableData?.pagination?.total || 0}
-              onPaginationChange={setPagination}
-              onFilterChange={({ ward, village, hamlet }) => {
-                setWardFilter(ward || 'All');
-                setVillageFilter(village || 'All');
-                setHamletFilter(hamlet || 'All');
-                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-              }}
-              wardFilter={wardFilter}
-              villageFilter={villageFilter}
-              hamletFilter={hamletFilter}
-              searchQuery={searchTerm}
-              onSearchChange={(newSearch) => {
-                setSearchTerm(newSearch);
-                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-              }}
-              onRowClick={(row) => navigateToDetails(row._id)}
-            />
-          </Paper>
-        </Box>
-      </Card>
+      <Box sx={{ mt: 3 }}>
+        <DataTable
+          data={tableData?.data || []}
+          columns={columns}
+          pagination={{
+            pageIndex: pagination.pageIndex,
+            pageSize: pagination.pageSize,
+            pageCount: Math.ceil((tableData?.total || 0) / pagination.pageSize),
+          }}
+          onPaginationChange={setPagination}
+          onFilterChange={() => {
+            setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+          }}
+          wardFilter={ward}
+          villageFilter={village}
+          hamletFilter={hamlet}
+          searchQuery={searchTerm}
+          onSearchChange={(newSearch) => {
+            setSearchTerm(newSearch);
+            setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+          }}
+          onRowClick={(row) => navigateToDetails(row._id)}
+        />
+      </Box>
     </Box>
   );
 };
