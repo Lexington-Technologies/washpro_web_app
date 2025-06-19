@@ -25,7 +25,6 @@ import SafetyCheckIcon from '@mui/icons-material/SafetyCheck';
 import { FaChartLine } from 'react-icons/fa';
 import React from 'react';
 import LocationFilter from '../../components/LocationFilter';
-import { useLocationFilter } from '../../contexts/LocationFilterContext';
 import { useNavigate } from 'react-router-dom';
 
 interface OpenDefecation {

@@ -1,4 +1,3 @@
-// Location data
 const locationData = {
   wards: [
     "S/GARI",
@@ -615,3 +614,13 @@ export const getVillagesByWard = (ward: string) => {
 export const getHamletsByVillage = (ward: string, village: string) => {
   return locationData.hamlets[village] || [];
 }; 
+
+export const getLocationParams = (ward: string, village: string, hamlet: string) => {
+  const params = new URLSearchParams();
+  
+  if (ward) params.append('ward', ward);
+  if (village) params.append('village', village);
+  if (hamlet) params.append('hamlet', hamlet);
+  
+  return params.toString();
+};

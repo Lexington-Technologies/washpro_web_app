@@ -28,7 +28,6 @@ import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { Email, Phone } from '@mui/icons-material';
 import { LucideIcon } from 'lucide-react';
-import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 interface ToiletFacility {
   geolocation: {
@@ -505,7 +504,6 @@ const ToiletFacilitiesDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getLocationParams } = useLocationFilter();
 
   const { data: toiletFacility, isLoading, error } = useQuery<ToiletFacility>({
     queryKey: ['toiletFacility', id, getLocationParams()],

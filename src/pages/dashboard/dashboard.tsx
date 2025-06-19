@@ -31,7 +31,8 @@ import {
 } from 'recharts';
 import { apiController } from '../../axios';
 import LocationFilter from '../../components/LocationFilter';
-import { useLocationFilter } from '../../contexts/LocationFilterContext';
+import { getLocationParams } from '../../utils/location-filter';
+import { useState } from 'react';
 
 // Type definitions
 interface CardItem {
@@ -87,13 +88,18 @@ const CHART_COLORS = [
 
 const Dashboard = () => {
   // Get location filter values from context
-  const { getLocationParams } = useLocationFilter();
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
+
+
+
 
   // Query using react-query with filter parameters passed to the backend.
   const { data } = useQuery<DashboardData>({
-    queryKey: ['dashboard', getLocationParams()],
+    queryKey: ['dashboard', getLocationParams(ward, village, hamlet)],
     queryFn: () =>
-      apiController.get(`/analytics/dashboard?${getLocationParams()}`),
+      apiController.get(`/analytics/dashboard?${getLocationParams(ward, village, hamlet)}`),
   });
 
   // Use the data directly from the backend with default values
@@ -211,7 +217,9 @@ const Dashboard = () => {
                   </Typography>
                 </Typography>
                 <Box sx={{ mb: 3 }}>
-                  <LocationFilter />
+                  <LocationFilter ward={ward} village={village} hamlet={hamlet}
+                  setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
+                  />
                 </Box>
               </Box>
             </Grid>

@@ -3,7 +3,7 @@ import { Suspense, useEffect } from "react";
 import router from "./routes";
 import LoadingAnimation from "./components/LoadingAnimation";
 import { useAuthStore } from "./store";
-import { LocationFilterProvider } from "./contexts/LocationFilterContext";
+import { LocationFilterProvider } from './contexts/LocationFilterContext';
 
 export default function App() {
   const { initializeZitadel, zitadel, setAuthenticated } = useAuthStore();

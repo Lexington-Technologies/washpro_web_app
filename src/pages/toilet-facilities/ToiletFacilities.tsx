@@ -24,7 +24,6 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 const getImageSrc = (url: string) => {
   return url.startsWith('file://') ? '/fallback-placeholder.jpg' : url;
@@ -104,7 +103,6 @@ const ToiletFacilities: React.FC = () => {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const { getLocationParams } = useLocationFilter();
 
   const { data: analytics } = useQuery({
     queryKey: ['toilet-facilities-analytics', getLocationParams()],

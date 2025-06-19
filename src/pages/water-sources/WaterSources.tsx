@@ -19,8 +19,6 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import LocationFilter from '../../components/LocationFilter';
-import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 const StyledPaper = styled(Paper)`
   padding: ${({ theme }) => theme.spacing(3)};
@@ -112,12 +110,11 @@ const WaterSourcesDashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const { ward, village, hamlet, getLocationParams } = useLocationFilter();
 
   const { data: analytics } = useQuery<AnalyticsData>({
-    queryKey: ['water-sources-analytics', getLocationParams()],
+    queryKey: ['water-sources-analytics'],
     queryFn: () =>
-      apiController.get(`/water-sources/analytics?${getLocationParams()}`),
+      apiController.get(`/water-sources/analytics`),
   });
 
   const { data: tableData } = useQuery<TableResponse>({
@@ -126,13 +123,12 @@ const WaterSourcesDashboard: React.FC = () => {
       pagination.pageIndex,
       pagination.pageSize,
       searchTerm,
-      getLocationParams()
     ],
     queryFn: () =>
       apiController.get(
         `/water-sources?limit=${pagination.pageSize}&page=${
           pagination.pageIndex + 1
-        }&search=${searchTerm}&${getLocationParams()}`
+        }&search=${searchTerm}`
       ),
   });
 
@@ -217,7 +213,6 @@ const WaterSourcesDashboard: React.FC = () => {
           </Typography>
         </Box>
         <Box>
-          <LocationFilter />
         </Box>
       </Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -318,9 +313,6 @@ const WaterSourcesDashboard: React.FC = () => {
           onFilterChange={() => {
             setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
           }}
-          wardFilter={ward}
-          villageFilter={village}
-          hamletFilter={hamlet}
           searchQuery={searchTerm}
           onSearchChange={(newSearch) => {
             setSearchTerm(newSearch);
