@@ -112,14 +112,12 @@ const WaterSourcesDashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const { ward, village, hamlet } = useLocationFilter();
+  const { ward, village, hamlet, getLocationParams } = useLocationFilter();
 
   const { data: analytics } = useQuery<AnalyticsData>({
-    queryKey: ['water-sources-analytics', ward, village, hamlet],
+    queryKey: ['water-sources-analytics', getLocationParams()],
     queryFn: () =>
-      apiController.get(
-        `/water-sources/analytics?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`
-      ),
+      apiController.get(`/water-sources/analytics?${getLocationParams()}`),
   });
 
   const { data: tableData } = useQuery<TableResponse>({
@@ -128,15 +126,13 @@ const WaterSourcesDashboard: React.FC = () => {
       pagination.pageIndex,
       pagination.pageSize,
       searchTerm,
-      ward,
-      village,
-      hamlet,
+      getLocationParams()
     ],
     queryFn: () =>
       apiController.get(
         `/water-sources?limit=${pagination.pageSize}&page=${
           pagination.pageIndex + 1
-        }&search=${searchTerm}&ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`
+        }&search=${searchTerm}&${getLocationParams()}`
       ),
   });
 

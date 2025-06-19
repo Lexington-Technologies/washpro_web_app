@@ -87,15 +87,13 @@ const CHART_COLORS = [
 
 const Dashboard = () => {
   // Get location filter values from context
-  const { ward, village, hamlet } = useLocationFilter();
+  const { getLocationParams } = useLocationFilter();
 
   // Query using react-query with filter parameters passed to the backend.
   const { data } = useQuery<DashboardData>({
-    queryKey: ['dashboard', { ward, village, hamlet }],
+    queryKey: ['dashboard', getLocationParams()],
     queryFn: () =>
-      apiController.get('/analytics/dashboard', {
-        params: { ward, village, hamlet },
-      }),
+      apiController.get(`/analytics/dashboard?${getLocationParams()}`),
   });
 
   // Use the data directly from the backend with default values

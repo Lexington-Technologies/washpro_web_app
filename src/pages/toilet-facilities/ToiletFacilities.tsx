@@ -24,6 +24,7 @@ import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 const getImageSrc = (url: string) => {
   return url.startsWith('file://') ? '/fallback-placeholder.jpg' : url;
@@ -100,33 +101,21 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F
 );
 
 const ToiletFacilities: React.FC = () => {
-  const [wardFilter, setWardFilter] = useState<string>('All');
-  const [villageFilter, setVillageFilter] = useState<string>('All');
-  const [hamletFilter, setHamletFilter] = useState<string>('All');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  const { getLocationParams } = useLocationFilter();
 
   const { data: analytics } = useQuery({
-    queryKey: ['toilet-facilities-analytics', wardFilter, villageFilter, hamletFilter],
+    queryKey: ['toilet-facilities-analytics', getLocationParams()],
     queryFn: () =>
-      apiController.get(
-        `/toilet-facilities/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
-          villageFilter !== 'All' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
-      ),
+      apiController.get(`/toilet-facilities/analytics?${getLocationParams()}`),
   });
 
-  console.log(analytics)
-
   const { data: tableData, isLoading: isTableLoading } = useQuery({
-    queryKey: ['toilet-facilities', wardFilter, villageFilter, hamletFilter],
+    queryKey: ['toilet-facilities', getLocationParams()],
     queryFn: () =>
-      apiController.get(
-        `/toilet-facilities?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${
-          villageFilter !== 'All' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
-      ),
+      apiController.get(`/toilet-facilities?${getLocationParams()}`),
   });
 
   const isLoading = isTableLoading;
@@ -137,21 +126,6 @@ const ToiletFacilities: React.FC = () => {
       : '0%';
   const householdToiletRatio = analytics?.householdToiletRatio === 'No data' ? '0' : (analytics?.householdToiletRatio || '0');
   const schoolToiletRatio = analytics?.schoolToiletRatio === 'No data' ? '0' : (analytics?.schoolToiletRatio || '0');
-
-  const wardOptions = useMemo(
-    () => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']),
-    [analytics]
-  );
-
-  const villageOptions = useMemo(
-    () => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']),
-    [analytics]
-  );
-
-  const hamletOptions = useMemo(
-    () => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']),
-    [analytics]
-  );
 
   const pieChartData = useMemo(() => {
     if (!analytics || !analytics.typeDistribution) return [];

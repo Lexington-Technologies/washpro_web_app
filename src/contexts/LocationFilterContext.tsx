@@ -11,6 +11,7 @@ interface LocationFilterContextType {
   setWard: (ward: string) => void;
   setVillage: (village: string) => void;
   setHamlet: (hamlet: string) => void;
+  getLocationParams: () => string;
 }
 
 const LocationFilterContext = createContext<LocationFilterContextType | undefined>(undefined);
@@ -36,6 +37,17 @@ export const LocationFilterProvider: React.FC<{ children: ReactNode }> = ({ chil
     }
   }, [ward, village]);
 
+  // Function to get location parameters in the correct format
+  const getLocationParams = () => {
+    const params = new URLSearchParams();
+    
+    if (ward) params.append('ward', ward);
+    if (village) params.append('village', village);
+    if (hamlet) params.append('hamlet', hamlet);
+    
+    return params.toString();
+  };
+
   const value = {
     ward,
     village,
@@ -46,6 +58,7 @@ export const LocationFilterProvider: React.FC<{ children: ReactNode }> = ({ chil
     setWard,
     setVillage,
     setHamlet,
+    getLocationParams
   };
 
   return (

@@ -1,7 +1,6 @@
 import {
   Alert,
   Box,
-  capitalize,
   Chip,
   CircularProgress,
   Container,
@@ -9,13 +8,13 @@ import {
   Grid,
   IconButton,
   Modal,
-  Stack,
   Tab,
   Tabs,
   Typography,
   Card,
   CardContent,
   Tooltip,
+  Stack,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -27,8 +26,9 @@ import { MdCleaningServices } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiController } from '../../axios';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
-import { Email, People, Phone } from '@mui/icons-material';
+import { Email, Phone } from '@mui/icons-material';
 import { LucideIcon } from 'lucide-react';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 interface ToiletFacility {
   geolocation: {
@@ -50,7 +50,7 @@ interface ToiletFacility {
   status: string;
   type: string;
   safetyRisk: string[];
-  handWashingFacility?: string; // Made optional
+  handWashingFacility?: string;
   daysSinceLastEvacuation: number;
   evacuationFrequency: string;
   createdBy: string;
@@ -88,42 +88,14 @@ interface MapCardProps {
   ward: string;
 }
 
-interface IconProps {
-  size?: number;
-  style?: React.CSSProperties;
-}
-
-type IconType = React.ComponentType<IconProps> & {
-  displayName?: string;
-};
-
 const CustomMarker = ({ position, tooltip }: { position: { lat: number; lng: number }; tooltip: string }) => {
   return (
-    <AdvancedMarker position={position}>
-      <Tooltip title={tooltip} arrow>
-        <Box
-          sx={{
-            position: 'relative',
-            width: 24,
-            height: 24,
-            borderRadius: '50%',
-            backgroundColor: '#FF0000',
-            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
-            animation: 'pulse 1.5s infinite',
-            '@keyframes pulse': {
-              '0%': { transform: 'scale(0.9)', opacity: 0.7 },
-              '50%': { transform: 'scale(1.1)', opacity: 1 },
-              '100%': { transform: 'scale(0.9)', opacity: 0.7 },
-            },
-          }}
-        >
-          <Pin
-            background='#FF0000'
-            glyphColor="#FFF"
-            borderColor="#7F0000"
-          />
-        </Box>
-      </Tooltip>
+    <AdvancedMarker position={position} title={tooltip}>
+      <Pin
+        background={'#22C55E'}
+        borderColor={'#15803D'}
+        glyphColor={'#FFFFFF'}
+      />
     </AdvancedMarker>
   );
 };
@@ -158,26 +130,6 @@ const MapCard: React.FC<MapCardProps> = ({ latitude, longitude, hamlet, village,
   </Box>
 );
 
-const iconColorMap: { [key: string]: string } = {
-  MapPin: '#FF4B4B',         // Bright red
-  GiWell: '#4284FF',        // Bright blue
-  HeartPulse: '#FF6B8B',    // Pink
-  Cog: '#6B7280',           // Gray
-  Calendar: '#FF69B4',      // Hot pink
-  User: '#22C55E',          // Green
-  Phone: '#3B82F6',         // Blue
-  Home: '#F97316',          // Orange
-  Users: '#06B6D4',         // Cyan
-  PinDrop: '#EF4444',       // Red
-  Compass: '#0EA5E9',       // Sky blue
-  ZoomIn: '#6366F1',        // Indigo
-  Email: '#8B5CF6',         // Purple
-  Toilet: '#10B981',        // Emerald
-  FiAlertOctagon: '#F59E0B', // Amber
-  MdCleaningServices: '#14B8A6', // Teal
-  People: '#6366F1',        // Indigo
-  X: '#4B5563',            // Gray
-};
 const DetailItem = ({ 
   icon: Icon, 
   label, 
@@ -202,129 +154,77 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
   toiletFacility: ToiletFacility;
   position: { lat: number, lng: number };
   onImageClick: () => void;
-}) => (
-  <Grid container spacing={4}>
-    <Grid item xs={12} md={8}>
-      <Box sx={{
-        p: 3,
-        borderRadius: 2,
-        bgcolor: 'background.paper',
-        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-        height: '100%'
-      }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-          Location Details
-        </Typography>
+}) => {
+  const [isPersonImageOpen, setIsPersonImageOpen] = useState(false);
 
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={MapPin} label="Location" value={`${toiletFacility.hamlet}, ${toiletFacility.village}`} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={Home} label="Category" value={toiletFacility.spaceType} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
-          </Grid>
-          <Grid item xs={6}>
-            <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
-          </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }} />
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk?.join(', ')} />
-          </Grid>
-          <Grid item xs={6}>
-          <DetailItem
-              icon={Calendar}
-              label="Last Updated"
-              value={format(new Date(toiletFacility.updatedAt), 'PPP')}
-            />
-          </Grid>
-        </Grid>
-
-      </Box>
-    </Grid>
-
-    <Grid item xs={12} md={4}>
-      <Box
-        sx={{
-          p: 2,
+  return (
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={8}>
+        <Box sx={{
+          p: 3,
           borderRadius: 2,
           bgcolor: 'background.paper',
           boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-          mb: 3,
-        }}
-      >
-        <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-          Attachments
-        </Typography>
-        
+          height: '100%'
+        }}>
+          <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+            Location Details
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <DetailItem icon={MapPin} label="Location" value={`${toiletFacility.hamlet}, ${toiletFacility.village}`} />
+            </Grid>
+            <Grid item xs={6}>
+              <DetailItem icon={Home} label="Category" value={toiletFacility.spaceType} />
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <DetailItem icon={Toilet} label="Toilet Type" value={toiletFacility.type} />
+            </Grid>
+            <Grid item xs={6}>
+              <DetailItem icon={MdCleaningServices} label="Toilet Condition" value={toiletFacility.condition} />
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={6}>
+              <DetailItem icon={FiAlertOctagon} label="Safety Risk" value={toiletFacility.safetyRisk?.join(', ')} />
+            </Grid>
+            <Grid item xs={6}>
+            <DetailItem
+                icon={Calendar}
+                label="Last Updated"
+                value={format(new Date(toiletFacility.updatedAt), 'PPP')}
+              />
+            </Grid>
+          </Grid>
+
+        </Box>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
         <Box
           sx={{
-            position: 'relative',
-            mb: 3,
-            border: 1,
-            borderColor: 'divider',
+            p: 2,
             borderRadius: 2,
-            overflow: 'hidden',
+            bgcolor: 'background.paper',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+            mb: 3,
           }}
         >
-          <Box
-            component="img"
-            src={toiletFacility.picture}
-            alt="Toilet Facility"
-            onClick={onImageClick}
-            sx={{
-              width: '100%',
-              height: 350,
-              objectFit: 'cover',
-              cursor: 'pointer',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.02)'
-              }
-            }}
-          />
-          <IconButton
-            onClick={onImageClick}
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              bgcolor: 'rgba(255, 255, 255, 0.8)',
-              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
-              color: 'text.primary',
-            }}
-          >
-            <ZoomIn size={20} />
-          </IconButton>
-          <Typography
-            variant="caption"
-            sx={{
-              display: 'block',
-              p: 1,
-              textAlign: 'center',
-              color: 'text.secondary',
-              bgcolor: 'background.default',
-              borderTop: 1,
-              borderColor: 'divider'
-            }}
-          >
-            Toilet Facility Photo
+          <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+            Attachments
           </Typography>
-        </Box>
-
-        {toiletFacility?.domain?.picture && (
+          
           <Box
             sx={{
               position: 'relative',
+              mb: 3,
               border: 1,
               borderColor: 'divider',
               borderRadius: 2,
@@ -333,12 +233,12 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
           >
             <Box
               component="img"
-              src={toiletFacility?.domain?.picture}
-              alt="Contact Person"
-              onClick={() => setIsPersonImageOpen(true)}
+              src={toiletFacility.picture}
+              alt="Toilet Facility"
+              onClick={onImageClick}
               sx={{
                 width: '100%',
-                height: 200,
+                height: 350,
                 objectFit: 'cover',
                 cursor: 'pointer',
                 transition: 'transform 0.3s ease',
@@ -348,7 +248,7 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
               }}
             />
             <IconButton
-              onClick={() => setIsPersonImageOpen(true)}
+              onClick={onImageClick}
               sx={{
                 position: 'absolute',
                 top: 8,
@@ -372,45 +272,101 @@ const OverviewTab = ({ toiletFacility, position, onImageClick }: {
                 borderColor: 'divider'
               }}
             >
-              Contact Person Photo
+              Toilet Facility Photo
             </Typography>
           </Box>
-        )}
-      </Box>
-    </Grid>
 
-    <Grid item xs={12}>
-      <Box
-        sx={{
-          height: 500,
-          borderRadius: 2,
-          overflow: 'hidden',
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-          mb: 4,
-          position: 'relative',
-        }}
-      >
-        <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ''}>
-          <Map
-            mapId={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-            defaultZoom={15}
-            defaultCenter={position}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <CustomMarker position={position} tooltip="Toilet Facility" />
-            <MapCard
-              latitude={position.lat}
-              longitude={position.lng}
-              hamlet={toiletFacility.hamlet}
-              village={toiletFacility.village}
-              ward={toiletFacility.ward}
-            />
-          </Map>
-        </APIProvider>
-      </Box>
+          {toiletFacility?.domain?.picture && (
+            <Box
+              sx={{
+                position: 'relative',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                component="img"
+                src={toiletFacility?.domain?.picture}
+                alt="Contact Person"
+                onClick={() => setIsPersonImageOpen(true)}
+                sx={{
+                  width: '100%',
+                  height: 200,
+                  objectFit: 'cover',
+                  cursor: 'pointer',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.02)'
+                  }
+                }}
+              />
+              <IconButton
+                onClick={() => setIsPersonImageOpen(true)}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
+                  color: 'text.primary',
+                }}
+              >
+                <ZoomIn size={20} />
+              </IconButton>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  p: 1,
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  bgcolor: 'background.default',
+                  borderTop: 1,
+                  borderColor: 'divider'
+                }}
+              >
+                Contact Person Photo
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Grid>
+
+      <Grid item xs={12}>
+        <Box
+          sx={{
+            height: 500,
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
+            mb: 4,
+            position: 'relative',
+          }}
+        >
+          <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ''}>
+            <Map
+              mapId={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+              defaultZoom={15}
+              defaultCenter={position}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <CustomMarker position={position} tooltip="Toilet Facility" />
+              <MapCard
+                latitude={position.lat}
+                longitude={position.lng}
+                hamlet={toiletFacility.hamlet}
+                village={toiletFacility.village}
+                ward={toiletFacility.ward}
+              />
+            </Map>
+          </APIProvider>
+        </Box>
+      </Grid>
     </Grid>
-  </Grid>
-);
+  );
+};
 
 const PersonContactTab = ({ toiletFacility, setIsPersonImageOpen }: { toiletFacility: ToiletFacility; setIsPersonImageOpen: (open: boolean) => void }) => {
   const address = toiletFacility?.domain?.address;
@@ -549,10 +505,11 @@ const ToiletFacilitiesDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getLocationParams } = useLocationFilter();
 
   const { data: toiletFacility, isLoading, error } = useQuery<ToiletFacility>({
-    queryKey: ['toiletFacility', id],
-    queryFn: () => apiController.get<ToiletFacility>(`/toilet-facilities/${id}`).then(res => res),
+    queryKey: ['toiletFacility', id, getLocationParams()],
+    queryFn: () => apiController.get<ToiletFacility>(`/toilet-facilities/${id}?${getLocationParams()}`).then(res => res),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });

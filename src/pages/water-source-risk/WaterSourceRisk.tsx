@@ -204,9 +204,15 @@ const WaterSourceRisk = () => {
 
   // Fetch water risk data from API.
   const { data: waterRisks, error, isLoading } = useQuery<WaterSourceRiskData[], Error>({
-    queryKey: ['waterSourceRisk'],
+    queryKey: ['waterSourceRisk', ward, village, hamlet, type],
     queryFn: async () => {
-      const response = await apiController.get<WaterSourceRiskData[]>('/analysis');
+      const params = new URLSearchParams();
+      if (ward) params.append('ward', ward);
+      if (village) params.append('village', village);
+      if (hamlet) params.append('hamlet', hamlet);
+      if (type) params.append('type', type);
+      
+      const response = await apiController.get<WaterSourceRiskData[]>(`/analysis?${params.toString()}`);
       return response;
     },
   });
