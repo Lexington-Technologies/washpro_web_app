@@ -4,6 +4,7 @@ import {
   CardContent,
   Container,
   Grid,
+  LinearProgress,
   Typography,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
@@ -32,7 +33,7 @@ import {
 import { apiController } from '../../axios';
 import LocationFilter from '../../components/LocationFilter';
 import { getLocationParams } from '../../utils/location-filter';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Type definitions
 interface CardItem {
@@ -91,22 +92,31 @@ const Dashboard = () => {
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
+  const [washCards, setWashCards] = useState([]);
+  const [facilityCards, setFacilityCards] = useState([])
 
 
 
 
   // Query using react-query with filter parameters passed to the backend.
-  const { data } = useQuery<DashboardData>({
+  const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ['dashboard', getLocationParams(ward, village, hamlet)],
     queryFn: () =>
       apiController.get(`/analytics/dashboard?${getLocationParams(ward, village, hamlet)}`),
   });
 
   // Use the data directly from the backend with default values
-  const {
-    washCards = [],
-    facilityCards = [],
-  } = data || {};
+  // const {
+  //   washCards = [],
+  //   facilityCards = [],
+  // } = data || {};
+
+  useEffect(() => {
+  
+    setWashCards(data?.washCards || washCards)
+    setFacilityCards(data?.facilityCards || facilityCards)
+  }, [data])
+  
 
   // Cards: facilities
   const facilityCardItems = [
@@ -222,6 +232,9 @@ const Dashboard = () => {
                   />
                 </Box>
               </Box>
+              <Box sx={{ width: '100%' }}>
+              {isLoading && <LinearProgress  />}
+            </Box>
             </Grid>
 
             {/* Facilities Captured Section */}
