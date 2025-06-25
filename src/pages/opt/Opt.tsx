@@ -15,7 +15,7 @@ const EnterOtp = () => {
         position: "relative",
         width: "100vw",
         height: "100vh",
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F1F1F5',
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

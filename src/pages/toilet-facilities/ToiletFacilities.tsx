@@ -227,7 +227,7 @@ const ToiletFacilities: React.FC = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
       <Box sx={{ position: 'relative' }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

@@ -213,7 +213,7 @@ const Dashboard = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
+    <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
       <Box sx={{ flexGrow: 1 }}>
         <Box sx={{ position: 'relative' }}>
           <Grid container spacing={3}>

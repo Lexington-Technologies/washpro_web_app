@@ -36,6 +36,15 @@ interface StatCardProps {
   bgColor?: string;
 }
 
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
+
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor = '#E3F2FD' }) => (
   <StyledPaper>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
@@ -171,7 +180,7 @@ const WaterSourcesDashboard: React.FC = () => {
     // Do not reset to 0 or empty if analytics is undefined
   }, [analytics]);
 
-  const { data: tableData } = useQuery<TableResponse>({
+  const { data: tableData, isLoading: isTableLoading } = useQuery<TableResponse>({
     queryKey: [
       "water-sources",
       pagination.pageIndex,
@@ -235,31 +244,36 @@ const WaterSourcesDashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+<Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 1 }}>
       <Box sx={{ position: 'relative' }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-                  Water Sources Dashboard
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Comprehensive overview of water sources
-                </Typography>
+        {/* Wrap the header and filter in FixedHeader component */}
+        <FixedHeader>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+                    Water Sources Dashboard
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Comprehensive overview of water sources
+                  </Typography>
+                </Box>
+                <Box>
+                  <LocationFilter ward={ward} village={village} hamlet={hamlet}
+                    setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
+                  />
+                </Box>
               </Box>
-              <Box sx={{ mb: 3 }}>
-                <LocationFilter ward={ward} village={village} hamlet={hamlet}
-                  setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
-                />
+              <Box sx={{ width: '100%', mt: 2 }}>
+                {isLoading && <LinearProgress />}
               </Box>
-            </Box>
-            <Box sx={{ width: '100%', mb: 3 }}>
-              {isLoading && <LinearProgress />}
-            </Box>
+            </Grid>
           </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        </FixedHeader>
+
+        {/* Rest of the content */}
+        <Grid container spacing={2} sx={{ mb: 3 }}> {/* Added mt to account for fixed header */}
           <Grid item xs={12} md={3}>
             <StatCard
               title="Total Water Points"
@@ -345,24 +359,31 @@ const WaterSourcesDashboard: React.FC = () => {
           </Grid>
         </Grid>
         <Box sx={{ mt: 3 }}>
-          <DataTable
-            data={tableData?.data || []}
-            columns={columns}
-            pagination={{
-              pageIndex: pagination.pageIndex,
-              pageSize: pagination.pageSize,
-            }}
-            onPaginationChange={setPagination}
-            onFilterChange={() => {
-              setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-            }}
-            searchQuery={searchTerm}
-            onSearchChange={(newSearch) => {
-              setSearchTerm(newSearch);
-              setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-            }}
-            onRowClick={(row) => navigateToDetails(row._id)}
-          />
+          <Paper sx={{ overflowX: 'auto' }}>
+            {isTableLoading && <LinearProgress sx={{ height: 2 }} />}
+            <DataTable
+              columns={columns}
+              data={Array.isArray(tableData?.data) ? tableData.data : []}
+              pagination={{
+                pageIndex: pagination.pageIndex,
+                pageSize: pagination.pageSize,
+              }}
+              totalCount={tableData?.pagination?.total || 0}
+              onPaginationChange={setPagination}
+              onFilterChange={({ ward, village, hamlet }) => {
+                setWard(ward || 'All');
+                setVillage(village || 'All');
+                setHamlet(hamlet || 'All');
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
+              searchQuery={searchTerm}
+              onSearchChange={(newSearch) => {
+                setSearchTerm(newSearch);
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
+              onRowClick={(row) => navigateToDetails(row._id)}
+            />
+          </Paper>
         </Box>
       </Box>
     </Box>

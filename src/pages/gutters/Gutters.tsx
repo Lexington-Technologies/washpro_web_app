@@ -259,7 +259,7 @@ const GutterDashboard: React.FC = () => {
     navigate(`/gutters/${id}?${queryParams.toString()}`);
   };
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>

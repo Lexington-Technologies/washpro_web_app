@@ -1,28 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Avatar,
   Box,
   Card,
   Chip,
-  CircularProgress,
-  FormControl,
-  InputLabel,
   Grid,
   Paper,
   styled,
   Typography,
-  MenuItem,
-  Select,
   Stack,
 } from '@mui/material';
-import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { pieArcLabelClasses, PieChart, DefaultizedPieValueType } from '@mui/x-charts/PieChart';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaHandHoldingWater, FaSchool, FaHospital, FaHome } from 'react-icons/fa';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
+import LocationFilter from '../../components/LocationFilter';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const StyledPaper = styled(Paper)`
   padding: ${({ theme }) => theme.spacing(3)};
@@ -78,28 +74,6 @@ interface HygieneFacility {
   _id: string;
 }
 
-interface HygieneAnalytics {
-  totalFacilities: number;
-  schoolsWithFacilitiesRatio: string;
-  avgFacilitiesPerHealthCenter: string;
-  householdsWithoutFacilities: string;
-  distributionByType: {
-    name: string;
-    value: number;
-    percentage: string;
-  }[];
-  distributionByLocation: {
-    name: string;
-    value: number;
-    percentage: string;
-  }[];
-  filters?: {
-    wards?: string[];
-    villages?: string[];
-    hamlets?: string[];
-  };
-}
-
 const columnHelper = createColumnHelper<HygieneFacility>();
 const columns = [
   columnHelper.accessor('picture', {
@@ -153,329 +127,260 @@ columnHelper.accessor('type', {
   }),
 ];
 
-const sanitizeAnalytics = (analytics?: HygieneAnalytics | null): HygieneAnalytics => {
-  if (!analytics)
-    return {
-      totalFacilities: 0,
-      schoolsWithFacilitiesRatio: '0',
-      avgFacilitiesPerHealthCenter: '0',
-      householdsWithoutFacilities: '0',
-      distributionByType: [],
-      distributionByLocation: [],
-    };
-
-  return {
-    ...analytics,
-    schoolsWithFacilitiesRatio:
-      analytics.schoolsWithFacilitiesRatio === 'No data' ? '0' : analytics.schoolsWithFacilitiesRatio,
-    avgFacilitiesPerHealthCenter:
-      analytics.avgFacilitiesPerHealthCenter === 'No data' ? '0' : analytics.avgFacilitiesPerHealthCenter,
-    householdsWithoutFacilities:
-      analytics.householdsWithoutFacilities === 'No data' ? '0' : analytics.householdsWithoutFacilities,
-  };
-};
-
 const HygieneFacilities: React.FC = () => {
   const navigate = useNavigate();
   const locationObj = useLocation();
   const queryParams = new URLSearchParams(locationObj.search);
 
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [spaceTypeFilter, setSpaceTypeFilter] = useState('');
-  const [wardFilter, setWardFilter] = useState('');
-  const [villageFilter, setVillageFilter] = useState('');
-  const [hamletFilter, setHamletFilter] = useState('');
-
-  const { data: analytics } = useQuery<HygieneAnalytics, Error>({
-    queryKey: ['hand-washing-analytics', wardFilter, villageFilter, hamletFilter],
+  // Pagination and filter state
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
+  // Stat state
+  const [totalFacilities, setTotalFacilities] = useState<number>(0);
+  const [schoolsWithFacilitiesRatio, setSchoolsWithFacilitiesRatio] = useState<string>('0');
+  const [avgFacilitiesPerHealthCenter, setAvgFacilitiesPerHealthCenter] = useState<string>('0');
+  const [householdsWithoutFacilities, setHouseholdsWithoutFacilities] = useState<string>('0');
+  // Chart data types
+  type PieChartDataItem = { id: number; label: string; value: number; color: string };
+  // Chart state
+  const [pieChartData, setPieChartData] = useState<PieChartDataItem[]>([]);
+  const [locationChartData, setLocationChartData] = useState<PieChartDataItem[]>([]);
+  // Analytics query
+  const { data: analytics, isLoading } = useQuery<{
+    totalFacilities: number;
+    schoolsWithFacilitiesRatio: string;
+    avgFacilitiesPerHealthCenter: string;
+    householdsWithoutFacilities: string;
+    distributionByType: { name: string; value: number; percentage: string }[];
+    distributionByLocation: { name: string; value: number; percentage: string }[];
+  }>({
+    queryKey: ['hand-washing-analytics', ward, village, hamlet],
     queryFn: () =>
       apiController.get(
-        `/hand-washing/analytics?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
-          villageFilter !== '' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
+        `/hand-washing/analytics?` +
+        (ward ? `ward=${encodeURIComponent(ward)}&` : '') +
+        (village ? `village=${encodeURIComponent(village)}&` : '') +
+        (hamlet ? `hamlet=${encodeURIComponent(hamlet)}&` : '')
+      ),
+  });
+  // Table query
+  const { data: tableData } = useQuery({
+    queryKey: [
+      'hand-washing',
+      pagination.pageIndex,
+      pagination.pageSize,
+      ward,
+      village,
+      hamlet,
+    ],
+    queryFn: () =>
+      apiController.get(
+        `/hand-washing?limit=${pagination.pageSize}` +
+        `&page=${pagination.pageIndex + 1}` +
+        (ward ? `&ward=${encodeURIComponent(ward)}` : '') +
+        (village ? `&village=${encodeURIComponent(village)}` : '') +
+        (hamlet ? `&hamlet=${encodeURIComponent(hamlet)}` : '')
       ),
   });
 
-  const { data: tableData, isLoading: isTableLoading } = useQuery<HygieneFacility[], Error>({
-    queryKey: ['hand-washing', wardFilter, villageFilter, hamletFilter],
-    queryFn: () =>
-      apiController.get(
-        `/hand-washing?ward=${wardFilter !== '' ? wardFilter : ''}&village=${
-          villageFilter !== '' ? villageFilter : ''
-        }&hamlet=${hamletFilter !== '' ? hamletFilter : ''}`
-      ),
-  });
+  // Table data state
+  const [tableRows, setTableRows] = useState<HygieneFacility[]>([]);
+  const [tableTotal, setTableTotal] = useState<number>(0);
 
-  console.log(tableData)
+  useEffect(() => {
+    if (analytics) {
+      setTotalFacilities(analytics.totalFacilities || 0);
+      setSchoolsWithFacilitiesRatio(
+        analytics.schoolsWithFacilitiesRatio === 'No data' ? '0' : (analytics.schoolsWithFacilitiesRatio || '0')
+      );
+      setAvgFacilitiesPerHealthCenter(
+        analytics.avgFacilitiesPerHealthCenter === 'No data' ? '0' : (analytics.avgFacilitiesPerHealthCenter || '0')
+      );
+      setHouseholdsWithoutFacilities(
+        analytics.householdsWithoutFacilities === 'No data' ? '0' : (analytics.householdsWithoutFacilities || '0')
+      );
+      if (analytics.distributionByType) {
+        const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722'];
+        setPieChartData(
+          analytics.distributionByType.map((item, index) => ({
+            id: index,
+            label: item.name,
+            value: item.value,
+            color: colorPalette[index % colorPalette.length],
+          }))
+        );
+      }
+      if (analytics.distributionByLocation) {
+        const colorPalette = ['#1976D2', '#388E3C', '#FBC02D', '#D32F2F', '#7B1FA2', '#0288D1'];
+        setLocationChartData(
+          analytics.distributionByLocation.map((item, index) => ({
+            id: index,
+            label: item.name,
+            value: item.value,
+            color: colorPalette[index % colorPalette.length],
+          }))
+        );
+      }
+    }
+    // Do not reset to 0/empty if analytics is undefined
+  }, [analytics]);
 
+  useEffect(() => {
+    if (tableData) {
+      if (Array.isArray(tableData)) {
+        setTableRows(tableData as HygieneFacility[]);
+        setTableTotal(tableData.length);
+      } else if (typeof tableData === 'object' && tableData !== null) {
+        setTableRows((tableData as { data?: HygieneFacility[] }).data || []);
+        setTableTotal((tableData as { total?: number }).total || 0);
+      }
+    }
+    // Do not reset to empty if tableData is undefined
+  }, [tableData]);
 
-  const spaceTypeOptions = useMemo(() => [...new Set(tableData?.map((item) => item.spaceType) ?? [])], [tableData]);
-  const wardOptions = useMemo(
-    () => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']),
-    [analytics]
-  );
-  const villageOptions = useMemo(
-    () => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']),
-    [analytics]
-  );
-  const hamletOptions = useMemo(
-    () => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']),
-    [analytics]
-  );
-
-  const filteredData = useMemo(
-    () =>
-      tableData?.filter(
-        (item) =>
-          (!spaceTypeFilter || item.spaceType === spaceTypeFilter) &&
-          (!wardFilter || item.ward === wardFilter) &&
-          (!villageFilter || item.village === villageFilter) &&
-          (!hamletFilter || item.hamlet === hamletFilter)
-      ) || [],
-    [tableData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]
-  );
-
-  const effectiveAnalytics = useMemo(() => {
-    const baseAnalytics =
-      !spaceTypeFilter && !wardFilter && !villageFilter && !hamletFilter
-        ? analytics
-        : {
-            totalFacilities: filteredData.length,
-            schoolsWithFacilitiesRatio: analytics?.schoolsWithFacilitiesRatio || '0',
-            avgFacilitiesPerHealthCenter: analytics?.avgFacilitiesPerHealthCenter || '0',
-            householdsWithoutFacilities: analytics?.householdsWithoutFacilities || '0',
-            distributionByType: Object.entries(
-              filteredData.reduce((acc, item) => {
-                acc[item.type] = (acc[item.type] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-            ).map(([name, value]) => ({
-              name,
-              value,
-              percentage:
-                filteredData.length > 0 ? ((value / filteredData.length) * 100).toFixed(1) + '%' : '0%',
-            })),
-            distributionByLocation: Object.entries(
-              filteredData.reduce((acc, item) => {
-                acc[item.location] = (acc[item.location] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-            ).map(([name, value]) => ({
-              name,
-              value,
-              percentage:
-                filteredData.length > 0 ? ((value / filteredData.length) * 100).toFixed(1) + '%' : '0%',
-            })),
-          };
-
-    return sanitizeAnalytics(baseAnalytics);
-  }, [analytics, filteredData, spaceTypeFilter, wardFilter, villageFilter, hamletFilter]);
-
-  const paginatedData = useMemo(
-    () => filteredData.slice(page * pageSize, (page + 1) * pageSize),
-    [filteredData, page, pageSize]
-  );
-
-  const navigateToDetails = (id: string) => {
-    navigate(`/hygeine-facilities/${id}?${queryParams.toString()}`);
-  };
-
-  const FilterDropdown = ({
-    label,
-    value,
-    options,
-    onChange,
-  }: {
-    label: string;
-    value: string;
-    options: string[];
-    onChange: (value: string) => void;
-  }) => (
-    <FormControl variant="outlined" sx={{ mb: 2, height: 40, minWidth: 120 }}>
-      <InputLabel>{label}</InputLabel>
-      <Select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        label={label}
-        sx={{ height: 45 }}
-      >
-        <MenuItem value="">{`All ${label}`}</MenuItem>
-        {options.map((option, index) => (
-          <MenuItem key={index} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
-  if (isTableLoading) {
-    return (
-      <Box
-        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
-      >
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
+  const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
+  const totalLocationValue = locationChartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-            Hygiene Facilities
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Detailed insights about hygiene facilities in different locations
-          </Typography>
-        </Box>
-        {/* <Box sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={2}>
-            <FilterDropdown
-              label="Space Type"
-              value={spaceTypeFilter}
-              options={spaceTypeOptions}
-              onChange={setSpaceTypeFilter}
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
+      <Box sx={{ position: 'relative' }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+                  Hygiene Facilities
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Detailed insights about hygiene facilities in different locations
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <LocationFilter ward={ward} village={village} hamlet={hamlet}
+                  setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
+                />
+              </Box>
+            </Box>
+            <Box sx={{ width: '100%', mb: 3 }}>
+              {isLoading && <LinearProgress />}
+            </Box>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="Total Facilities"
+              value={Number(totalFacilities).toLocaleString()}
+              icon={<FaHandHoldingWater style={{ color: '#2563EB', fontSize: '2rem' }} />}
+              bgColor="#E3F2FD"
             />
-            <FilterDropdown
-              label="Ward"
-              value={wardFilter}
-              options={wardOptions}
-              onChange={setWardFilter}
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="Schools With Facilities"
+              value={schoolsWithFacilitiesRatio}
+              icon={<FaSchool style={{ color: '#4CAF50', fontSize: '2rem' }} />}
+              bgColor="#E8F5E9"
             />
-            <FilterDropdown
-              label="Village"
-              value={villageFilter}
-              options={villageOptions}
-              onChange={setVillageFilter}
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="Avg HandWash Facilities in Health Center"
+              value={avgFacilitiesPerHealthCenter}
+              icon={<FaHospital style={{ color: '#FF9800', fontSize: '2rem' }} />}
+              bgColor="#FFF3E0"
             />
-            <FilterDropdown
-              label="Hamlet"
-              value={hamletFilter}
-              options={hamletOptions}
-              onChange={setHamletFilter}
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <StatCard
+              title="Households Without"
+              value={householdsWithoutFacilities}
+              icon={<FaHome style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
+              bgColor="#E3F2FD"
             />
-          </Stack>
-        </Box> */}
+          </Grid>
+        </Grid>
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>
+                Distribution by Type
+              </Typography>
+              <PieChart
+                series={[
+                  {
+                    data: pieChartData,
+                    arcLabel: (item: Omit<DefaultizedPieValueType, 'label'> & { label?: string }) =>
+                      totalPieValue > 0 ? `${((item.value / totalPieValue) * 100).toFixed(1)}%` : '0%',
+                    arcLabelMinAngle: 10,
+                    outerRadius: 180,
+                    innerRadius: 40,
+                  },
+                ]}
+                width={Math.min(760, window.innerWidth - 40)}
+                height={370}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fontWeight: 'bold',
+                    fill: 'white',
+                    fontSize: '0.8rem',
+                  },
+                }}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>
+                Distribution by Location
+              </Typography>
+              <PieChart
+                series={[
+                  {
+                    data: locationChartData,
+                    arcLabel: (item: Omit<DefaultizedPieValueType, 'label'> & { label?: string }) =>
+                      totalLocationValue > 0 ? `${((item.value / totalLocationValue) * 100).toFixed(1)}%` : '0%',
+                    arcLabelMinAngle: 10,
+                    outerRadius: 180,
+                    innerRadius: 40,
+                  },
+                ]}
+                width={Math.min(760, window.innerWidth - 40)}
+                height={370}
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fontWeight: 'bold',
+                    fill: 'white',
+                    fontSize: '0.8rem',
+                  },
+                }}
+              />
+            </Card>
+          </Grid>
+        </Grid>
+        <Card sx={{ mt: 3 }}>
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+              Hygiene Facilities Overview
+            </Typography>
+            <Paper sx={{ overflowX: 'auto' }}>
+              <DataTable
+                columns={columns}
+                data={tableRows}
+                totalCount={tableTotal}
+                pagination={{
+                  pageIndex: pagination.pageIndex,
+                  pageSize: pagination.pageSize,
+                }}
+                onPaginationChange={setPagination}
+                onRowClick={(row) => navigate(`/hygeine-facilities/${row._id}?${queryParams.toString()}`)}
+              />
+            </Paper>
+          </Box>
+        </Card>
       </Box>
-
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Total Facilities"
-            value={effectiveAnalytics.totalFacilities.toLocaleString()}
-            icon={<FaHandHoldingWater style={{ color: '#2563EB', fontSize: '2rem' }} />}
-            bgColor="#E3F2FD"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Schools With Facilities"
-            value={'40'}
-            icon={<FaSchool style={{ color: '#4CAF50', fontSize: '2rem' }} />}
-            bgColor="#E8F5E9"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Avg HandWash Facilities in Health Center"
-            value={'2'}
-            icon={<FaHospital style={{ color: '#FF9800', fontSize: '2rem' }} />}
-            bgColor="#FFF3E0"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Households Without"
-            value={'5,049'}
-            icon={<FaHome style={{ color: '#0EA5E9', fontSize: '2rem' }} />}
-            bgColor="#E3F2FD"
-          />
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Distribution by Type as a BarChart */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" mb={2}>
-              Distribution by Type
-            </Typography>
-            <BarChart
-              xAxis={[
-                {
-                  scaleType: 'band',
-                  data: effectiveAnalytics.distributionByType.map((item) => item.name),
-                },
-              ]}
-              series={[
-                {
-                  data: effectiveAnalytics.distributionByType.map((item) => item.value),
-                  label: 'Facilities',
-                  color: '#4CAF50',
-                },
-              ]}
-              width={650}
-              height={350}
-            />
-          </Card>
-        </Grid>
-
-        {/* Distribution by Location as a PieChart */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" mb={2}>
-              Distribution by Location
-            </Typography>
-            <PieChart
-              series={[
-                {
-                  data: effectiveAnalytics.distributionByLocation.map((item, index) => ({
-                    id: index,
-                    label: item.name,
-                    value: item.value,
-                  })),
-                  arcLabel: (item) => `${((item.value / effectiveAnalytics.totalFacilities) * 100).toFixed(1)}%`,
-                  arcLabelMinAngle: 20,
-                  outerRadius: 120,
-                  innerRadius: 30,
-                },
-              ]}
-              width={750}
-              height={350}
-              sx={{
-                [`& .${pieArcLabelClasses.root}`]: {
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  fill: '#fff',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.7)',
-                },
-              }}
-            />
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Card sx={{ mt: 3 }}>
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-            Facilities Overview
-          </Typography>
-          <DataTable
-            columns={columns}
-            data={paginatedData}
-            pagination={{ pageIndex: page, pageSize }}
-            onPaginationChange={({ pageIndex, pageSize }) => {
-              setPage(pageIndex);
-              setPageSize(pageSize);
-            }}
-            totalCount={filteredData.length}
-            onRowClick={(row) => navigateToDetails(row._id)}
-          />
-        </Box>
-      </Card>
     </Box>
   );
 };

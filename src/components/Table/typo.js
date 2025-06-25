@@ -386,7 +386,7 @@ const WashDashboard: React.FC = () => {
   });
 
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
       {/* Header Section */}
       <Box
         sx={{
