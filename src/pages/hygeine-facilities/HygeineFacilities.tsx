@@ -26,6 +26,15 @@ const StyledPaper = styled(Paper)`
   min-height: 150px;
 `;
 
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
+
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -131,6 +140,8 @@ const HygieneFacilities: React.FC = () => {
   const navigate = useNavigate();
   const locationObj = useLocation();
   const queryParams = new URLSearchParams(locationObj.search);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
 
   // Pagination and filter state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -166,7 +177,7 @@ const HygieneFacilities: React.FC = () => {
       ),
   });
   // Table query
-  const { data: tableData } = useQuery({
+  const { data: tableData, isLoading: isTableLoading } = useQuery({
     queryKey: [
       'hand-washing',
       pagination.pageIndex,
@@ -179,6 +190,7 @@ const HygieneFacilities: React.FC = () => {
       apiController.get(
         `/hand-washing?limit=${pagination.pageSize}` +
         `&page=${pagination.pageIndex + 1}` +
+        `&search=${searchTerm}`+
         (ward ? `&ward=${encodeURIComponent(ward)}` : '') +
         (village ? `&village=${encodeURIComponent(village)}` : '') +
         (hamlet ? `&hamlet=${encodeURIComponent(hamlet)}` : '')
@@ -243,31 +255,38 @@ const HygieneFacilities: React.FC = () => {
   const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
   const totalLocationValue = locationChartData.reduce((sum, item) => sum + item.value, 0);
 
+  const navigateToDetails = (id: string) => {
+    navigate(`/hand-washing/${id}?${queryParams.toString()}`);
+  };
+
+
   return (
     <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
       <Box sx={{ position: 'relative' }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-                  Hygiene Facilities
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Detailed insights about hygiene facilities in different locations
-                </Typography>
+        <FixedHeader>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+                    Hygiene Facilities
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Detailed insights about hygiene facilities in different locations
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 3 }}>
+                  <LocationFilter ward={ward} village={village} hamlet={hamlet}
+                    setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
+                  />
+                </Box>
               </Box>
-              <Box sx={{ mb: 3 }}>
-                <LocationFilter ward={ward} village={village} hamlet={hamlet}
-                  setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
-                />
+              <Box sx={{ width: '100%', mb: 3 }}>
+                {isLoading && <LinearProgress />}
               </Box>
-            </Box>
-            <Box sx={{ width: '100%', mb: 3 }}>
-              {isLoading && <LinearProgress />}
-            </Box>
+            </Grid>
           </Grid>
-        </Grid>
+        </FixedHeader>
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} md={3}>
             <StatCard
@@ -360,26 +379,33 @@ const HygieneFacilities: React.FC = () => {
             </Card>
           </Grid>
         </Grid>
-        <Card sx={{ mt: 3 }}>
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              Hygiene Facilities Overview
-            </Typography>
-            <Paper sx={{ overflowX: 'auto' }}>
-              <DataTable
-                columns={columns}
-                data={tableRows}
-                totalCount={tableTotal}
-                pagination={{
-                  pageIndex: pagination.pageIndex,
-                  pageSize: pagination.pageSize,
-                }}
-                onPaginationChange={setPagination}
-                onRowClick={(row) => navigate(`/hygeine-facilities/${row._id}?${queryParams.toString()}`)}
-              />
-            </Paper>
-          </Box>
-        </Card>
+        <Box sx={{ mt: 3 }}>
+          <Paper sx={{ overflowX: 'auto' }}>
+            {isTableLoading && <LinearProgress sx={{ height: 2 }} />}
+            <DataTable
+              columns={columns}
+              data={Array.isArray(tableData) ? tableData : []}
+              pagination={{
+                pageIndex: pagination.pageIndex,
+                pageSize: pagination.pageSize,
+              }}
+              totalCount={tableData?.pagination?.total || 0}
+              onPaginationChange={setPagination}
+              onFilterChange={({ ward, village, hamlet }) => {
+                setWard(ward || 'All');
+                setVillage(village || 'All');
+                setHamlet(hamlet || 'All');
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
+              searchQuery={searchTerm}
+              onSearchChange={(newSearch) => {
+                setSearchTerm(newSearch);
+                setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+              }}
+              onRowClick={(row) => navigateToDetails(row._id)}
+            />
+          </Paper>
+        </Box>
       </Box>
     </Box>
   );
