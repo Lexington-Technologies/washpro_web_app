@@ -26,6 +26,7 @@ import { FaChartLine } from 'react-icons/fa';
 import React from 'react';
 import LocationFilter from '../../components/LocationFilter';
 import { useNavigate } from 'react-router-dom';
+import { useLocationFilter } from '../../contexts/LocationFilterContext';
 
 interface OpenDefecation {
   _id: string;
