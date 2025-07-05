@@ -25,9 +25,9 @@ export default function Wrapper() {
     setDrawerOpen(!isDrawerOpen);
   };
 
-  // if (!user) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflowY: "hidden" }}>
