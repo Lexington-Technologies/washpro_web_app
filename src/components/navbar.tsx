@@ -79,7 +79,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 fontSize: { xs: "1rem", md: "1.25rem" },
               }}
             >
-              Welcome, Sen. Uba Sani 
+              Welcome, Back!
             </Typography>
             <Typography
               variant="subtitle2"
@@ -89,7 +89,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 fontSize: { xs: "0.75rem", md: "0.875rem" },
               }}
             >
-              The Executive Governor of Kaduna State
+              Admin
             </Typography>
           </Box>
         </Box>
