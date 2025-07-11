@@ -43,14 +43,14 @@ const LoadingAnimation = () => {
           component="img"
           src={Loader}
           sx={{
-            width: 80,
+            width: 250,
             marginTop: 3,
             animation: `${pulse} 2s infinite ease-in-out`,
           }}
         />
       </Box>
 
-      <Box
+      {/* <Box
         sx={{
           fontSize: "1.2rem",
           fontWeight: 500,
@@ -59,7 +59,7 @@ const LoadingAnimation = () => {
         }}
       >
         Loading, please wait...
-      </Box>
+      </Box> */}
     </Box>
   );
 };

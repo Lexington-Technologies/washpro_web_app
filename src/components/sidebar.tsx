@@ -436,10 +436,9 @@ const SideBar = ({
             src={Logo}
             alt="Logo"
             style={{
-              width: isCollapsed ? 50 : 220,
+              width: isCollapsed ? 50 : 200,
               height: isCollapsed ? 50 : "auto",
               objectFit: "contain",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
         </Link>

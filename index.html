@@ -5,9 +5,81 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
     <title>WashPro</title>
+    <style>
+      /* Define the pulse animation */
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0.5;
+          transform: scale(0.9);
+        }
+      }
+
+      /* Container styling for the loading animation */
+      .loading-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8fafc;
+        gap: 16px;
+        font-family: "Public Sans", sans-serif;
+      }
+
+      /* Logo container styling */
+      .loading-logo-container {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Loader image styling */
+      .loading-logo {
+        width: 250px;
+        margin-top: 24px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+
+      /* Loading text styling */
+      .loading-text {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #2563EB;
+        animation: pulse 2s infinite;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Loading animation container -->
+    <div class="loading-container" id="loading">
+      <div class="loading-logo-container">
+        <!-- Replace 'Loader.svg' with the correct path to your SVG asset -->
+        <img class="loading-logo" src="./src/assets/svg/loader.png" alt="Loading Logo" />
+      </div>
+      <!-- <div class="loading-text">Loading, please wait...</div> -->
+    </div>
+    
+    <!-- Application mount point (initially hidden) -->
+    <div id="root" style="display: none;"></div>
+    
+    <!-- Main application script -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script to toggle loading screen visibility -->
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('root').style.display = 'block';
+      });
+    </script>
   </body>
 </html>
