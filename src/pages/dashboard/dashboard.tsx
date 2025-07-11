@@ -6,6 +6,7 @@ import {
   Grid,
   LinearProgress,
   Typography,
+  styled,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -44,6 +45,57 @@ interface CardItem {
 interface DashboardData {
   washCards: CardItem[];
   facilityCards: CardItem[];
+  waterAnalytics: {
+    totalSources: number;
+    functionalSources: number;
+    nonFunctionalSources: number;
+    sourceTypes: { name: string; count: number }[];
+    functionalPercentage: number;
+  };
+  sanitationAnalytics: {
+    toilets: {
+      total: number;
+      maintained: number;
+      unmaintained: number;
+      types: { name: string; count: number }[];
+      maintainedPercentage: number;
+    };
+    gutters: {
+      total: number;
+      maintained: number;
+      unmaintained: number;
+      maintainedPercentage: number;
+    };
+    soakAways: {
+      total: number;
+      conditions: { name: string; count: number }[];
+    };
+    dumpSites: {
+      total: number;
+      fencingStatus: { name: string; count: number }[];
+    };
+    openDefecation: {
+      total: number;
+    };
+  };
+  hygieneAnalytics: {
+    handwashing: {
+      total: number;
+    };
+    householdHygiene: unknown[];
+  };
+  populationAnalytics: {
+    totalPopulation: number;
+    genderDistribution: { name: string; count: number }[];
+    disabilityData: { name: string; count: number }[];
+    children: number;
+  };
+  locationAnalytics: {
+    wardDistribution: { name: string; count: number }[];
+    villageDistribution: { name: string; count: number }[];
+    hamletDistribution: { name: string; count: number }[];
+  };
+  filterOptions: Record<string, string[]>;
 }
 
 interface TooltipProps {
@@ -87,13 +139,23 @@ const CHART_COLORS = [
   '#EC4899', '#8B5CF6', '#22D3EE', '#F43F5E', '#84CC16',
 ];
 
+// FixedHeader styled component (copied from WaterSources)
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
+
 const Dashboard = () => {
   // Get location filter values from context
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
-  const [washCards, setWashCards] = useState([]);
-  const [facilityCards, setFacilityCards] = useState([])
+  const [washCards, setWashCards] = useState<CardItem[]>([]);
+  const [facilityCards, setFacilityCards] = useState<CardItem[]>([]);
 
 
 
@@ -122,43 +184,43 @@ const Dashboard = () => {
   const facilityCardItems = [
     { 
       title: 'Total Water Sources', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Water Sources')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Water Sources')?.count || 0, 
       icon: <FaWater size={20} />, 
       ...CARD_COLORS.facility[0]
     },
     { 
       title: 'Total Toilet Facilities', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Toilet Facilities')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Toilet Facilities')?.count || 0, 
       icon: <FaToilet size={20} />, 
       ...CARD_COLORS.facility[1]
     },
     { 
       title: 'Total Gutters', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Gutters')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Gutters')?.count || 0, 
       icon: <FaWater size={20} />, 
       ...CARD_COLORS.facility[2]
     },
     { 
       title: 'Total Soakaways', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Soakaways')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Soakaways')?.count || 0, 
       icon: <FaWater size={20} />, 
       ...CARD_COLORS.facility[3]
     },
     { 
       title: 'Total Dumpsites', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Dumpsites')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Dumpsites')?.count || 0, 
       icon: <FaTrash size={20} />, 
       ...CARD_COLORS.facility[4]
     },
     { 
       title: 'Total Open Defecation Sites', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Open Defecation Sites')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Open Defecation Sites')?.count || 0, 
       icon: <FaPoop size={20} />, 
       ...CARD_COLORS.facility[5]
     },
     { 
       title: 'Total Handwashing Facilities', 
-      value: facilityCards?.find((card: CardItem) => card.name === 'Total Handwashing Facilities')?.count || 0, 
+      value: (facilityCards as CardItem[]).find((card) => card.name === 'Total Handwashing Facilities')?.count || 0, 
       icon: <FaHandHoldingDroplet size={20} />, 
       ...CARD_COLORS.facility[6]
     },
@@ -174,25 +236,25 @@ const Dashboard = () => {
   const washCardItems = [
     { 
       title: 'Total Households', 
-      value: washCards?.find((card: CardItem) => card.name === 'Total Households')?.count || 0, 
+      value: (washCards as CardItem[]).find((card) => card.name === 'Total Households')?.count || 0, 
       icon: <FaHome size={20} />, 
       ...CARD_COLORS.wash[0]
     },
     { 
       title: 'Total Schools', 
-      value: washCards?.find((card: CardItem) => card.name === 'Total Schools')?.count || 0, 
+      value: (washCards as CardItem[]).find((card) => card.name === 'Total Schools')?.count || 0, 
       icon: <FaSchool size={20} />, 
       ...CARD_COLORS.wash[1]
     },
     { 
       title: 'Health Facilities', 
-      value: washCards?.find((card: CardItem) => card.name === 'Health Facilities')?.count || 0, 
+      value: (washCards as CardItem[]).find((card) => card.name === 'Health Facilities')?.count || 0, 
       icon: <FaHeartPulse size={20} />, 
       ...CARD_COLORS.wash[2]
     },
     { 
       title: 'Tsangaya', 
-      value: washCards?.find((card: CardItem) => card.name === 'Tsangaya')?.count || 0, 
+      value: (washCards as CardItem[]).find((card) => card.name === 'Tsangaya')?.count || 0, 
       icon: <FaCity size={20} />, 
       ...CARD_COLORS.wash[3]
     },
@@ -212,30 +274,64 @@ const Dashboard = () => {
     return null;
   };
 
+  // Analytics Distributions Data
+  // Store last non-empty analytics data to prevent charts from disappearing
+  const [lastDisabilityData, setLastDisabilityData] = useState<{ name: string; count: number }[]>([]);
+  const [lastGenderData, setLastGenderData] = useState<{ name: string; count: number }[]>([]);
+  const [lastWardData, setLastWardData] = useState<{ name: string; count: number }[]>([]);
+
+  const disabilityData = (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0)
+    ? data.populationAnalytics.disabilityData
+    : lastDisabilityData;
+  const genderData = (data?.populationAnalytics?.genderDistribution && data.populationAnalytics.genderDistribution.length > 0)
+    ? data.populationAnalytics.genderDistribution
+    : lastGenderData;
+  const wardData = (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0)
+    ? data.locationAnalytics.wardDistribution
+    : lastWardData;
+
+  // Update last non-empty analytics data when new data arrives
+  useEffect(() => {
+    if (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0) {
+      setLastDisabilityData(data.populationAnalytics.disabilityData);
+    }
+    if (data?.populationAnalytics?.genderDistribution && data.populationAnalytics.genderDistribution.length > 0) {
+      setLastGenderData(data.populationAnalytics.genderDistribution);
+    }
+    if (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0) {
+      setLastWardData(data.locationAnalytics.wardDistribution);
+    }
+  }, [data]);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
       <Box sx={{ flexGrow: 1 }}>
         <Box sx={{ position: 'relative' }}>
-          <Grid container spacing={3}>
-            {/* Header and Filter Dropdowns */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
-                  Dashboard
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Overview of water, sanitation and hygiene facilities and population
-                  </Typography>
-                </Typography>
-                <Box sx={{ mb: 3 }}>
-                  <LocationFilter ward={ward} village={village} hamlet={hamlet}
-                  setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
-                  />
+          {/* FixedHeader for sticky dashboard header and filter */}
+          <FixedHeader>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box>
+                    <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 0 }}>
+                      Dashboard
+                    </Typography>
+                    <Typography variant="subtitle1" color="text.secondary">
+                      Overview of water, sanitation and hygiene facilities and population
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <LocationFilter ward={ward} village={village} hamlet={hamlet}
+                      setWard={setWard} setVillage={setVillage} setHamlet={setHamlet}
+                    />
+                  </Box>
                 </Box>
-              </Box>
-              <Box sx={{ width: '100%' }}>
-              {isLoading && <LinearProgress  />}
-            </Box>
+                <Box sx={{ width: '100%', mt: 2 }}>
+                  {isLoading && <LinearProgress />}
+                </Box>
+              </Grid>
             </Grid>
+          </FixedHeader>
 
             {/* Facilities Captured Section */}
             <Grid item xs={12}>
@@ -382,17 +478,15 @@ const Dashboard = () => {
                       </Typography>
                       <Box sx={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={[
-                            { name: 'Female', count: 43701 },
-                            { name: 'Male', count: 60449 },
-                          ]} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                          <BarChart data={disabilityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                             <YAxis />
                             <Tooltip content={<CustomTooltip />} />
                             <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                              <Cell fill={CHART_COLORS[0]} />
-                              <Cell fill={CHART_COLORS[1]} />
+                              {disabilityData.map((entry, index) => (
+                                <Cell key={`cell-disability-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
                             </Bar>
                           </BarChart>
                         </ResponsiveContainer>
@@ -412,29 +506,18 @@ const Dashboard = () => {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={[
-                                { name: 'Female', count: 17340 },
-                                { name: 'Male', count: 16660 },
-                              ]}
+                              data={genderData}
                               dataKey="count"
                               nameKey="name"
                               cx="50%"
                               cy="50%"
                               outerRadius={100}
                               innerRadius={10}
-                              label={({
-                                cx,
-                                cy,
-                                midAngle,
-                                innerRadius,
-                                outerRadius,
-                                percent
-                              }) => {
+                              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                                 const RADIAN = Math.PI / 180;
                                 const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                                 const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                 const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
                                 return (
                                   <text
                                     x={x}
@@ -448,14 +531,15 @@ const Dashboard = () => {
                                 );
                               }}
                             >
-                              <Cell fill={CHART_COLORS[0]} />
-                              <Cell fill={CHART_COLORS[1]} />
+                              {genderData.map((entry, index) => (
+                                <Cell key={`cell-gender-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
                             </Pie>
                             <Tooltip
                               content={({ payload }) => (
                                 <Card sx={{ p: 1, boxShadow: 3 }}>
                                   <Typography variant="body2">
-                                    {payload?.[0]?.name}: {payload?.[0]?.value.toLocaleString()}
+                                    {payload?.[0]?.name}: {payload?.[0]?.value?.toLocaleString()}
                                   </Typography>
                                 </Card>
                               )}
@@ -488,18 +572,7 @@ const Dashboard = () => {
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             layout="vertical"
-                            data={[
-                              { name: "DOKA", count: 847 },
-                              { name: "S/GARI", count: 803 },
-                              { name: "KUDAN", count: 766 },
-                              { name: "TABA", count: 685 },
-                              { name: "HUNKUYI", count: 558 },
-                              { name: "ZABI", count: 547 },
-                              { name: "LIKORO", count: 474 },
-                              { name: "GARU", count: 248 },
-                              { name: "K/WALI NORTH", count: 239 },
-                              { name: "K/WALI SOUTH", count: 9 }
-                            ]}
+                            data={wardData}
                             margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
@@ -521,26 +594,12 @@ const Dashboard = () => {
                                   fontSize={12}
                                   textAnchor="start"
                                 >
-                                  {[
-                                    "DOKA", "S/GARI", "KUDAN", "TABA", "HUNKUYI", 
-                                    "ZABI", "LIKORO", "GARU", "K/WALI NORTH", "K/WALI SOUTH"
-                                  ][index]}
+                                  {wardData[index]?.name}
                                 </text>
                               )}
                             >
-                              {[
-                                { name: "DOKA", count: 847 },
-                                { name: "S/GARI", count: 803 },
-                                { name: "KUDAN", count: 766 },
-                                { name: "TABA", count: 685 },
-                                { name: "HUNKUYI", count: 558 },
-                                { name: "ZABI", count: 547 },
-                                { name: "LIKORO", count: 474 },
-                                { name: "GARU", count: 248 },
-                                { name: "K/WALI NORTH", count: 239 },
-                                { name: "K/WALI SOUTH", count: 9 }
-                              ].map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              {wardData.map((entry, index) => (
+                                <Cell key={`cell-ward-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                               ))}
                             </Bar>
                           </BarChart>
@@ -551,11 +610,10 @@ const Dashboard = () => {
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
+          </Box>
         </Box>
-      </Box>
-    </Container>
-  );
+      </Container>
+    );
 };
 
 export default Dashboard;

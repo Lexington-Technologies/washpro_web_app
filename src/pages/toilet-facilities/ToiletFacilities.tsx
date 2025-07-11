@@ -126,7 +126,20 @@ const ToiletFacilities: React.FC = () => {
   const [pieChartData, setPieChartData] = useState<PieChartDataItem[]>([]);
   const [barChartData, setBarChartData] = useState<BarChartDataItem[]>([]);
 
-  const { data: analytics, isLoading } = useQuery({
+  interface AnalyticsData {
+    totalToilets: number;
+    proportionImproved: number;
+    householdToiletRatio: string | number | null | undefined;
+    schoolToiletRatio: string | number | null | undefined;
+    typeDistribution: {
+      [key: string]: { count: number; percentage?: string };
+    };
+    conditionDistribution: {
+      [key: string]: { count: number };
+    };
+  }
+
+  const { data: analytics, isLoading } = useQuery<AnalyticsData>({
     queryKey: ['toilet-facilities-analytics', ward, village, hamlet],
     queryFn: () =>
       apiController.get(`/toilet-facilities/analytics?` +
@@ -136,23 +149,37 @@ const ToiletFacilities: React.FC = () => {
       ),
   });
 
+  function normalizeValue(val: unknown): string {
+    if (
+      val === undefined ||
+      val === null ||
+      val === '' ||
+      (typeof val === 'string' && val.trim().toLowerCase() === 'no data')
+    ) {
+      return '0';
+    }
+    return String(val);
+  }
+
   useEffect(() => {
     if (analytics) {
-      setTotalToilets(analytics.totalToilets || 0);
-      setProportionImproved(
-        analytics.proportionImproved !== undefined
-          ? `${(analytics.proportionImproved * 100).toFixed(1)}%`
-          : '0%'
+      setTotalToilets(
+        normalizeValue(analytics.totalToilets) === '0' ? 0 : Number(analytics.totalToilets)
       );
-      setHouseholdToiletRatio(analytics.householdToiletRatio === 'No data' ? '0' : (analytics.householdToiletRatio || '0'));
-      setSchoolToiletRatio(analytics.schoolToiletRatio === 'No data' ? '0' : (analytics.schoolToiletRatio || '0'));
+      setProportionImproved(
+        normalizeValue(analytics.proportionImproved) === '0'
+          ? '0%'
+          : `${(Number(analytics.proportionImproved) * 100).toFixed(1)}%`
+      );
+      setHouseholdToiletRatio(normalizeValue(analytics.householdToiletRatio));
+      setSchoolToiletRatio(normalizeValue(analytics.schoolToiletRatio));
       if (analytics.typeDistribution) {
         const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722'];
         setPieChartData(
           Object.entries(analytics.typeDistribution).map(([type, values], index) => ({
             id: index,
             label: type,
-            value: values.count,
+            value: normalizeValue(values.count) === '0' ? 0 : Number(values.count),
             color: colorPalette[index % colorPalette.length],
           }))
         );
@@ -161,8 +188,14 @@ const ToiletFacilities: React.FC = () => {
         setBarChartData([
           {
             condition: 'Condition',
-            maintained: analytics.conditionDistribution['Maintained']?.count || 0,
-            unmaintained: analytics.conditionDistribution['Unmaintained']?.count || 0,
+            maintained:
+              normalizeValue(analytics.conditionDistribution['Maintained']?.count) === '0'
+                ? 0
+                : Number(analytics.conditionDistribution['Maintained']?.count),
+            unmaintained:
+              normalizeValue(analytics.conditionDistribution['Unmaintained']?.count) === '0'
+                ? 0
+                : Number(analytics.conditionDistribution['Unmaintained']?.count),
           },
         ]);
       }
@@ -191,7 +224,7 @@ const ToiletFacilities: React.FC = () => {
       ),
   });
 
-  const totalPieValue = pieChartData.reduce((sum, item) => sum + item.value, 0);
+  const totalPieValue = pieChartData.reduce((sum, item) => sum + (item.value ?? 0), 0);
 
   const columnHelper = createColumnHelper<ToiletFacility>();
 
@@ -269,7 +302,7 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={3}>
             <StatCard
               title="Total Toilets"
-              value={Number(totalToilets).toLocaleString()}
+              value={Number(totalToilets || 0).toLocaleString()}
               icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />}
               bgColor="#E3F2FD"
             />
@@ -277,7 +310,7 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={3}>
             <StatCard
               title="Improved Facilities"
-              value={proportionImproved}
+              value={proportionImproved || '0%'}
               icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />}
               bgColor="#E8F5E9"
             />
@@ -285,7 +318,7 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={3}>
             <StatCard
               title="Household Toilet Ratio"
-              value={householdToiletRatio}
+              value={householdToiletRatio || '0'}
               icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />}
               bgColor="#E3F2FD"
             />
@@ -293,7 +326,7 @@ const ToiletFacilities: React.FC = () => {
           <Grid item xs={12} md={3}>
             <StatCard
               title="School Toilet Ratio"
-              value={schoolToiletRatio}
+              value={schoolToiletRatio || '0'}
               icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />}
               bgColor="#FFEBEE"
             />
@@ -308,12 +341,11 @@ const ToiletFacilities: React.FC = () => {
               <PieChart
                 series={[
                   {
-                    data: pieChartData,
-                    arcLabel: (item) => totalPieValue > 0 ? `${((item.value / totalPieValue) * 100).toFixed(1)}%` : '0%',
+                    data: pieChartData.map(item => ({ ...item, value: item.value ?? 0 })),
+                    arcLabel: (item) => totalPieValue > 0 ? `${(((item.value ?? 0) / totalPieValue) * 100).toFixed(1)}%` : '0%',
                     arcLabelMinAngle: 10,
                     outerRadius: 180,
                     innerRadius: 40,
-                    tooltip: ({ datum }) => `${datum.label}: ${datum.value}`,
                   },
                 ]}
                 width={Math.min(760, window.innerWidth - 40)}
@@ -334,7 +366,11 @@ const ToiletFacilities: React.FC = () => {
               Functionality by Type
               </Typography>
               <BarChart
-                dataset={barChartData}
+                dataset={barChartData.map(item => ({
+                  ...item,
+                  maintained: item.maintained ?? 0,
+                  unmaintained: item.unmaintained ?? 0,
+                }))}
                 yAxis={[{ scaleType: 'linear' }]}
                 xAxis={[{ scaleType: 'band', dataKey: 'condition' }]}
                 series={[
@@ -367,7 +403,7 @@ const ToiletFacilities: React.FC = () => {
                 pageIndex: pagination.pageIndex,
                 pageSize: pagination.pageSize,
               }}
-              totalCount={tableData?.pagination?.total || 0}
+              totalCount={typeof tableData === 'object' && tableData !== null && 'total' in tableData ? (tableData.total as number) : 0}
               onPaginationChange={setPagination}
               onFilterChange={({ ward, village, hamlet }) => {
                 setWard(ward || 'All');

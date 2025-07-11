@@ -4,12 +4,8 @@ import {
   Card,
   Chip,
   CircularProgress,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Typography,
   styled,
@@ -17,13 +13,13 @@ import {
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { RiWaterFlashFill } from 'react-icons/ri';
 import { useQuery } from '@tanstack/react-query';
 import { apiController } from '../../axios';
 import { DataTable } from '../../components/Table/DataTable';
-import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LocationFilter from '../../components/LocationFilter';
 
 const StyledPaper = styled(Paper)`
   padding: ${({ theme }) => theme.spacing(3)};
@@ -76,32 +72,62 @@ interface DumpSite {
 }
 
 const DumpSites: React.FC = () => {
-  const [wardFilter, setWardFilter] = useState<string>('All');
-  const [villageFilter, setVillageFilter] = useState<string>('All');
-  const [hamletFilter, setHamletFilter] = useState<string>('All');
+  // Global filter state
+  const [ward, setWard] = useState('');
+  const [village, setVillage] = useState('');
+  const [hamlet, setHamlet] = useState('');
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
 
-  const { data: analytics } = useQuery({
-    queryKey: ['dump-sites-analytics', wardFilter, villageFilter, hamletFilter],
-    queryFn: () => apiController.get(
-      `/dump-sites/analytics?ward=${wardFilter !== 'All' ? wardFilter : ''}&village=${villageFilter !== 'All' ? villageFilter : ''}&hamlet=${hamletFilter !== 'All' ? hamletFilter : ''}`
-    ),
+  // Fetch analytics with filters
+  const { data: analyticsData } = useQuery({
+    queryKey: ['dump-sites-analytics', ward, village, hamlet],
+    queryFn: () =>
+      apiController.get(
+        `/dump-sites/analytics?` +
+        (ward ? `ward=${encodeURIComponent(ward)}&` : '') +
+        (village ? `village=${encodeURIComponent(village)}&` : '') +
+        (hamlet ? `hamlet=${encodeURIComponent(hamlet)}&` : '')
+      ),
   });
+  const analytics = analyticsData || {};
 
+  // Fetch table data with filters (optional, for fallback)
   const { data: tableData, isLoading: isTableLoading } = useQuery({
-    queryKey: ['dump-sites'],
-    queryFn: () => apiController.get('/dump-sites'),
+    queryKey: ['dump-sites', ward, village, hamlet],
+    queryFn: () =>
+      apiController.get(
+        `/dump-sites?` +
+        (ward ? `ward=${encodeURIComponent(ward)}&` : '') +
+        (village ? `village=${encodeURIComponent(village)}&` : '') +
+        (hamlet ? `hamlet=${encodeURIComponent(hamlet)}&` : '')
+      ),
   });
 
-  const totalSites = analytics?.totalSites || 0;
-  const proportionImproved = analytics?.proportionImproved !== undefined ? `${(analytics.proportionImproved * 100).toFixed(1)}%` : '0';
-  const avgDistance = analytics?.avgDistance || '0';
-  const householdsUsingUnimproved = analytics?.householdsUsingUnimproved || '0';
-  const wardOptions = useMemo(() => (analytics?.filters?.wards ? ['All', ...analytics.filters.wards] : ['All']), [analytics]);
-  const villageOptions = useMemo(() => (analytics?.filters?.villages ? ['All', ...analytics.filters.villages] : ['All']), [analytics]);
-  const hamletOptions = useMemo(() => (analytics?.filters?.hamlets ? ['All', ...analytics.filters.hamlets] : ['All']), [analytics]);
+  // Normalize analytics values
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function norm(val: any) {
+    if (val === undefined || val === null || val === '' || (typeof val === 'string' && val.trim().toLowerCase() === 'no data')) return 0;
+    return Number(val) || 0;
+  }
+
+  // Stat cards
+  const totalSites = norm(analytics.totalSites);
+
+  // Pie/Bar chart data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const spaceTypeBarData = Object.entries(analytics.spaceTypeDistribution || {}).map(([label, value]: any[], idx) => ({
+    label,
+    value: norm(value),
+    id: idx,
+  }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const evacuationPieData = Object.entries(analytics.evacuationSchedulePercentages || {}).map(([label, value]: any[], idx) => ({
+    label,
+    value: norm(value),
+    id: idx,
+  }));
 
   const columnHelper = createColumnHelper<DumpSite>();
 
@@ -148,84 +174,60 @@ const DumpSites: React.FC = () => {
             Comprehensive overview of DumpSites
           </Typography>
         </Box>
-        {/* <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ maxWidth: '800px', justifyContent: 'flex-end', gap: 1 }}>
-          {[{ label: 'Ward', value: wardFilter, setValue: setWardFilter, options: wardOptions }, { label: 'Village', value: villageFilter, setValue: setVillageFilter, options: villageOptions }, { label: 'Hamlet', value: hamletFilter, setValue: setHamletFilter, options: hamletOptions }].map(({ label, value, setValue, options }, idx) => (
-            <FormControl key={idx} size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>{label}</InputLabel>
-              <Select value={value} onChange={(e) => setValue(e.target.value)} label={label}>
-                {options.map((option, index) => (
-                  <MenuItem key={index} value={option}>{option}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          ))}
-        </Stack> */}
+        <Box>
+          <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
+        </Box>
       </Box>
-
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}><StatCard title="Total Dumpsite" value={Number(totalSites).toLocaleString()} icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Improved Dumpsite" value={'1,072'} icon={<ArrowUp style={{ color: '#4CAF50', fontSize: '2rem' }} />} bgColor="#E8F5E9" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Avg. Distance to Improved Water (m)" value={'30m'} icon={<RiWaterFlashFill style={{ color: '#2196F3', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
-        <Grid item xs={12} md={3}><StatCard title="Unimproved DumpSites" value={'1,298'} icon={<ArrowDown style={{ color: '#F44336', fontSize: '2rem' }} />} bgColor="#FFEBEE" /></Grid>
+        {/* Add more stat cards as needed, using analytics fields */}
       </Grid>
-
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        {analytics?.spaceTypeDistribution && (
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 2, height: '100%' }}>
-              <Typography variant="h6" mb={2}>Space Type Distribution</Typography>
-              <BarChart
-                xAxis={[{ scaleType: 'band', data: Object.keys(analytics.spaceTypeDistribution) }]}
-                series={[{
-                  data: Object.values(analytics.spaceTypeDistribution),
-                  label: 'Number of Sites',
-                  color: '#1976D2',
-                  valueFormatter: (val) => `${val} sites`,
-                }]}
-                height={400}
-                width={Math.min(800, window.innerWidth - 40)}
-              />
-            </Card>
-          </Grid>
-        )}
-
-        {analytics?.evacuationSchedulePercentages && (
-          <Grid item xs={12} md={4}>
-            <Card sx={{ p: 2, height: '100%' }}>
-              <Typography variant="h6" mb={2}>Evacuation Schedule</Typography>
-              <PieChart
-                series={[
-                  {
-                    data: Object.entries(analytics.evacuationSchedulePercentages).map(([label, value], idx) => ({
-                      id: idx,
-                      label,
-                      value,
-                    })),
-                    arcLabel: (item) => `${item.value.toFixed(1)}%`,
-                    arcLabelMinAngle: 10,
-                    outerRadius: 160,
-                    innerRadius: 30,
-                    cx: 160,
-                    tooltip: {
-                      render: (item) => `${item.label}: ${item.value.toFixed(1)}%`,
-                    },
-                  },
-                ]}
-                width={450}
-                height={320}
-                sx={{
-                  [`& .${pieArcLabelClasses.root}`]: {
-                    fontWeight: 'bold',
-                    fill: '#fff',
-                    fontSize: '0.85rem',
-                  },
-                }}
-              />
-            </Card>
-          </Grid>
-        )}
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>Space Type Distribution</Typography>
+            <BarChart
+              xAxis={[{ scaleType: 'band', data: spaceTypeBarData.map(d => d.label) }]}
+              series={[{
+                data: spaceTypeBarData.map(d => d.value),
+                label: 'Number of Sites',
+                color: '#1976D2',
+                valueFormatter: (val) => `${val} sites`,
+              }]}
+              height={400}
+              width={Math.min(800, window.innerWidth - 40)}
+            />
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" mb={2}>Evacuation Schedule</Typography>
+            <PieChart
+              series={[
+                {
+                  data: evacuationPieData,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  arcLabel: (item: any) => `${item.value.toFixed(1)}%`,
+                  arcLabelMinAngle: 10,
+                  outerRadius: 160,
+                  innerRadius: 30,
+                  cx: 160,
+                },
+              ]}
+              width={450}
+              height={320}
+              sx={{
+                [`& .${pieArcLabelClasses.root}`]: {
+                  fontWeight: 'bold',
+                  fill: '#fff',
+                  fontSize: '0.85rem',
+                },
+              }}
+            />
+          </Card>
+        </Grid>
+        {/* Add more charts for conditionPieData as needed */}
       </Grid>
-
       <Card sx={{ mt: 3 }}>
         <Box sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
@@ -234,7 +236,7 @@ const DumpSites: React.FC = () => {
           <Paper sx={{ overflowX: 'auto' }}>
             <DataTable
               columns={columns}
-              data={tableData}
+              data={tableData as DumpSite[]}
               pagination={pagination}
               onPaginationChange={setPagination}
               onRowClick={(row) => navigateToDetails(row._id)}
