@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Grid,
-  CircularProgress,
   Typography,
   FormControl,
   InputLabel,
@@ -19,6 +18,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  LinearProgress,
+  styled,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -199,6 +200,7 @@ const WaterSourceRisk = () => {
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
   const [type, setType] = useState('');
+  // Only show markers after user applies a filter
   const [showMapMarkers, setShowMapMarkers] = useState(false);
   const [selectedSource, setSelectedSource] = useState<WaterSourceRiskData | null>(null);
 
@@ -271,6 +273,9 @@ const WaterSourceRisk = () => {
     [waterRisks, ward, village, hamlet, type]
   );
 
+  // Store last non-empty analytics to prevent stats from resetting to 0
+  const [lastAnalytics, setLastAnalytics] = useState({ total: 0, critical: 0, moderate: 0, safe: 0 });
+
   // Compute analytics based on computed risk ratings.
   const analytics = useMemo(() => {
     return filteredWaterRisks.reduce(
@@ -286,6 +291,13 @@ const WaterSourceRisk = () => {
     );
   }, [filteredWaterRisks]);
 
+  // Update lastAnalytics only when filteredWaterRisks is non-empty
+  useEffect(() => {
+    if (filteredWaterRisks && filteredWaterRisks.length > 0) {
+      setLastAnalytics(analytics);
+    }
+  }, [analytics, filteredWaterRisks]);
+
   // Handle filter changes.
   const handleFilterChange = (filterType: 'ward' | 'village' | 'hamlet' | 'type', value: string) => {
     if (filterType === 'ward') {
@@ -300,9 +312,21 @@ const WaterSourceRisk = () => {
     } else if (filterType === 'type') {
       setType(value);
     }
-    // Show markers when any filter is applied
-    if (value) {
+    // Show markers only if any filter is set (not empty)
+    if (
+      (filterType === 'ward' && value) ||
+      (filterType === 'village' && value) ||
+      (filterType === 'hamlet' && value) ||
+      (filterType === 'type' && value)
+    ) {
       setShowMapMarkers(true);
+    } else if (
+      (filterType === 'ward' && !value && !village && !hamlet && !type) ||
+      (filterType === 'village' && !ward && !value && !hamlet && !type) ||
+      (filterType === 'hamlet' && !ward && !village && !value && !type) ||
+      (filterType === 'type' && !ward && !village && !hamlet && !value)
+    ) {
+      setShowMapMarkers(false);
     }
   };
 
@@ -319,14 +343,6 @@ const WaterSourceRisk = () => {
     setSelectedSource(null);
   };
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
-
   if (error) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -340,58 +356,54 @@ const WaterSourceRisk = () => {
 
   return (
     <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
-      {/* Header & Filters */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
-            Water Source Risk
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Filtered water sources analysis
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
-          {typeOptions.length > 0 && (
+      {/* FixedHeader for sticky header/filters */}
+      <FixedHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+              Water Source Risk
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Filtered water sources analysis
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1}>
             <FilterDropdown
               label="Type"
               value={type}
               options={typeOptions}
               onChange={(value) => handleFilterChange('type', value)}
             />
-          )}
-          {wardOptions.length > 0 && (
             <FilterDropdown
               label="Ward"
               value={ward}
               options={wardOptions}
               onChange={(value) => handleFilterChange('ward', value)}
             />
-          )}
-          {villageOptions.length > 0 && (
             <FilterDropdown
               label="Village"
               value={village}
               options={villageOptions}
               onChange={(value) => handleFilterChange('village', value)}
             />
-          )}
-          {hamletOptions.length > 0 && (
             <FilterDropdown
               label="Hamlet"
               value={hamlet}
               options={hamletOptions}
               onChange={(value) => handleFilterChange('hamlet', value)}
             />
-          )}
-        </Stack>  
-      </Box>
+          </Stack>
+        </Box>
+        {/* Loading bar below filters, matching WaterSources */}
+        {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+      </FixedHeader>
 
       {/* Analytics Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
             title="Total Sources"
-            value={analytics.total}
+            value={lastAnalytics.total}
             icon={<Waves />}
             iconColor="#3b82f6"
           />
@@ -399,7 +411,7 @@ const WaterSourceRisk = () => {
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
             title="Critical Risks"
-            value={analytics.critical}
+            value={lastAnalytics.critical}
             icon={<Dangerous sx={{ color: riskColorMapping.critical }} />}
             iconColor={riskColorMapping.critical}
           />
@@ -407,7 +419,7 @@ const WaterSourceRisk = () => {
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
             title="Moderate Risks"
-            value={analytics.moderate}
+            value={lastAnalytics.moderate}
             icon={<FaWrench color={riskColorMapping.moderate} />}
             iconColor={riskColorMapping.moderate}
           />
@@ -415,7 +427,7 @@ const WaterSourceRisk = () => {
         <Grid item xs={12} sm={6} md={3}>
           <StatsCard
             title="Safe Facilities"
-            value={analytics.safe}
+            value={lastAnalytics.safe}
             icon={<SafetyCheck />}
             iconColor={riskColorMapping.safe}
           />
@@ -439,14 +451,14 @@ const WaterSourceRisk = () => {
           </Typography>
           {!showMapMarkers && (
             <Typography variant="body2" color="text.secondary">
-              Apply filters to view markers on the map
+              Apply any filter to view markers on the map
             </Typography>
           )}
         </Box>
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
+          <Box sx={{ height: 800, borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
             <Map
-              defaultZoom={11}
+              defaultZoom={15}
               defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
               mapId={GOOGLE_MAPS_API_KEY}
               gestureHandling="greedy"
@@ -506,12 +518,15 @@ const WaterSourceRisk = () => {
       </Paper>
 
       {/* Data Table with Row Navigation */}
-      <DataTable
-        isLoading={isLoading}
-        columns={columns}
-        data={waterRisks || []}
-        onRowClick={handleRowClick}
-      />
+      <Paper sx={{ overflowX: 'auto', mb: 3 }}>
+        {isLoading && <LinearProgress sx={{ height: 2 }} />}
+        <DataTable
+          isLoading={isLoading}
+          columns={columns}
+          data={waterRisks || []}
+          onRowClick={handleRowClick}
+        />
+      </Paper>
 
       {/* Details Modal */}
       <WaterSourceDetailsDialog open={!!selectedSource} onClose={handleCloseModal} waterSource={selectedSource} />
@@ -591,8 +606,7 @@ interface WaterSourceDetailsDialogProps {
 
 const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDetailsDialogProps) => {
   const navigate = useNavigate();
-  const [selectedRisk, setSelectedRisk] = useState<string | null>(null);
-  const riskRating = waterSource ? getRiskRating(waterSource) : null;
+  // Removed unused selectedRisk and riskRating
 
   // Add this new state at the top of the WaterSourceDetailsDialog component
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -607,7 +621,7 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
       { key: 'openDefecation', label: 'Open Defecation' },
       { key: 'gutters', label: 'Gutter' },
     ];
-    let result: {
+    const result: {
       id: string;
       name: string;
       distance: number;
@@ -615,7 +629,7 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
       riskLevel: string;
     }[] = [];
     facilityTypes.forEach(({ key, label }) => {
-      // @ts-ignore
+      // @ts-expect-error Accessing dynamic key on facilities object
       const arr: Facility[] = waterSource.facilities[key] || [];
       arr.forEach(fac => {
         result.push({
@@ -799,7 +813,7 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                       <Chip
                         label={`Critical: ${waterSource.summary.toilets.critical}`}
-                        onClick={() => setSelectedRisk('Critical')}
+                        onClick={() => {}}
                         sx={{
                           bgcolor: '#fee2e2',
                           color: '#dc2626',
@@ -810,7 +824,7 @@ const WaterSourceDetailsDialog = ({ open, onClose, waterSource }: WaterSourceDet
                       />
                       <Chip
                         label={`Moderate: ${waterSource.summary.toilets.moderate}`}
-                        onClick={() => setSelectedRisk('Moderate')}
+                        onClick={() => {}}
                         sx={{
                           bgcolor: '#ffedd5',
                           color: '#f97316',
@@ -956,5 +970,15 @@ const DetailItem = ({ icon, label, value }: DetailItemProps) => (
     </Box>
   </Box>
 );
+
+// FixedHeader styled component (like in WaterSources)
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F8F9FA',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
 
 export default WaterSourceRisk;
