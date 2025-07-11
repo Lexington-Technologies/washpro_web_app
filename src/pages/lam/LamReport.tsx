@@ -28,7 +28,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  LinearProgress,
+  styled
 } from '@mui/material';
 import { 
   Search as SearchIcon, 
@@ -38,6 +40,16 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import React, { useState } from 'react';
+
+// FixedHeader styled component (like in WaterSources)
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#f5f5f9',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
 
 const LAMReportingDashboard = () => {
   // State for modal
@@ -178,24 +190,32 @@ const LAMReportingDashboard = () => {
     );
   };
 
+  // Mock loading state for demonstration (replace with real isLoading if/when using API)
+  const isLoading = false;
+
   return (
     <Box sx={{ padding: 3, backgroundColor: '#f5f5f9', minHeight: '100vh' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
-          LAM Reporting
-          <Typography variant="subtitle1" color="text.secondary">
-            Location, Assessment and Maintenance reporting for water facilities
-          </Typography>
-        </Typography>
-
-        <Box sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={2}>
-            <FilterDropdown label="Ward" options={['All']} />
-            <FilterDropdown label="Village" options={['All']} />
-            <FilterDropdown label="Hamlet" options={['All']} />
-          </Stack>
+      <FixedHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 1 }}>
+              Lam reporting
+              <Typography variant="subtitle1" color="text.secondary">
+                Location, Assessment and Maintenance reporting for water facilities
+              </Typography>
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 3 }}>
+            <Stack direction="row" spacing={2}>
+              <FilterDropdown label="Ward" options={['All']} />
+              <FilterDropdown label="Village" options={['All']} />
+              <FilterDropdown label="Hamlet" options={['All']} />
+            </Stack>
+          </Box>
         </Box>
-      </Box>
+        {/* Loading bar below filters, matching WaterSources */}
+        {isLoading && <LinearProgress sx={{ mb: 2 }} />}
+      </FixedHeader>
       
       {/* Add Report Button */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>

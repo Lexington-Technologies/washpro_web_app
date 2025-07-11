@@ -8,6 +8,7 @@ import {
   Stack,
   Typography,
   styled,
+  LinearProgress,
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
@@ -83,6 +84,16 @@ interface Gutter {
   updatedAt: string;
 }
 
+// FixedHeader styled component (like in WaterSources)
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
+
 const GutterDashboard: React.FC = () => {
   // Global filter state
   const [ward, setWard] = useState('');
@@ -93,7 +104,7 @@ const GutterDashboard: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
 
   // Fetch analytics with filters
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useQuery({
     queryKey: ['gutters-analytics', ward, village, hamlet],
     queryFn: () =>
       apiController.get(
@@ -106,7 +117,7 @@ const GutterDashboard: React.FC = () => {
   const analytics = analyticsData || {};
 
   // Fetch table data with filters (optional, for fallback)
-  const { data: tableData } = useQuery({
+  const { data: tableData, isLoading: isTableLoading } = useQuery({
     queryKey: ['gutters', ward, village, hamlet],
     queryFn: () =>
       apiController.get(
@@ -207,19 +218,22 @@ const GutterDashboard: React.FC = () => {
   };
   return (
     <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-             Gutter Dashboard
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Comprehensive overview of gutters
-          </Typography>
+      <FixedHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+               Gutter Dashboard
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Comprehensive overview of gutters
+            </Typography>
+          </Box>
+          <Box>
+            <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
+          </Box>
         </Box>
-        <Box>
-          <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
-        </Box>
-      </Box>
+        {isTableLoading && <LinearProgress sx={{ mb: 2 }} />}
+      </FixedHeader>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard

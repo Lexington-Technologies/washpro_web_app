@@ -14,6 +14,7 @@ import {
   DialogActions,
   Stack,
   styled,
+  LinearProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -189,13 +190,13 @@ const OpenDefication = () => {
 
   // Query for analytics
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: analyticsData } = useQuery<any, Error>({
+  const { data: analyticsData, isLoading } = useQuery<any, Error>({
     queryKey: ['open-defecation-analytics', ward, village, hamlet],
     queryFn: () => apiController.get<any>(`/open-defecations/analytics?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
   });
 
   // Query for table data (move this above analytics assignment)
-  const { data: tableData } = useQuery<OpenDefecation[], Error>({
+  const { data: tableData, isTableLoading } = useQuery<OpenDefecation[], Error>({
     queryKey: ['open-defecation', ward, village, hamlet],
     queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
   });
@@ -308,10 +309,8 @@ const FixedHeader = styled(Box)(({ theme }) => ({
                   <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
                 </Box>
               </Box>
-              <Box sx={{ width: '100%', mb: 3 }}>
-                {/* Optionally show loading bar for analytics */}
-                {/* {isLoading && <LinearProgress />} */}
-              </Box>
+              {/* Loading bar below filters, matching WaterSources */}
+              {(isLoading || isTableLoading) && <LinearProgress sx={{ mb: 2 }} />}
             </Grid>
           </Grid>
         </FixedHeader>
@@ -424,9 +423,9 @@ const FixedHeader = styled(Box)(({ theme }) => ({
             Observations Map
           </Typography>
           <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-            <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ height: 700, borderRadius: 2, overflow: 'hidden' }}>
               <Map
-                defaultZoom={11}
+                defaultZoom={15}
                 defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
                 mapId={GOOGLE_MAPS_API_KEY}
               >

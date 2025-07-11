@@ -9,6 +9,7 @@ import {
   Stack,
   Typography,
   styled,
+  LinearProgress,
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
@@ -81,7 +82,7 @@ const DumpSites: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
 
   // Fetch analytics with filters
-  const { data: analyticsData } = useQuery({
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useQuery({
     queryKey: ['dump-sites-analytics', ward, village, hamlet],
     queryFn: () =>
       apiController.get(
@@ -159,25 +160,34 @@ const DumpSites: React.FC = () => {
     navigate(`/dump-sites/${id}?${queryParams.toString()}`);
   };
 
-  if (isTableLoading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress size={60} thickness={4} /></Box>;
-  }
+  // FixedHeader styled component (like in WaterSources)
+  const FixedHeader = styled(Box)(({ theme }) => ({
+    position: 'sticky',
+    top: -9,
+    zIndex: 100,
+    backgroundColor: '#F1F1F5',
+    padding: theme.spacing(2, 0),
+    marginBottom: theme.spacing(2),
+  }));
 
   return (
     <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-            DumpSites Dashboard
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Comprehensive overview of DumpSites
-          </Typography>
+      <FixedHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+              DumpSites Dashboard
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Comprehensive overview of DumpSites
+            </Typography>
+          </Box>
+          <Box>
+            <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
+          </Box>
         </Box>
-        <Box>
-          <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
-        </Box>
-      </Box>
+        {isTableLoading && <LinearProgress sx={{ mb: 2 }} />}
+      </FixedHeader>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}><StatCard title="Total Dumpsite" value={Number(totalSites).toLocaleString()} icon={<RiWaterFlashFill style={{ color: '#2563EB', fontSize: '2rem' }} />} bgColor="#E3F2FD" /></Grid>
         {/* Add more stat cards as needed, using analytics fields */}

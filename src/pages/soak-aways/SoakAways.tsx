@@ -6,6 +6,7 @@ import {
   Paper,
   Typography,
   styled,
+  LinearProgress,
 } from '@mui/material';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
@@ -22,6 +23,16 @@ const StyledPaper = styled(Paper)`
   border-radius: ${({ theme }) => theme.spacing(1)};
   min-height: 150px;
 `;
+
+// FixedHeader styled component (like in WaterSources)
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
 
 interface StatCardProps {
   title: string;
@@ -157,31 +168,27 @@ const SoakAways: React.FC = () => {
     id: idx,
   }));
 
-  if (isTableLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
   const navigateToDetails = (id: string) => {
     navigate(`/soak-aways/${id}?${queryParams.toString()}`);
   };
   return (
     <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
-            SoakAways Dashboard
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Comprehensive overview of SoakAways
-          </Typography>
+      <FixedHeader>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h5" sx={{ color: '#25306B', fontWeight: 600 }}>
+              SoakAways Dashboard
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Comprehensive overview of SoakAways
+            </Typography>
+          </Box>
+          <Box>
+            <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
+          </Box>
         </Box>
-        <Box>
-          <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
-        </Box>
-      </Box>
+        {isTableLoading && <LinearProgress sx={{ mb: 2 }} />}
+      </FixedHeader>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <StatCard
