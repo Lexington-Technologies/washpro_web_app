@@ -271,7 +271,32 @@ const Dashboard = () => {
     return null;
   };
 
-  // Removed unused state and variables for disabilityData, genderData, wardData
+  // Store last non-empty data for analytics charts to prevent disappearance on filter
+  const [lastWardDistribution, setLastWardDistribution] = useState<{ name: string; count: number }[]>([]);
+  const [lastDisabilityData, setLastDisabilityData] = useState<{ name: string; count: number }[]>([]);
+  const [lastVillageDistribution, setLastVillageDistribution] = useState<{ name: string; count: number }[]>([]);
+
+  useEffect(() => {
+    if (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0) {
+      setLastWardDistribution(data.locationAnalytics.wardDistribution);
+    }
+    if (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0) {
+      setLastDisabilityData(data.populationAnalytics.disabilityData);
+    }
+    if (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0) {
+      setLastVillageDistribution(data.locationAnalytics.villageDistribution);
+    }
+  }, [data]);
+
+  const safeWardDistribution = (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0)
+    ? data.locationAnalytics.wardDistribution
+    : lastWardDistribution;
+  const safeDisabilityData = (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0)
+    ? data.populationAnalytics.disabilityData
+    : lastDisabilityData;
+  const safeVillageDistribution = (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0)
+    ? data.locationAnalytics.villageDistribution
+    : lastVillageDistribution;
 
   return (
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
@@ -449,7 +474,7 @@ const Dashboard = () => {
                     <Box sx={{ height: 300 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={(data?.locationAnalytics?.wardDistribution || []).map((ward) => ({
+                          data={safeWardDistribution.map((ward) => ({
                             name: ward.name,
                             count: ward.count
                           }))}
@@ -460,7 +485,7 @@ const Dashboard = () => {
                           <YAxis />
                           <Tooltip content={<CustomTooltip />} />
                           <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                            {(data?.locationAnalytics?.wardDistribution || []).map((entry, idx) => (
+                            {safeWardDistribution.map((entry, idx) => (
                               <Cell key={`cell-ward-pop-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                             ))}
                           </Bar>
@@ -480,7 +505,7 @@ const Dashboard = () => {
                     <Box sx={{ height: 300 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={data?.populationAnalytics?.disabilityData || []}
+                          data={safeDisabilityData}
                           margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
@@ -488,7 +513,7 @@ const Dashboard = () => {
                           <YAxis />
                           <Tooltip content={<CustomTooltip />} />
                           <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                            {(data?.populationAnalytics?.disabilityData || []).map((entry, idx) => (
+                            {safeDisabilityData.map((entry, idx) => (
                               <Cell key={`cell-disability-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                             ))}
                           </Bar>
@@ -508,7 +533,7 @@ const Dashboard = () => {
                     <Box sx={{ height: 300 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={data?.locationAnalytics?.villageDistribution || []}
+                          data={safeVillageDistribution}
                           margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
@@ -516,7 +541,7 @@ const Dashboard = () => {
                           <YAxis />
                           <Tooltip content={<CustomTooltip />} />
                           <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                            {(data?.locationAnalytics?.villageDistribution || []).map((entry, idx) => (
+                            {safeVillageDistribution.map((entry, idx) => (
                               <Cell key={`cell-village-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                             ))}
                           </Bar>
