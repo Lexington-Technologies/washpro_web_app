@@ -25,10 +25,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
 } from 'recharts';
 import { apiController } from '../../axios';
@@ -274,34 +271,7 @@ const Dashboard = () => {
     return null;
   };
 
-  // Analytics Distributions Data
-  // Store last non-empty analytics data to prevent charts from disappearing
-  const [lastDisabilityData, setLastDisabilityData] = useState<{ name: string; count: number }[]>([]);
-  const [lastGenderData, setLastGenderData] = useState<{ name: string; count: number }[]>([]);
-  const [lastWardData, setLastWardData] = useState<{ name: string; count: number }[]>([]);
-
-  const disabilityData = (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0)
-    ? data.populationAnalytics.disabilityData
-    : lastDisabilityData;
-  const genderData = (data?.populationAnalytics?.genderDistribution && data.populationAnalytics.genderDistribution.length > 0)
-    ? data.populationAnalytics.genderDistribution
-    : lastGenderData;
-  const wardData = (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0)
-    ? data.locationAnalytics.wardDistribution
-    : lastWardData;
-
-  // Update last non-empty analytics data when new data arrives
-  useEffect(() => {
-    if (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0) {
-      setLastDisabilityData(data.populationAnalytics.disabilityData);
-    }
-    if (data?.populationAnalytics?.genderDistribution && data.populationAnalytics.genderDistribution.length > 0) {
-      setLastGenderData(data.populationAnalytics.genderDistribution);
-    }
-    if (data?.locationAnalytics?.wardDistribution && data.locationAnalytics.wardDistribution.length > 0) {
-      setLastWardData(data.locationAnalytics.wardDistribution);
-    }
-  }, [data]);
+  // Removed unused state and variables for disabilityData, genderData, wardData
 
   return (
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
@@ -463,209 +433,97 @@ const Dashboard = () => {
               </Card>
             </Grid>
 
-            {/* Analytics Distributions Section */}
-            <Grid item xs={12}>
-              <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2, mt: 2 }}>
-                Analytics Distributions
-              </Typography>
-              <Grid container spacing={4}>
-                {/* 1. Disability Distribution as a Bar Chart */}
-                <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                        Disability Distribution
-                      </Typography>
-                      <Box sx={{ height: 300 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={disabilityData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                              {disabilityData.map((entry, index) => (
-                                <Cell key={`cell-disability-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* 2. Gender Distribution as a Pie Chart */}
-                <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                        Gender Distribution
-                      </Typography>
-                      <Box sx={{ height: 300 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={genderData}
-                              dataKey="count"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={100}
-                              innerRadius={70}
-                              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                                const RADIAN = Math.PI / 180;
-                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                                return (
-                                  <text
-                                    x={x}
-                                    y={y}
-                                    fill="white"
-                                    textAnchor={x > cx ? 'start' : 'end'}
-                                    dominantBaseline="central"
-                                  >
-                                    {`${(percent * 100).toFixed(0)}%`}
-                                  </text>
-                                );
-                              }}
-                            >
-                              {genderData.map((entry, index) => (
-                                <Cell key={`cell-gender-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip
-                              content={({ payload }) => (
-                                <Card sx={{ p: 1, boxShadow: 3 }}>
-                                  <Typography variant="body2">
-                                    {payload?.[0]?.name}: {payload?.[0]?.value?.toLocaleString()}
-                                  </Typography>
-                                </Card>
-                              )}
-                            />
-                            <Legend 
-                              wrapperStyle={{
-                                paddingTop: '20px'
-                              }}
-                              formatter={(value) => (
-                                <Typography variant="body2" color="textSecondary">
-                                  {value}
-                                </Typography>
-                              )}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* 3. Ward Distribution as a Horizontal Bar Chart */}
-                <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <CardContent>
-                      <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
-                        Ward Distribution
-                      </Typography>
-                      <Box sx={{ height: 300 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            layout="vertical"
-                            data={wardData}
-                            margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" />
-                            <YAxis 
-                              dataKey="name" 
-                              type="category" 
-                              tick={{ fontSize: 12 }} 
-                              width={100} 
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar 
-                              dataKey="count" 
-                              label={({ x, y, width, index }) => (
-                                <text
-                                  x={x + width + 5}
-                                  y={y + 10}
-                                  fill="#000"
-                                  fontSize={12}
-                                  textAnchor="start"
-                                >
-                                  {wardData[index]?.name}
-                                </text>
-                              )}
-                            >
-                              {wardData.map((entry, index) => (
-                                <Cell key={`cell-ward-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+            {/* Analytics Distributions: Total Population by Ward, Disability Distribution, Communities Captured */}
+            <Grid container spacing={4} sx={{ mt: 4 }}>
+              {/* Total Population by Ward Chart */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      Total Population by Ward
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={(data?.locationAnalytics?.wardDistribution || []).map((ward) => ({
+                            name: ward.name,
+                            count: ward.count
+                          }))}
+                          margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
+                            {(data?.locationAnalytics?.wardDistribution || []).map((entry, idx) => (
+                              <Cell key={`cell-ward-pop-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              {/* Disability Distribution Chart (center) */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      Disability Distribution
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={data?.populationAnalytics?.disabilityData || []}
+                          margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
+                            {(data?.populationAnalytics?.disabilityData || []).map((entry, idx) => (
+                              <Cell key={`cell-disability-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              {/* Communities Captured Chart */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <CardContent>
+                    <Typography variant="h6" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      Communities Captured
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={data?.locationAnalytics?.villageDistribution || []}
+                          margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
+                            {(data?.locationAnalytics?.villageDistribution || []).map((entry, idx) => (
+                              <Cell key={`cell-village-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
-        {/* Additional Distributions */}
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {/* Total Population by Ward Chart */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
-              Total Population by Ward
-            </Typography>
-            <Card sx={{ backgroundColor: 'white', p: 2 }}>
-              <Box sx={{ height: 350 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={data?.locationAnalytics?.wardDistribution || []}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {(data?.locationAnalytics?.wardDistribution || []).map((entry, idx) => (
-                        <Cell key={`cell-ward-pop-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </Box>
-            </Card>
-          </Grid>
-          {/* Communities Captured */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
-              Communities Captured
-            </Typography>
-            <Card sx={{ backgroundColor: 'white', p: 2 }}>
-              <Box sx={{ height: 350 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={data?.locationAnalytics?.villageDistribution || []}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
-                      {(data?.locationAnalytics?.villageDistribution || []).map((entry, idx) => (
-                        <Cell key={`cell-village-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </Box>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
+        </Box>
     </Box>
   </Container>
     );
