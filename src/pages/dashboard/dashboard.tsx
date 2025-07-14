@@ -512,7 +512,7 @@ const Dashboard = () => {
                               cx="50%"
                               cy="50%"
                               outerRadius={100}
-                              innerRadius={10}
+                              innerRadius={70}
                               label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                                 const RADIAN = Math.PI / 180;
                                 const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -610,9 +610,64 @@ const Dashboard = () => {
                 </Grid>
               </Grid>
             </Grid>
-          </Box>
-        </Box>
-      </Container>
+        {/* Additional Distributions */}
+        <Grid container spacing={4} sx={{ mt: 4 }}>
+          {/* Total Population by Ward Chart */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
+              Total Population by Ward
+            </Typography>
+            <Card sx={{ backgroundColor: 'white', p: 2 }}>
+              <Box sx={{ height: 350 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={data?.locationAnalytics?.wardDistribution || []}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
+                      {(data?.locationAnalytics?.wardDistribution || []).map((entry, idx) => (
+                        <Cell key={`cell-ward-pop-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </Card>
+          </Grid>
+          {/* Communities Captured */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2 }}>
+              Communities Captured
+            </Typography>
+            <Card sx={{ backgroundColor: 'white', p: 2 }}>
+              <Box sx={{ height: 350 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={data?.locationAnalytics?.villageDistribution || []}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" label={{ fill: '#000', fontSize: 12, position: 'top' }}>
+                      {(data?.locationAnalytics?.villageDistribution || []).map((entry, idx) => (
+                        <Cell key={`cell-village-${idx}`} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+    </Box>
+  </Container>
     );
 };
 
