@@ -379,12 +379,14 @@ const ToiletFacilities: React.FC = () => {
                     label: 'Maintained',
                     color: '#4CAF50',
                     valueFormatter: (value) => `${value}`,
+                    stack: 'a',
                   },
                   {
                     dataKey: 'unmaintained',
                     label: 'Unmaintained',
                     color: '#F44336',
                     valueFormatter: (value) => `${value}`,
+                    stack: 'a',
                   }
                 ]}
                 height={400}
