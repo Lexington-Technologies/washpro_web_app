@@ -226,7 +226,7 @@ const Dashboard = () => {
     },
     { 
       title: 'Total Population', 
-      value: 104150,
+      value: data?.populationAnalytics?.totalPopulation || 0,
       icon: <FaUsers size={20} />,
       ...CARD_COLORS.facility[0]
     },
