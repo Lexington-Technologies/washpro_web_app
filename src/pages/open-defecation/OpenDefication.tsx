@@ -331,6 +331,39 @@ const FixedHeader = styled(Box)(({ theme }) => ({
           </Grid>
         </Grid>
 
+                {/* Map Section */}
+                <Paper sx={{ p: 2, mb: 5, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Observations Map
+          </Typography>
+          <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <Box sx={{ height: 700, borderRadius: 2, overflow: 'hidden' }}>
+              <Map
+                defaultZoom={15}
+                defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
+                mapId={GOOGLE_MAPS_API_KEY}
+              >
+                {filteredData.map((item) => (
+                  <AdvancedMarker
+                    key={item._id}
+                    position={{ lat: item.geolocation.coordinates[1], lng: item.geolocation.coordinates[0] }}
+                    onClick={() => setSelectedLocation(item)}
+                  >
+                    <Box sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: riskColorMapping.critical,
+                      border: '2px solid #fff',
+                    }} />
+                  </AdvancedMarker>
+                ))}
+              </Map>
+            </Box>
+          </APIProvider>
+        </Paper>
+
+
         {/* Analytics Charts */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6}>
@@ -417,37 +450,6 @@ const FixedHeader = styled(Box)(({ theme }) => ({
           </Grid>
         </Grid>
 
-        {/* Map Section */}
-        <Paper sx={{ p: 2, mb: 5, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Observations Map
-          </Typography>
-          <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-            <Box sx={{ height: 700, borderRadius: 2, overflow: 'hidden' }}>
-              <Map
-                defaultZoom={15}
-                defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
-                mapId={GOOGLE_MAPS_API_KEY}
-              >
-                {filteredData.map((item) => (
-                  <AdvancedMarker
-                    key={item._id}
-                    position={{ lat: item.geolocation.coordinates[1], lng: item.geolocation.coordinates[0] }}
-                    onClick={() => setSelectedLocation(item)}
-                  >
-                    <Box sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      bgcolor: riskColorMapping.critical,
-                      border: '2px solid #fff',
-                    }} />
-                  </AdvancedMarker>
-                ))}
-              </Map>
-            </Box>
-          </APIProvider>
-        </Paper>
 
         {/* Data Table */}
         <DataTable
