@@ -434,7 +434,11 @@ const Dashboard = () => {
             </Grid>
 
             {/* Analytics Distributions: Total Population by Ward, Disability Distribution, Communities Captured */}
-            <Grid container spacing={4} sx={{ mt: 4 }}>
+              <Typography variant="h5" component="h2" sx={{ color: '#1e3a8a', fontWeight: 'bold', mb: 2, mt: 2 }}>
+                  Population Analytics
+              </Typography>
+
+            <Grid container spacing={4}>
               {/* Total Population by Ward Chart */}
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
