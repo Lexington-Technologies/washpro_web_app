@@ -9,7 +9,6 @@ import {
   Typography,
   styled,
 } from '@mui/material';
-import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { createColumnHelper } from '@tanstack/react-table';
 import React, { useState, useEffect } from 'react';
@@ -224,7 +223,7 @@ const ToiletFacilities: React.FC = () => {
       ),
   });
 
-  const totalPieValue = pieChartData.reduce((sum, item) => sum + (item.value ?? 0), 0);
+  // Removed totalPieValue (was only used for PieChart)
 
   const columnHelper = createColumnHelper<ToiletFacility>();
 
@@ -338,23 +337,20 @@ const ToiletFacilities: React.FC = () => {
               <Typography variant="h6" mb={2}>
               Distribution by Type
               </Typography>
-              <PieChart
-                series={[
-                  {
-                    data: pieChartData.map(item => ({ ...item, value: item.value ?? 0 })),
-                    arcLabel: (item) => totalPieValue > 0 ? `${(((item.value ?? 0) / totalPieValue) * 100).toFixed(1)}%` : '0%',
-                    arcLabelMinAngle: 10,
-                    outerRadius: 180,
-                    innerRadius: 40,
-                  },
-                ]}
+              <BarChart
+                xAxis={[{ scaleType: 'band', data: pieChartData.map(item => item.label) }]}
+                series={[{
+                  data: pieChartData.map(item => item.value),
+                  label: 'Count',
+                  colors: pieChartData.map(item => item.color),
+                  valueFormatter: (value) => `${value}`,
+                }]}
                 width={Math.min(760, window.innerWidth - 40)}
                 height={370}
                 sx={{
-                  [`& .${pieArcLabelClasses.root}`]: {
-                    fontWeight: 'bold',
-                    fill: 'white',
-                    fontSize: '0.8rem',
+                  '& .MuiBarElement-root': {
+                    // Use color from pieChartData if available
+                    // This will be overridden by the colors prop if supported
                   },
                 }}
               />
