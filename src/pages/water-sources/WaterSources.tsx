@@ -347,11 +347,11 @@ const WaterSourcesDashboard: React.FC = () => {
                     dataset={barChartData}
                     xAxis={[{ scaleType: 'band', dataKey: 'type' }]}
                     series={[
-                      { dataKey: 'functional', label: 'Functional', color: '#4CAF50' },
-                      { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#F44336' },
+                      { dataKey: 'functional', label: 'Functional', color: '#4CAF50', stack: 'a' },
+                      { dataKey: 'nonFunctional', label: 'Non-Functional', color: '#F44336', stack: 'a' },
                     ]}
-                    width={500}
-                    height={300}
+                    width={750}
+                    height={320}
                   />
                 </Box>
               </Box>
