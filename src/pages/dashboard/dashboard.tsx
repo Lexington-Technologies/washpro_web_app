@@ -524,15 +524,23 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              {/* Communities Captured Chart (replaced with summary card) */}
-                <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <CardContent>
+              {/* Communities Captured Chart (summary card) */}
+              <Grid item xs={12} md={4}>
+                <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                  <CardContent>
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
-                    Communities Captured
+                      Communities Captured
+                    </Typography>
+                    <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: '#1e293b', mb: 1 }}>
+                      {Array.isArray(data?.populationAnalytics?.hamletDistributionByWard)
+                        ? data.populationAnalytics.hamletDistributionByWard.reduce((acc: number, v: { count: number }) => acc + (v.count || 0), 0).toLocaleString()
+                        : '—'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Updated yesterday
                     </Typography>
                     <Box sx={{ height: 120 }}>
-                      <ResponsiveContainer width="100%" height="240%">
+                      <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={Array.isArray(data?.populationAnalytics?.hamletDistributionByWard)
                             ? data.populationAnalytics.hamletDistributionByWard.map((v: { name: string; count: number }) => ({ name: v.name, value: v.count }))
