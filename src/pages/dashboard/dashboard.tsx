@@ -443,10 +443,13 @@ const Dashboard = () => {
                   <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                     <CardContent>
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      Total Population by Ward
+                      Total Population
+                    </Typography>
+                    <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: '#1e293b', mb: 1 }}>
+                      {data?.populationAnalytics?.totalPopulation?.toLocaleString() || '—'}
                     </Typography>
                     <Box sx={{ height: 120 }}>
-                      <ResponsiveContainer width="100%" height="240%">
+                      <ResponsiveContainer width="100%" height="150%">
                         <BarChart
                           data={Array.isArray(data?.populationAnalytics?.wardDistribution)
                             ? data.populationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
@@ -464,50 +467,60 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              {/* Disability Distribution Chart (replaced with summary card) */}
+              {/* Disability Distribution Chart (summary card) */}
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   <CardContent>
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
                       Persons with Disabilities
                     </Typography>
-                    {/* Pie/Donut Chart for distribution */}
-                    <Box sx={{ width: 160, height: 160, position: 'relative', mx: 'auto', my: 2 }}>
-                      <PieChart width={160} height={160}>
-                        <Pie
-                          data={data?.populationAnalytics?.disabilityData || []}
-                          dataKey="count"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={75}
-                          startAngle={90}
-                          endAngle={-270}
-                        >
-                          {(data?.populationAnalytics?.disabilityData || []).map((entry: { name: string; count: number }, idx: number) => (
-                            <PieCell key={`cell-${idx}`} fill={["#232e5c", "#19c3f3", "#F59E0B", "#EF4444", "#10B981"][idx % 5]} />
-                          ))}
-                        </Pie>
-                      </PieChart>
-                      {/* Center total */}
-                      <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                        <Typography variant="body2" color="text.secondary">Total</Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                          {(data?.populationAnalytics?.disabilityData || []).reduce((acc: number, d: { count: number }) => acc + (d.count || 0), 0).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    {/* Breakdown below donut */}
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Breakdown</Typography>
-                      {(data?.populationAnalytics?.disabilityData || []).map((d: { name: string; count: number }) => (
-                        <Box key={d.name} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="body2" color="text.secondary">{d.name}</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{d.count.toLocaleString()}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
+                    {(() => {
+                      const disabilityData = data?.populationAnalytics?.disabilityData || [];
+                      const female = disabilityData.find((d: { name: string }) => d.name.toLowerCase().includes('female'))?.count || 0;
+                      const male = disabilityData.find((d: { name: string }) => d.name.toLowerCase().includes('male'))?.count || 0;
+                      const total = disabilityData.reduce((acc: number, d: { count: number }) => acc + (d.count || 0), 0);
+                      return (
+                        <>
+                          <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: '#1e293b', mb: 1 }}>
+                            {total.toLocaleString()}
+                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                            <Box sx={{ textAlign: 'left' }}>
+                              <Typography variant="body2" color="text.secondary">Female</Typography>
+                              <Typography variant="h6" sx={{ color: '#232e5c', fontWeight: 700 }}>{female.toLocaleString()}</Typography>
+                            </Box>
+                            <Box sx={{ width: 160, height: 160, position: 'relative' }}>
+                              <PieChart width={160} height={160}>
+                                <Pie
+                                  data={[
+                                    { name: 'Female', value: female },
+                                    { name: 'Male', value: male },
+                                  ]}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={55}
+                                  outerRadius={75}
+                                  startAngle={90}
+                                  endAngle={-270}
+                                  dataKey="value"
+                                >
+                                  <PieCell key="cell-0" fill="#232e5c" />
+                                  <PieCell key="cell-1" fill="#19c3f3" />
+                                </Pie>
+                              </PieChart>
+                              <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                                <Typography variant="body2" color="text.secondary">Total</Typography>
+                                <Typography variant="h5" sx={{ fontWeight: 700 }}>{total.toLocaleString()}</Typography>
+                              </Box>
+                            </Box>
+                            <Box sx={{ textAlign: 'right' }}>
+                              <Typography variant="body2" color="text.secondary">Male</Typography>
+                              <Typography variant="h6" sx={{ color: '#19c3f3', fontWeight: 700 }}>{male.toLocaleString()}</Typography>
+                            </Box>
+                          </Box>
+                        </>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               </Grid>
