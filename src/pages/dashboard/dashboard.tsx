@@ -456,7 +456,7 @@ const Dashboard = () => {
                       Total Population by Ward
                     </Typography>
                     <Box sx={{ height: 120, width: '100%' }}>
-                      <ResponsiveContainer width="100%" height="120%">
+                      <ResponsiveContainer width="100%" height="24 0%">
                         <BarChart
                           data={Array.isArray(data?.locationAnalytics?.wardDistribution)
                             ? data.locationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
@@ -525,11 +525,11 @@ const Dashboard = () => {
                 <Grid item xs={12} md={4}>
                   <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                     <CardContent>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Updated yesterday
-                      </Typography>
+                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
+                    Communities Captured
+                    </Typography>
                     <Box sx={{ height: 120 }}>
-                      <ResponsiveContainer width="100%" height="120%">
+                      <ResponsiveContainer width="100%" height="240%">
                           <BarChart
                           data={
                             (data?.populationAnalytics?.hamletDistributionByWard && data.populationAnalytics.hamletDistributionByWard.length > 0)
