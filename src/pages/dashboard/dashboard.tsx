@@ -456,7 +456,7 @@ const Dashboard = () => {
                       Total Population by Ward
                     </Typography>
                     <Box sx={{ height: 120, width: '100%' }}>
-                      <ResponsiveContainer width="100%" height="24 0%">
+                      <ResponsiveContainer width="100%" height="240%">
                         <BarChart
                           data={Array.isArray(data?.locationAnalytics?.wardDistribution)
                             ? data.locationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
