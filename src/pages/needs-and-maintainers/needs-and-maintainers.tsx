@@ -96,7 +96,7 @@ const NeedAndMaintainers = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

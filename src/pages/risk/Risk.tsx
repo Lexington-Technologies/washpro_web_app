@@ -721,7 +721,7 @@ const RiskAnalysisDashboard = () => {
           height: '90%',
           borderRadius: 1,
           overflow: 'hidden',
-          backgroundColor: '#f0f0f0'
+          backgroundColor: '#F1F1F5'
         }}
       >
         {/* Base Map Layer */}

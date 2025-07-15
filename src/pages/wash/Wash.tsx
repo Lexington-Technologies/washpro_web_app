@@ -101,7 +101,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, title, value, unit }) => 
 
 const Wash: React.FC = () => {
   return (
-    <Box sx={{ backgroundColor: '#f0f0f0', minHeight: '100vh', p: 3 }}>
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">WASH </Typography>

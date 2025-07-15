@@ -25,9 +25,9 @@ export default function Wrapper() {
     setDrawerOpen(!isDrawerOpen);
   };
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!user) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflowY: "hidden" }}>
@@ -46,7 +46,7 @@ export default function Wrapper() {
           onSidebarToggle={toggleSidebar}
           isSidebarCollapsed={isSidebarCollapsed}
         />
-        <Box sx={{ flexGrow: 1, padding: 1, overflowY: "scroll", backgroundColor: '#f0f0f0' }}>
+        <Box sx={{ flexGrow: 1, padding: 1, overflowY: "scroll", backgroundColor: '#F1F1F5' }}>
           <Outlet />
           <GlobalModal />
           <GlowingActionButton />

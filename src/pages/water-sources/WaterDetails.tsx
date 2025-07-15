@@ -12,9 +12,8 @@ import {
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Cog, Compass, HeartPulse, Home, MapPin, Phone, User, Users, X, ZoomIn, MapPinHouse, Droplet } from 'lucide-react';
+import { ArrowLeft, Calendar, Cog, Compass, Home, MapPin, User, Users, X, ZoomIn, MapPinHouse, Droplet } from 'lucide-react';
 import React, { useState } from 'react';
-import { GiWell } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Bar,

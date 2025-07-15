@@ -134,7 +134,7 @@ const Sanitation: React.FC = () => {
 
 
   return (
-    <Box sx={{ p: 3, backgroundColor: '#f0f0f0', minHeight: '100vh' }}>
+    <Box sx={{ p: 3, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" sx={{ color: '#1a237e', fontWeight: 600 }}>
