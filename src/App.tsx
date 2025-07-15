@@ -17,6 +17,8 @@ export default function App() {
     });
   }, [initializeZitadel]);
 
+  // trigger build
+
   useEffect(() => {
     zitadel?.userManager.getUser().then((user) => {
       if (user) {
