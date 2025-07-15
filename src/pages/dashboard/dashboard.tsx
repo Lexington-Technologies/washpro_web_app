@@ -270,21 +270,14 @@ const Dashboard = () => {
   };
 
   // Store last non-empty data for analytics charts to prevent disappearance on filter
-  const [lastDisabilityData, setLastDisabilityData] = useState<{ name: string; count: number }[]>([]);
   const [lastVillageDistribution, setLastVillageDistribution] = useState<{ name: string; count: number }[]>([]);
 
   useEffect(() => {
-    if (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0) {
-      setLastDisabilityData(data.populationAnalytics.disabilityData);
-    }
     if (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0) {
       setLastVillageDistribution(data.locationAnalytics.villageDistribution);
     }
   }, [data]);
 
-  const safeDisabilityData = (data?.populationAnalytics?.disabilityData && data.populationAnalytics.disabilityData.length > 0)
-    ? data.populationAnalytics.disabilityData
-    : lastDisabilityData;
   const safeVillageDistribution = (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0)
     ? data.locationAnalytics.villageDistribution
     : lastVillageDistribution;
@@ -462,31 +455,25 @@ const Dashboard = () => {
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
                       Total Population by Ward
                     </Typography>
-                    <Typography variant="body2" component="div" sx={{ fontWeight: "800", color: '#1e293b', mb: 1 }}>
-                      {data?.populationAnalytics?.totalPopulation?.toLocaleString() || '0'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Updated yesterday
-                      </Typography>
-                    <Box sx={{ height: 120 }}>
+                    <Box sx={{ height: 120, width: '100%' }}>
                       <ResponsiveContainer width="100%" height="120%">
                         <BarChart
                           data={Array.isArray(data?.locationAnalytics?.wardDistribution)
-                            ? (data.locationAnalytics.wardDistribution as { name: string; count: number }[]).map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
+                            ? data.locationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
                             : []}
                           margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" vertical={false} />
                           <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                           <YAxis hide />
-                            <Tooltip content={<CustomTooltip />} />
+                          <Tooltip content={<CustomTooltip />} />
                           <Bar dataKey="value" barSize={24} radius={[4, 4, 0, 0]} fill="#475569" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
               {/* Disability Distribution Chart (replaced with summary card) */}
               <Grid item xs={12} md={4}>
                 <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
@@ -494,42 +481,42 @@ const Dashboard = () => {
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
                       Persons with Disabilities
                     </Typography>
-                    <Typography variant="h2" component="div" sx={{ fontWeight: 800, color: '#1e293b', mb: 1 }}>
-                      4,218
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                      <Box sx={{ textAlign: 'left' }}>
-                        <Typography variant="body2" color="text.secondary">Female</Typography>
-                        <Typography variant="h6" sx={{ color: '#232e5c', fontWeight: 700 }}>2,345</Typography>
+                    {/* Pie/Donut Chart for distribution */}
+                    <Box sx={{ width: 160, height: 160, position: 'relative', mx: 'auto', my: 2 }}>
+                      <PieChart width={160} height={160}>
+                        <Pie
+                          data={data?.populationAnalytics?.disabilityData || []}
+                          dataKey="count"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {(data?.populationAnalytics?.disabilityData || []).map((entry: { name: string; count: number }, idx: number) => (
+                            <PieCell key={`cell-${idx}`} fill={["#232e5c", "#19c3f3", "#F59E0B", "#EF4444", "#10B981"][idx % 5]} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                      {/* Center total */}
+                      <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                        <Typography variant="body2" color="text.secondary">Total</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                          {(data?.populationAnalytics?.disabilityData || []).reduce((acc: number, d: { count: number }) => acc + (d.count || 0), 0).toLocaleString()}
+                        </Typography>
                       </Box>
-                      <Box sx={{ width: 160, height: 160, position: 'relative' }}>
-                        <PieChart width={160} height={160}>
-                          <Pie
-                            data={[
-                              { name: 'Female', value: 2345 },
-                              { name: 'Male', value: 1873 },
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={55}
-                            outerRadius={75}
-                            startAngle={90}
-                            endAngle={-270}
-                            dataKey="value"
-                          >
-                            <PieCell key="cell-0" fill="#232e5c" />
-                            <PieCell key="cell-1" fill="#19c3f3" />
-                          </Pie>
-                        </PieChart>
-                        <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                          <Typography variant="body2" color="text.secondary">Total</Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 700 }}>4,218</Typography>
+                    </Box>
+                    {/* Breakdown below donut */}
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Breakdown</Typography>
+                      {(data?.populationAnalytics?.disabilityData || []).map((d: { name: string; count: number }) => (
+                        <Box key={d.name} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="body2" color="text.secondary">{d.name}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{d.count.toLocaleString()}</Typography>
                         </Box>
-                      </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="body2" color="text.secondary">Male</Typography>
-                        <Typography variant="h6" sx={{ color: '#19c3f3', fontWeight: 700 }}>1,873</Typography>
-                      </Box>
+                      ))}
                     </Box>
                   </CardContent>
                 </Card>
@@ -538,16 +525,6 @@ const Dashboard = () => {
                 <Grid item xs={12} md={4}>
                   <Card sx={{ height: '100%', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                     <CardContent>
-                    <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      Communities Captured
-                    </Typography>
-                    <Typography variant="body2" component="div" sx={{ fontWeight: 800, color: '#1e293b', mb: 1 }}>
-                      {(
-                        (data?.populationAnalytics?.hamletDistributionByWard && data.populationAnalytics.hamletDistributionByWard.length > 0)
-                          ? data.populationAnalytics.hamletDistributionByWard.reduce((acc, curr) => acc + (curr.count || 0), 0)
-                          : safeVillageDistribution.reduce((acc, curr) => acc + (curr.count || 0), 0)
-                      ).toLocaleString() || '—'}
-                    </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       Updated yesterday
                       </Typography>
