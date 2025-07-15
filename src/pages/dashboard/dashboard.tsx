@@ -269,18 +269,8 @@ const Dashboard = () => {
     return null;
   };
 
-  // Store last non-empty data for analytics charts to prevent disappearance on filter
-  const [lastVillageDistribution, setLastVillageDistribution] = useState<{ name: string; count: number }[]>([]);
-
   useEffect(() => {
-    if (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0) {
-      setLastVillageDistribution(data.locationAnalytics.villageDistribution);
-    }
   }, [data]);
-
-  const safeVillageDistribution = (data?.locationAnalytics?.villageDistribution && data.locationAnalytics.villageDistribution.length > 0)
-    ? data.locationAnalytics.villageDistribution
-    : lastVillageDistribution;
 
   return (
     <Container maxWidth="xl" sx={{ py: 4, backgroundColor: '#F1F1F5', minHeight: '100vh' }}>
@@ -455,11 +445,11 @@ const Dashboard = () => {
                     <Typography variant="h6" component="div" sx={{ mb: 1, fontWeight: 'bold' }}>
                       Total Population by Ward
                     </Typography>
-                    <Box sx={{ height: 120, width: '100%' }}>
+                    <Box sx={{ height: 120 }}>
                       <ResponsiveContainer width="100%" height="240%">
                         <BarChart
-                          data={Array.isArray(data?.locationAnalytics?.wardDistribution)
-                            ? data.locationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
+                          data={Array.isArray(data?.populationAnalytics?.wardDistribution)
+                            ? data.populationAnalytics.wardDistribution.map((w: { name: string; count: number }) => ({ name: w.name, value: w.count }))
                             : []}
                           margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                         >
@@ -530,34 +520,22 @@ const Dashboard = () => {
                     </Typography>
                     <Box sx={{ height: 120 }}>
                       <ResponsiveContainer width="100%" height="240%">
-                          <BarChart
-                          data={
-                            (data?.populationAnalytics?.hamletDistributionByWard && data.populationAnalytics.hamletDistributionByWard.length > 0)
-                              ? data.populationAnalytics.hamletDistributionByWard.map(v => ({ name: v.name, value: v.count }))
-                              : safeVillageDistribution.length > 0
-                                ? safeVillageDistribution.map(v => ({ name: v.name, value: v.count }))
-                                : [
-                                  { name: 'Hunkuyi S/Gari', value: 60 },
-                                  { name: 'Zabi', value: 30 },
-                                  { name: 'Garu', value: 15 },
-                                  { name: 'Likoro', value: 75 },
-                                  { name: 'Kudan', value: 90 },
-                                  { name: 'Taba', value: 90 },
-                                  { name: 'Doka', value: 40 },
-                                ]
-                          }
+                        <BarChart
+                          data={Array.isArray(data?.populationAnalytics?.hamletDistributionByWard)
+                            ? data.populationAnalytics.hamletDistributionByWard.map((v: { name: string; count: number }) => ({ name: v.name, value: v.count }))
+                            : []}
                           margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" vertical={false} />
                           <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                          <YAxis hide domain={[0, 100]} />
-                            <Tooltip content={<CustomTooltip />} />
+                          <YAxis hide />
+                          <Tooltip content={<CustomTooltip />} />
                           <Bar dataKey="value" barSize={24} radius={[4, 4, 0, 0]} fill="#475569" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </CardContent>
-                  </Card>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
           </Box>
