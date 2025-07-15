@@ -10,15 +10,11 @@ import {
   DialogTitle,
   DialogContent,
   Grid,
-  Chip,
-  Stack,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
   Button,
   DialogActions,
+  Stack,
+  styled,
+  LinearProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -30,6 +26,10 @@ import DangerousIcon from '@mui/icons-material/Dangerous';
 import SafetyCheckIcon from '@mui/icons-material/SafetyCheck';
 import { FaChartLine } from 'react-icons/fa';
 import React from 'react';
+import LocationFilter from '../../components/LocationFilter';
+import { useNavigate } from 'react-router-dom';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
+import { BarChart } from '@mui/x-charts/BarChart';
 
 interface OpenDefecation {
   _id: string;
@@ -47,6 +47,11 @@ interface OpenDefecation {
   isSchoolArea: boolean;
   odfStatus: boolean;
   regressionRate: number;
+}
+
+interface PaginationState {
+  pageIndex: number;
+  pageSize: number;
 }
 
 const columnHelper = createColumnHelper<OpenDefecation>();
@@ -88,260 +93,434 @@ const riskColorMapping = {
   safe: "#4CAF50",
 };
 
+const colorPalette = ['#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#FF5722', '#00BCD4', '#8BC34A'];
+
+function normalizeValue(val: unknown): number {
+  if (
+    val === undefined ||
+    val === null ||
+    val === '' ||
+    (typeof val === 'string' && val.trim().toLowerCase() === 'no data')
+  ) {
+    return 0;
+  }
+  const num = Number(val);
+  return isNaN(num) ? 0 : num;
+}
+
+// Compute analytics from table data as fallback
+function computeAnalyticsFromTable(tableData: OpenDefecation[]) {
+  if (!Array.isArray(tableData) || tableData.length === 0) return null;
+  const totalSites = tableData.length;
+  // Distributions
+  const spaceTypeDistribution: Record<string, { count: number; percentage: string }> = {};
+  const environmentalSpaceDistribution: Record<string, { count: number; percentage: string }> = {};
+  const peakTimeDistribution: Record<string, number> = {};
+  const demographicsDistribution: Record<string, number> = {};
+  const footTrafficDistribution: Record<string, number> = {};
+  const densityDistribution: Record<string, number> = {};
+
+  tableData.forEach((item) => {
+    // Space Type
+    if (item.spaceType) {
+      spaceTypeDistribution[item.spaceType] = spaceTypeDistribution[item.spaceType] || { count: 0, percentage: '0%' };
+      spaceTypeDistribution[item.spaceType].count++;
+    }
+    // Environmental Space
+    if (item.environmentalSpaceType) {
+      environmentalSpaceDistribution[item.environmentalSpaceType] = environmentalSpaceDistribution[item.environmentalSpaceType] || { count: 0, percentage: '0%' };
+      environmentalSpaceDistribution[item.environmentalSpaceType].count++;
+    }
+    // Peak Time
+    if (item.peakTime) {
+      const pt = Array.isArray(item.peakTime) ? item.peakTime.join(',') : item.peakTime;
+      peakTimeDistribution[pt] = (peakTimeDistribution[pt] || 0) + 1;
+    }
+    // Demographics
+    if (item.demographics) {
+      const demoArr = Array.isArray(item.demographics) ? item.demographics : [item.demographics];
+      demoArr.forEach((d) => {
+        if (typeof d === 'string') {
+          demographicsDistribution[d] = (demographicsDistribution[d] || 0) + 1;
+        }
+      });
+    }
+    // Foot Traffic
+    if (item.footTraffic) {
+      footTrafficDistribution[item.footTraffic] = (footTrafficDistribution[item.footTraffic] || 0) + 1;
+    }
+    // Density
+    if (item.density) {
+      densityDistribution[item.density] = (densityDistribution[item.density] || 0) + 1;
+    }
+  });
+  // Calculate percentages
+  Object.keys(spaceTypeDistribution).forEach((k) => {
+    spaceTypeDistribution[k].percentage = ((spaceTypeDistribution[k].count / totalSites) * 100).toFixed(2) + '%';
+  });
+  Object.keys(environmentalSpaceDistribution).forEach((k) => {
+    environmentalSpaceDistribution[k].percentage = ((environmentalSpaceDistribution[k].count / totalSites) * 100).toFixed(2) + '%';
+  });
+  return {
+    totalSites,
+    spaceTypeDistribution,
+    environmentalSpaceDistribution,
+    peakTimeDistribution,
+    demographicsDistribution,
+    footTrafficDistribution,
+    densityDistribution,
+    // The following are not computable from tableData alone:
+    schoolOD: 0,
+    odfCommunities: 0,
+    regressionRate: 0,
+  };
+}
+
 const OpenDefication = () => {
   const [selectedLocation, setSelectedLocation] = useState<OpenDefecation | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const navigate = useNavigate();
+  // WaterSources-style filter state
   const [ward, setWard] = useState('');
   const [village, setVillage] = useState('');
   const [hamlet, setHamlet] = useState('');
 
-  const { data:analyticsData } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation-analytics'],
-    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations/analytics'),
-  });
-console.log(analyticsData?.totalSites)
-
-  const { data, isLoading } = useQuery<OpenDefecation[], Error>({
-    queryKey: ['open-defecation'],
-    queryFn: () => apiController.get<OpenDefecation[]>('/open-defecations'),
+  // Query for analytics
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: analyticsData, isLoading } = useQuery<any, Error>({
+    queryKey: ['open-defecation-analytics', ward, village, hamlet],
+    queryFn: () => apiController.get<any>(`/open-defecations/analytics?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
   });
 
-  // Analytics computation
-  const analytics = useMemo(() => ({
-    totalSites: data?.length || 0,
-    schoolOD: data?.filter(item => item.isSchoolArea).length || 0,
-    odfCommunities: data?.filter(item => item.odfStatus).length || 0,
-    regressionRate: data?.reduce((sum, item) => sum + item.regressionRate, 0) / (data?.length || 1) || 0,
-  }), [data]);
+  // Query for table data (move this above analytics assignment)
+  const { data: tableData, isTableLoading } = useQuery<OpenDefecation[], Error>({
+    queryKey: ['open-defecation', ward, village, hamlet],
+    queryFn: () => apiController.get<OpenDefecation[]>(`/open-defecations?ward=${ward || ''}&village=${village || ''}&hamlet=${hamlet || ''}`),
+  });
 
-  // Filter handlers
-  const handleFilterChange = (filterType: 'ward' | 'village' | 'hamlet', value: string) => {
-    if (filterType === 'ward') {
-      setWard(value);
-      setVillage('');
-      setHamlet('');
-    } else if (filterType === 'village') {
-      setVillage(value);
-      setHamlet('');
-    } else if (filterType === 'hamlet') {
-      setHamlet(value);
-    }
-  };
+  // Use analytics from API, or fallback to computed analytics from tableData
+  const analytics = (analyticsData?.data && Object.keys(analyticsData.data).length > 0)
+    ? analyticsData.data
+    : (Array.isArray(tableData) && tableData.length > 0)
+      ? computeAnalyticsFromTable(tableData)
+      : null;
 
-  // Filter options
-  const wardOptions = useMemo(
-    () => Array.from(new Set(data?.map((item) => item.ward) || [])),
-    [data]
-  );
+// PieChart data for spaceTypeDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const spaceTypePieData = analytics?.spaceTypeDistribution
+  ? Object.entries(analytics.spaceTypeDistribution).map(([label, val]: any[], idx) => ({
+      id: idx,
+      label,
+      value: normalizeValue(val.count),
+      color: colorPalette[idx % colorPalette.length],
+    }))
+  : [];
+const totalSpaceType = spaceTypePieData.reduce((sum, item) => sum + item.value, 0);
 
-  const villageOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          data
-            ?.filter((item) => !ward || item.ward === ward)
-            .map((item) => item.village) || []
-        )
-      ),
-    [data, ward]
-  );
+// PieChart data for environmentalSpaceDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const envSpacePieData = analytics?.environmentalSpaceDistribution
+  ? Object.entries(analytics.environmentalSpaceDistribution).map(([label, val]: any[], idx) => ({
+      id: idx,
+      label,
+      value: normalizeValue(val.count),
+      color: colorPalette[idx % colorPalette.length],
+    }))
+  : [];
+const totalEnvSpace = envSpacePieData.reduce((sum, item) => sum + item.value, 0);
 
-  const hamletOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          data
-            ?.filter(
-              (item) =>
-                (!ward || item.ward === ward) &&
-                (!village || item.village === village)
-            )
-            .map((item) => item.hamlet) || []
-        )
-      ),
-    [data, ward, village]
-  );
+// BarChart data for peakTimeDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const peakTimeBarData = analytics?.peakTimeDistribution
+  ? Object.entries(analytics.peakTimeDistribution).map(([label, val]: any[]) => ({
+      label,
+      value: normalizeValue(val),
+    }))
+  : [];
+
+// BarChart data for demographicsDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const demographicsBarData = analytics?.demographicsDistribution
+  ? Object.entries(analytics.demographicsDistribution).map(([label, val]: any[]) => ({
+      label: label.replace(/\[|\]|"/g, ''),
+      value: normalizeValue(val),
+    }))
+  : [];
+
+// BarChart data for footTrafficDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const footTrafficBarData = analytics?.footTrafficDistribution
+  ? Object.entries(analytics.footTrafficDistribution).map(([label, val]: any[]) => ({
+      label,
+      value: normalizeValue(val),
+    }))
+  : [];
+
+// BarChart data for densityDistribution
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const densityBarData = analytics?.densityDistribution
+  ? Object.entries(analytics.densityDistribution).map(([label, val]: any[]) => ({
+      label,
+      value: normalizeValue(val),
+    }))
+  : [];
+
+const FixedHeader = styled(Box)(({ theme }) => ({
+  position: 'sticky',
+  top: -9,
+  zIndex: 100,
+  backgroundColor: '#F1F1F5',
+  padding: theme.spacing(2, 0),
+  marginBottom: theme.spacing(2),
+}));
 
   const filteredData = useMemo(() => 
-    data?.filter(item =>
+    tableData?.filter(item =>
       (!ward || item.ward === ward) &&
       (!village || item.village === village) &&
       (!hamlet || item.hamlet === hamlet)
     ) || []
-  , [data, ward, village, hamlet]);
+  , [tableData, ward, village, hamlet]);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
-  }
+  const navigateToDetails = (id: string) => {
+    navigate(`/open-defecation/${id}`);
+  };
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#F8F9FA', minHeight: '100vh' }}>
-      {/* Header & Filters */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
-            Open Defecation
+    <Box sx={{ backgroundColor: '#F1F1F5', minHeight: '100vh', p: 3 }}>
+      <Box sx={{ position: 'relative' }}>
+        {/* FixedHeader for sticky header and filters */}
+        <FixedHeader>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                  <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 600 }}>
+                    Open Defecation
+                  </Typography>
+                  <Typography variant="subtitle1" color="text.secondary">
+                    Filtered open defecation observations
+                  </Typography>
+                </Box>
+                <Box>
+                  <LocationFilter ward={ward} village={village} hamlet={hamlet} setWard={setWard} setVillage={setVillage} setHamlet={setHamlet} />
+                </Box>
+              </Box>
+              {/* Loading bar below filters, matching WaterSources */}
+              {(isLoading || isTableLoading) && <LinearProgress sx={{ mb: 2 }} />}
+            </Grid>
+          </Grid>
+        </FixedHeader>
+        {/* Analytics Cards, Charts, Map, Table, etc. go here, below the sticky header */}
+        {/* Analytics Cards */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard title="Total Observations" value={normalizeValue(analytics?.totalSites)} icon={<FaChartLine />} iconColor="#3b82f6" />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard title="Schools with OD" value={normalizeValue(analytics?.schoolOD)} icon={<DangerousIcon />} iconColor="#ef4444" />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard title="ODF Communities" value={normalizeValue(analytics?.odfCommunities)} icon={<SafetyCheckIcon />} iconColor="#4CAF50" />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard title="ODF Regression Rate" value={`${normalizeValue(analytics?.regressionRate).toFixed(1)}%`} icon={<FaChartLine />} iconColor="#f59e0b" />
+          </Grid>
+        </Grid>
+
+                {/* Map Section */}
+                <Paper sx={{ p: 2, mb: 5, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Observations Map
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Filtered open defecation observations
-          </Typography>
-        </Box>
-        {/* <Stack direction="row" spacing={1}>
-          <FilterDropdown label="Ward" value={ward} options={wardOptions} onChange={(v) => handleFilterChange('ward', v)} />
-          <FilterDropdown label="Village" value={village} options={villageOptions} onChange={(v) => handleFilterChange('village', v)} />
-          <FilterDropdown label="Hamlet" value={hamlet} options={hamletOptions} onChange={(v) => handleFilterChange('hamlet', v)} />
-        </Stack> */}
-      </Box>
+          <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <Box sx={{ height: 700, borderRadius: 2, overflow: 'hidden' }}>
+              <Map
+                defaultZoom={15}
+                defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
+                mapId={GOOGLE_MAPS_API_KEY}
+              >
+                {filteredData.map((item) => (
+                  <AdvancedMarker
+                    key={item._id}
+                    position={{ lat: item.geolocation.coordinates[1], lng: item.geolocation.coordinates[0] }}
+                    onClick={() => setSelectedLocation(item)}
+                  >
+                    <Box sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: riskColorMapping.critical,
+                      border: '2px solid #fff',
+                    }} />
+                  </AdvancedMarker>
+                ))}
+              </Map>
+            </Box>
+          </APIProvider>
+        </Paper>
 
-      {/* Analytics Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Total Observations" value={analyticsData?.totalSites} icon={<FaChartLine />} iconColor="#3b82f6" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="Schools with OD" value={analytics.schoolOD || 2} icon={<DangerousIcon />} iconColor="#ef4444" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="ODF Communities" value={analytics.odfCommunities || 340} icon={<SafetyCheckIcon />} iconColor="#4CAF50" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard title="ODF Regression Rate" value={ "5%"} icon={<FaChartLine />} iconColor="#f59e0b" />
-          {/* `${analytics.regressionRate.toFixed(1)}%`  */}
-        </Grid>
-      </Grid>
 
-      {/* Map Section */}
-      <Paper sx={{ p: 2, mb: 5, borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Observations Map
-        </Typography>
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <Box sx={{ height: 500, borderRadius: 2, overflow: 'hidden' }}>
-            <Map
-              defaultZoom={11}
-              defaultCenter={{ lat: 11.2832241, lng: 7.6644755 }}
-              mapId={GOOGLE_MAPS_API_KEY}
-            >
-              {filteredData.map((item) => (
-                <AdvancedMarker
-                  key={item._id}
-                  position={{ lat: item.geolocation.coordinates[1], lng: item.geolocation.coordinates[0] }}
-                  onClick={() => setSelectedLocation(item)}
-                >
-                  <Box sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    bgcolor: riskColorMapping.critical,
-                    border: '2px solid #fff',
-                  }} />
-                </AdvancedMarker>
-              ))}
-            </Map>
-          </Box>
-        </APIProvider>
-      </Paper>
+        {/* Analytics Charts */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Distribution by Space Type</Typography>
+              <PieChart
+                series={[{
+                  data: spaceTypePieData,
+                  arcLabel: (item) => totalSpaceType > 0 ? `${((item.value / totalSpaceType) * 100).toFixed(1)}%` : '0%',
+                  arcLabelMinAngle: 10,
+                  outerRadius: 180,
+                  innerRadius: 40,
+                }]}
+                width={Math.min(760, window.innerWidth - 40)}
+                height={370}
+                sx={{ [`& .${pieArcLabelClasses.root}`]: { fontWeight: 'bold', fill: 'white', fontSize: '0.8rem' } }}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Distribution by Environmental Space</Typography>
+              <PieChart
+                series={[{
+                  data: envSpacePieData,
+                  arcLabel: (item) => totalEnvSpace > 0 ? `${((item.value / totalEnvSpace) * 100).toFixed(1)}%` : '0%',
+                  arcLabelMinAngle: 10,
+                  outerRadius: 180,
+                  innerRadius: 40,
+                }]}
+                width={Math.min(760, window.innerWidth - 40)}
+                height={370}
+                sx={{ [`& .${pieArcLabelClasses.root}`]: { fontWeight: 'bold', fill: 'white', fontSize: '0.8rem' } }}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Peak Time Distribution</Typography>
+              <BarChart
+                dataset={peakTimeBarData}
+                yAxis={[{ scaleType: 'linear' }]}
+                xAxis={[{ scaleType: 'band', dataKey: 'label' }]}
+                series={[{ dataKey: 'value', label: 'Count', color: '#2196F3' }]}
+                height={370}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Demographics Distribution</Typography>
+              <BarChart
+                dataset={demographicsBarData}
+                yAxis={[{ scaleType: 'linear' }]}
+                xAxis={[{ scaleType: 'band', dataKey: 'label' }]}
+                series={[{ dataKey: 'value', label: 'Count', color: '#9C27B0' }]}
+                height={370}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Foot Traffic Distribution</Typography>
+              <BarChart
+                dataset={footTrafficBarData}
+                yAxis={[{ scaleType: 'linear' }]}
+                xAxis={[{ scaleType: 'band', dataKey: 'label' }]}
+                series={[{ dataKey: 'value', label: 'Count', color: '#FF9800' }]}
+                height={370}
+              />
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6" mb={2}>Density Distribution</Typography>
+              <BarChart
+                dataset={densityBarData}
+                yAxis={[{ scaleType: 'linear' }]}
+                xAxis={[{ scaleType: 'band', dataKey: 'label' }]}
+                series={[{ dataKey: 'value', label: 'Count', color: '#4CAF50' }]}
+                height={370}
+              />
+            </Card>
+          </Grid>
+        </Grid>
 
-      {/* Data Table */}
-      <DataTable
-        isLoading={isLoading}
-        columns={columns}
-        data={filteredData}
-        onRowClick={(row) => setSelectedLocation(row)}
-      />
 
-      {/* Details Modal */}
-      <Dialog open={!!selectedLocation} onClose={() => setSelectedLocation(null)} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ p: 3, bgcolor: '#1a237e', color: '#fff' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Observation Details</Typography>
-            <IconButton onClick={() => setSelectedLocation(null)} sx={{ color: '#fff' }}>
-              <X size={20} />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 3 }}>
-          {selectedLocation && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
-                  {selectedLocation.picture ? (
+        {/* Data Table */}
+        <DataTable
+          data={tableData || []}
+          columns={columns}
+          pagination={{
+            pageIndex: pagination.pageIndex,
+            pageSize: pagination.pageSize,
+          }}
+          onPaginationChange={setPagination}
+          onFilterChange={() => {
+            setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+          }}
+          wardFilter={ward}
+          villageFilter={village}
+          hamletFilter={hamlet}
+          onRowClick={(row) => navigateToDetails(row._id)}
+        />
+
+        {/* Location Details Dialog */}
+        {selectedLocation && (
+          <Dialog
+            open={!!selectedLocation}
+            onClose={() => setSelectedLocation(null)}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6">Location Details</Typography>
+                <IconButton onClick={() => setSelectedLocation(null)}>
+                  <X />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ position: 'relative', height: 300, borderRadius: 2, overflow: 'hidden' }}>
                     <img
                       src={selectedLocation.picture}
-                      alt="Observation"
-                      style={{ width: '100%', borderRadius: 8 }}
+                      alt="location"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                  ) : (
-                    <Typography color="text.secondary">Image not available</Typography>
-                  )}
-                </Card>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Stack spacing={2}>
+                    <DetailItem icon={<MapPin />} label="Location" value={`${selectedLocation.ward}, ${selectedLocation.village}, ${selectedLocation.hamlet}`} />
+                    <DetailItem icon={<Home />} label="Space Type" value={selectedLocation.spaceType} />
+                    <DetailItem icon={<AlertCircle />} label="Foot Traffic" value={selectedLocation.footTraffic} />
+                    <DetailItem icon={<AlertCircle />} label="Peak Time" value={Array.isArray(selectedLocation.peakTime) ? selectedLocation.peakTime.map(String).join(', ') : String(selectedLocation.peakTime)} />
+                    <DetailItem icon={<AlertCircle />} label="Daily Average" value={selectedLocation.dailyAverage} />
+                    <DetailItem icon={<AlertCircle />} label="School Area" value={selectedLocation.isSchoolArea ? 'Yes' : 'No'} />
+                    <DetailItem icon={<AlertCircle />} label="ODF Status" value={selectedLocation.odfStatus ? 'Yes' : 'No'} />
+                    <DetailItem icon={<AlertCircle />} label="Regression Rate" value={`${selectedLocation.regressionRate}%`} />
+                  </Stack>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3, mb: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    <MapPin size={20} style={{ marginRight: 8 }} />
-                    Location Details
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <DetailItem icon={<Home />} label="Ward" value={selectedLocation.ward} />
-                    <DetailItem icon={<MapPin />} label="Village" value={selectedLocation.village} />
-                    <DetailItem icon={<MapPin />} label="Hamlet" value={selectedLocation.hamlet} />
-                  </Grid>
-                </Card>
-                <Card sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    <AlertCircle size={20} style={{ marginRight: 8 }} />
-                    Additional Information
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <DetailItem label="Space Type" value={selectedLocation.spaceType} />
-                    <DetailItem label="Foot Traffic" value={selectedLocation.footTraffic} />
-                    <DetailItem 
-                      label="Peak Times" 
-                      value={Array.isArray(selectedLocation.peakTime) ? 
-                        selectedLocation.peakTime.join(', ') : 
-                        selectedLocation.peakTime} 
-                    />
-                  </Grid>
-                </Card>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setSelectedLocation(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSelectedLocation(null)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </Box>
     </Box>
   );
 };
 
 // Helper Components
-const FilterDropdown = ({ label, value, options, onChange }: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (value: string) => void;
-}) => (
-  <FormControl variant="outlined" sx={{ minWidth: 210 }}>
-    <InputLabel>{label}</InputLabel>
-    <Select
-      value={value}
-      onChange={(e) => onChange(e.target.value as string)}
-      label={label}
-      sx={{ height: 40 }}
-    >
-      <MenuItem value="">All {label}</MenuItem>
-      {options.map((option) => (
-        <MenuItem key={option} value={option}>{option}</MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-);
-
 const StatsCard = ({ title, value, icon, iconColor }: {
   title: string;
   value: string | number;

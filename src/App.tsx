@@ -1,11 +1,12 @@
 import { RouterProvider } from "react-router-dom";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import router from "./routes";
 import LoadingAnimation from "./components/LoadingAnimation";
 import { useAuthStore } from "./store";
+import { LocationFilterProvider } from './contexts/LocationFilterContext';
 
 export default function App() {
-  const { initializeZitadel, zitadel, setAuthenticated, isAuthenticated } = useAuthStore();
+  const { initializeZitadel, zitadel, setAuthenticated } = useAuthStore();
 
   useEffect(() => {
     initializeZitadel({
@@ -29,13 +30,12 @@ export default function App() {
     });
   }, [zitadel]);
 
-
-
-
   return (
-    <Suspense fallback={<LoadingAnimation />}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <LocationFilterProvider>
+      <Suspense fallback={<LoadingAnimation />}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </LocationFilterProvider>
   );
 }
 
